@@ -17,4 +17,7 @@ interface AttendanceDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun markAttendance(attendance: AttendanceEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(attendanceList: List<AttendanceEntity>)
 }

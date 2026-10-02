@@ -13,5 +13,11 @@ interface FeeDao {
     fun getFeeRecordsByStudent(studentId: Long): Flow<List<FeeRecordEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFeeRecord(record: FeeRecordEntity): Long
+    suspend fun insertFeeRecord(feeRecord: FeeRecordEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFee(feeRecord: FeeRecordEntity): Long
+
+    @Delete
+    suspend fun deleteFeeRecord(feeRecord: FeeRecordEntity)
 }

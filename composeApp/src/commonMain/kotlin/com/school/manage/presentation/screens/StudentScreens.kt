@@ -128,9 +128,6 @@ fun StudentListScreen(
     }
 }
 
-// -------------------------------------------------------------
-// ADD STUDENT SCREEN (With DOB Calendar Picker)
-// -------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddStudentScreen(
@@ -338,9 +335,6 @@ fun AddStudentScreen(
     }
 }
 
-// -------------------------------------------------------------
-// ASSIGN BATCH & REDESIGNED FEE STRUCTURE SCREEN
-// -------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssignBatchScreen(
@@ -393,7 +387,6 @@ fun AssignBatchScreen(
                                         monthlyFee = monthlyTuition
                                     )
                                 )
-                                // Record the initial payment record (Admission + 1st Month Tuition)
                                 if (totalInitialPayable > 0.0) {
                                     database.feeDao().insertFeeRecord(
                                         FeeRecordEntity(
@@ -404,7 +397,8 @@ fun AssignBatchScreen(
                                             amountPaid = totalInitialPayable,
                                             paymentDate = "02/10/2026",
                                             feeMonth = "10/2026",
-                                            paymentMode = "CASH"
+                                            paymentMode = "CASH",
+                                            remarks = "Admission Fee + 1st Month Tuition"
                                         )
                                     )
                                 }
@@ -443,7 +437,6 @@ fun AssignBatchScreen(
                 )
             }
 
-            // Batch / Class Selection from Classes Option
             item {
                 Column {
                     Text("Batch / Class Selection", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
@@ -481,7 +474,6 @@ fun AssignBatchScreen(
                 }
             }
 
-            // Fee Structure Section
             item {
                 Column {
                     Text("Fee Structure Setup", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
@@ -489,7 +481,6 @@ fun AssignBatchScreen(
                 }
             }
 
-            // 1. Admission Fee Input (Yearly)
             item {
                 CustomRoundedInput(
                     value = admissionFeeInput,
@@ -498,7 +489,6 @@ fun AssignBatchScreen(
                 )
             }
 
-            // 2. Monthly Tuition Fee Input
             item {
                 CustomRoundedInput(
                     value = tuitionFeeInput,
@@ -507,7 +497,6 @@ fun AssignBatchScreen(
                 )
             }
 
-            // Auto-Sum Fee Calculation Card
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),

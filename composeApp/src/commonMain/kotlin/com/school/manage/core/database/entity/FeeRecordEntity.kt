@@ -7,11 +7,12 @@ import androidx.room.PrimaryKey
 data class FeeRecordEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val schoolCode: String,
-    val studentId: Long,
-    val studentName: String,
-    val gradeClass: String,
-    val amountPaid: Double,
-    val paymentDate: String,
-    val paymentMode: String,
-    val remarks: String
+    val studentId: Long = 0L,
+    val studentName: String = "",
+    val gradeClass: String = "",
+    val amountPaid: Double = 0.0,
+    val paymentDate: String = "",
+    val feeMonth: String = "",
+    val paymentMode: String = "CASH",
+    val remarks: String = ""
 )
