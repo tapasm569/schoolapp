@@ -13,6 +13,7 @@ fun AppNavHost(database: AppDatabase) {
     var currentSchoolCode by remember { mutableStateOf("") }
     var currentSchoolName by remember { mutableStateOf("") }
     var currentStudentId by remember { mutableStateOf(0L) }
+    var currentStaffId by remember { mutableStateOf(0L) }
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") {
@@ -22,6 +23,11 @@ fun AppNavHost(database: AppDatabase) {
                     currentSchoolCode = code
                     currentSchoolName = name
                     navController.navigate("dashboard") { popUpTo("login") { inclusive = true } }
+                },
+                onStaffLoginSuccess = { staffId, code, _, _ ->
+                    currentStaffId = staffId
+                    currentSchoolCode = code
+                    navController.navigate("staff_portal") { popUpTo("login") { inclusive = true } }
                 },
                 onStudentLoginSuccess = { studentId ->
                     currentStudentId = studentId
@@ -42,6 +48,15 @@ fun AppNavHost(database: AppDatabase) {
                 database = database,
                 schoolCode = currentSchoolCode,
                 schoolName = currentSchoolName,
+                onNavigate = { route -> navController.navigate(route) },
+                onLogout = { navController.navigate("login") { popUpTo(0) } }
+            )
+        }
+        composable("staff_portal") {
+            StaffPortalScreen(
+                database = database,
+                staffId = currentStaffId,
+                schoolCode = currentSchoolCode,
                 onNavigate = { route -> navController.navigate(route) },
                 onLogout = { navController.navigate("login") { popUpTo(0) } }
             )
