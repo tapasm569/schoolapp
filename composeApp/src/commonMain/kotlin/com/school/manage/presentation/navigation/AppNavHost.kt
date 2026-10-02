@@ -90,7 +90,7 @@ fun AppNavHost(database: AppDatabase) {
                     schoolCode = currentSchoolCode,
                     onNavigateBack = { navController.popBackStack() },
                     onStudentSaved = { sId, sName ->
-                        navController.navigate("assign_batch/\(sId/\)sName")
+                        navController.navigate("assign_batch/" + sId + "/" + sName)
                     }
                 )
             }

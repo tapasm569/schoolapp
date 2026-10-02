@@ -310,7 +310,7 @@ fun ChartGridCanvas(lineColor: Color) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             (1..9).forEach {
-                Text("$it", fontSize = 10.sp, color = colors.textSecondary, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                Text(it.toString(), fontSize = 10.sp, color = colors.textSecondary, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -507,7 +507,7 @@ fun ModernDatePickerDialog(
                     }
 
                     Text(
-                        text = "\({months[selectedMonthIndex]}\)selectedYear",
+                        text = months[selectedMonthIndex] + " " + selectedYear,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp,
                         color = colors.textPrimary
@@ -544,7 +544,7 @@ fun ModernDatePickerDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "$day",
+                                text = day.toString(),
                                 fontSize = 12.sp,
                                 fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
                                 color = if (isSelected) Color.White else colors.textPrimary
@@ -565,10 +565,10 @@ fun ModernDatePickerDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val dayStr = if (selectedDay < 10) "0\(selectedDay" else "\)selectedDay"
+                            val dayStr = if (selectedDay < 10) "0" + selectedDay else selectedDay.toString()
                             val monthNum = selectedMonthIndex + 1
-                            val monthStr = if (monthNum < 10) "0\(monthNum" else "\)monthNum"
-                            onDateSelected("\(dayStr/\)monthStr/$selectedYear")
+                            val monthStr = if (monthNum < 10) "0" + monthNum else monthNum.toString()
+                            onDateSelected(dayStr + "/" + monthStr + "/" + selectedYear)
                             onDismiss()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),

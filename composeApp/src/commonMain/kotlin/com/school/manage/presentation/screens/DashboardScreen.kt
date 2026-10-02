@@ -43,9 +43,10 @@ fun DashboardScreen(
     var selectedMonthIndex by remember { mutableStateOf(9) }
     var selectedYear by remember { mutableStateOf(2026) }
 
-    val currentMonthLabel = "\({monthsList[selectedMonthIndex]}-\)selectedYear"
-    val monthNumberStr = if (selectedMonthIndex + 1 < 10) "0\({selectedMonthIndex + 1}" else "\){selectedMonthIndex + 1}"
-    val monthFilterPattern = "\(monthNumberStr/\)selectedYear"
+    val currentMonthLabel = monthsList[selectedMonthIndex] + "-" + selectedYear
+    val monthNumVal = selectedMonthIndex + 1
+    val monthNumberStr = if (monthNumVal < 10) "0" + monthNumVal else monthNumVal.toString()
+    val monthFilterPattern = monthNumberStr + "/" + selectedYear
 
     val monthlyFees = feeRecords.filter { it.feeMonth.contains(monthFilterPattern) || it.paymentDate.contains(monthFilterPattern) }.sumOf { it.amountPaid }
     val totalFees = feeRecords.sumOf { it.amountPaid }
@@ -137,7 +138,6 @@ fun DashboardScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Dynamic Theme Mode Switcher
                         Surface(
                             onClick = toggleTheme,
                             shape = CircleShape,
@@ -172,27 +172,27 @@ fun DashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     TopCountCard(
-                        count = "${students.size}",
+                        count = students.size.toString(),
                         title = "Students",
-                        subtitle = "${students.size} active",
+                        subtitle = students.size.toString() + " active",
                         bannerColor = Color(0xFFE0F2FE),
                         icon = "👥",
                         modifier = Modifier.weight(1f),
                         onClick = { onNavigate("student_list") }
                     )
                     TopCountCard(
-                        count = "${batches.size}",
+                        count = batches.size.toString(),
                         title = "Classes",
-                        subtitle = "${batches.size} active",
+                        subtitle = batches.size.toString() + " active",
                         bannerColor = Color(0xFFDCFCE7),
                         icon = "🏫",
                         modifier = Modifier.weight(1f),
                         onClick = { onNavigate("batch_list") }
                     )
                     TopCountCard(
-                        count = "${staffList.size}",
+                        count = staffList.size.toString(),
                         title = "Teacher",
-                        subtitle = "${staffList.size} active",
+                        subtitle = staffList.size.toString() + " active",
                         bannerColor = Color(0xFFFEF3C7),
                         icon = "👨‍🏫",
                         modifier = Modifier.weight(1f),
@@ -253,10 +253,10 @@ fun DashboardScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            LegendPill("Present: $presentCount", Color(0xFF22C55E))
-                            LegendPill("Absent: $absentCount", Color(0xFFEF4444))
-                            LegendPill("Leave: $leaveCount", Color(0xFFF59E0B))
-                            LegendPill("Holiday: $holidayCount", Color(0xFF3B82F6))
+                            LegendPill("Present: " + presentCount, Color(0xFF22C55E))
+                            LegendPill("Absent: " + absentCount, Color(0xFFEF4444))
+                            LegendPill("Leave: " + leaveCount, Color(0xFFF59E0B))
+                            LegendPill("Holiday: " + holidayCount, Color(0xFF3B82F6))
                         }
                     }
                 }
@@ -271,16 +271,16 @@ fun DashboardScreen(
                     AttendanceProgressBarCard(
                         title = "Student",
                         subtitle = "Marking Attendance",
-                        pct = "$studentPct%",
-                        ratio = "\(presentCount/\)studentTotalMarked",
+                        pct = studentPct.toString() + "%",
+                        ratio = presentCount.toString() + "/" + studentTotalMarked.toString(),
                         progress = studentPct / 100f,
                         modifier = Modifier.weight(1f)
                     )
                     AttendanceProgressBarCard(
                         title = "Teacher",
                         subtitle = "Marking Attendance",
-                        pct = "$teacherPct%",
-                        ratio = "\(teacherPresent/\)teacherTotalMarked",
+                        pct = teacherPct.toString() + "%",
+                        ratio = teacherPresent.toString() + "/" + teacherTotalMarked.toString(),
                         progress = teacherPct / 100f,
                         modifier = Modifier.weight(1f)
                     )
@@ -381,8 +381,8 @@ fun DashboardScreen(
                         // Incomes
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text("₹0", fontSize = 13.sp, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${monthlyFees.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${totalFees.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹" + monthlyFees.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹" + totalFees.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -392,8 +392,8 @@ fun DashboardScreen(
                         // Expenses
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text("₹0", fontSize = 13.sp, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${monthlyExpenses.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${totalExpenses.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹" + monthlyExpenses.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹" + totalExpenses.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                         }
                     }
                 }
@@ -430,7 +430,7 @@ fun DashboardScreen(
             item { Spacer(modifier = Modifier.height(70.dp)) }
         }
 
-        // 8. MODERN MODAL BOTTOM SHEET (Replacing standard boxed dialog)
+        // 8. MODAL BOTTOM SHEET
         if (showAddNewBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showAddNewBottomSheet = false },
