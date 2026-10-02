@@ -111,7 +111,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 2. Top Counter Tri-Cards (Students, Classes, Teacher)
+            // 2. Top Counter Tri-Cards
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -133,7 +133,7 @@ fun DashboardScreen(
                         bannerColor = Color(0xFFDCFCE7),
                         icon = "🏫",
                         modifier = Modifier.weight(1f),
-                        onClick = { onNavigate("student_list") }
+                        onClick = { onNavigate("add_batch") }
                     )
                     TopCountCard(
                         count = "${staffList.size}",
@@ -249,7 +249,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 6. Monthly Summary (Income vs Expense Table + Chart)
+            // 6. Monthly Summary
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
@@ -263,12 +263,7 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                "Monthly Summary",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = Color(0xFF0F52BA)
-                            )
+                            Text("Monthly Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
                                 Spacer(modifier = Modifier.width(10.dp))
@@ -282,10 +277,7 @@ fun DashboardScreen(
                         ChartGridCanvas(lineColor = Color(0xFFEF4444))
 
                         Spacer(modifier = Modifier.height(10.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
-                        ) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                             LegendPill("Incomes", Color(0xFF22C55E))
                             Spacer(modifier = Modifier.width(16.dp))
                             LegendPill("Expenses", Color(0xFFEF4444))
@@ -302,7 +294,7 @@ fun DashboardScreen(
                         HorizontalDivider(color = Color(0xFFF1F5F9))
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        // Incomes Row
+                        // Incomes
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text("₹0", fontSize = 13.sp, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                             Text("₹${totalFees.toInt()}", fontSize = 13.sp, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
@@ -313,7 +305,7 @@ fun DashboardScreen(
                         HorizontalDivider(color = Color(0xFFF1F5F9))
                         Spacer(modifier = Modifier.height(6.dp))
 
-                        // Expenses Row
+                        // Expenses
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text("₹0", fontSize = 13.sp, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                             Text("₹${totalExpenses.toInt()}", fontSize = 13.sp, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
@@ -325,13 +317,7 @@ fun DashboardScreen(
 
             // 7. FEATURES 4x3 Grid Section
             item {
-                Text(
-                    text = "FEATURES",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
-                    color = Color(0xFF475569),
-                    letterSpacing = 1.sp
-                )
+                Text("FEATURES", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF475569), letterSpacing = 1.sp)
             }
 
             item {
@@ -350,9 +336,9 @@ fun DashboardScreen(
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         FeatureIconItem("Leave\nManagement", "➖", Color(0xFFF0FDF4), onClick = { onNavigate("attendance") })
-                        FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("student_list") })
-                        FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("student_list") })
-                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("student_list") })
+                        FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("add_batch") })
+                        FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("add_batch") })
+                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("add_batch") })
                     }
                 }
             }
@@ -374,20 +360,13 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "Add New",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 18.sp,
-                                color = Color(0xFF0F52BA)
-                            )
+                            Text("Add New", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF0F52BA))
                             Text(
                                 text = "✕",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFDC2626),
-                                modifier = Modifier
-                                    .padding(4.dp)
-                                    .clickable { showAddNewDialog = false }
+                                modifier = Modifier.padding(4.dp).clickable { showAddNewDialog = false }
                             )
                         }
 
@@ -397,7 +376,7 @@ fun DashboardScreen(
                         AddNewOptionItem(
                             title = "Student",
                             subtitle = "You can add new student here",
-                            icon = "👨‍‍🎓",
+                            icon = "👨‍🎓",
                             onClick = {
                                 showAddNewDialog = false
                                 onNavigate("add_student")
@@ -409,7 +388,7 @@ fun DashboardScreen(
                             icon = "👨‍🏫",
                             onClick = {
                                 showAddNewDialog = false
-                                onNavigate("staff_list")
+                                onNavigate("add_staff")
                             }
                         )
                         AddNewOptionItem(
@@ -418,7 +397,7 @@ fun DashboardScreen(
                             icon = "👥",
                             onClick = {
                                 showAddNewDialog = false
-                                onNavigate("student_list")
+                                onNavigate("add_batch")
                             }
                         )
                         AddNewOptionItem(
@@ -483,18 +462,13 @@ fun TopCountCard(
     ) {
         Column {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(26.dp)
-                    .background(bannerColor),
+                modifier = Modifier.fillMaxWidth().height(26.dp).background(bannerColor),
                 contentAlignment = Alignment.Center
             ) {
                 Text(icon, fontSize = 12.sp)
             }
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(count, fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color(0xFF0F766E))
@@ -571,15 +545,12 @@ fun LegendPill(label: String, color: Color) {
 fun ChartGridCanvas(lineColor: Color) {
     Column {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
+            modifier = Modifier.fillMaxWidth().height(100.dp)
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val stepY = size.height / 5
                 val stepX = size.width / 9
 
-                // Grid Lines
                 for (i in 0..5) {
                     drawLine(
                         color = Color(0xFFE2E8F0),
@@ -597,7 +568,6 @@ fun ChartGridCanvas(lineColor: Color) {
                     )
                 }
 
-                // Data Line at 0 baseline
                 val baseline = size.height
                 drawLine(
                     color = lineColor,
@@ -635,15 +605,10 @@ fun FeatureIconItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(72.dp)
-            .clickable(onClick = onClick)
+        modifier = Modifier.width(72.dp).clickable(onClick = onClick)
     ) {
         Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(bgColor),
+            modifier = Modifier.size(46.dp).clip(RoundedCornerShape(12.dp)).background(bgColor),
             contentAlignment = Alignment.Center
         ) {
             Text(iconEmoji, fontSize = 22.sp)
@@ -668,17 +633,11 @@ fun AddNewOptionItem(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFEFF6FF)),
+            modifier = Modifier.size(38.dp).clip(CircleShape).background(Color(0xFFEFF6FF)),
             contentAlignment = Alignment.Center
         ) {
             Text(icon, fontSize = 18.sp)

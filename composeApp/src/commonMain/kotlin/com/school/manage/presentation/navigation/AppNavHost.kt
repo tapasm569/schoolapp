@@ -1,9 +1,11 @@
 package com.school.manage.presentation.navigation
 
 import androidx.compose.runtime.*
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.presentation.screens.*
 
@@ -78,6 +80,42 @@ fun AppNavHost(database: AppDatabase) {
         }
         composable("add_student") {
             AddStudentScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() },
+                onStudentSaved = { sId, sName ->
+                    navController.navigate("assign_batch/$sId/$sName")
+                }
+            )
+        }
+        composable(
+            route = "assign_batch/{studentId}/{studentName}",
+            arguments = listOf(
+                navArgument("studentId") { type = NavType.LongType },
+                navArgument("studentName") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val sId = backStackEntry.arguments?.getLong("studentId") ?: 0L
+            val sName = backStackEntry.arguments?.getString("studentName") ?: "Student"
+            AssignBatchScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                studentId = sId,
+                studentName = sName,
+                onBatchAssigned = {
+                    navController.popBackStack("student_list", inclusive = false)
+                }
+            )
+        }
+        composable("add_staff") {
+            AddStaffScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("add_batch") {
+            AddBatchScreen(
                 database = database,
                 schoolCode = currentSchoolCode,
                 onNavigateBack = { navController.popBackStack() }

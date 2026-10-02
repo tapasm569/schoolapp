@@ -7,12 +7,21 @@ import androidx.room.PrimaryKey
 data class StudentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val schoolCode: String,
-    val rollNo: String,
+    val rollNo: String = "",
     val name: String,
-    val gradeClass: String,
-    val section: String,
-    val guardianName: String,
+    val gradeClass: String = "",
+    val section: String = "",
+    val guardianName: String = "",
     val phone: String, // Serves as student password
-    val monthlyFee: Double,
-    val admissionDate: String
+    val monthlyFee: Double = 0.0,
+    val admissionDate: String = "02/10/2026",
+    val fatherName: String = "",
+    val motherName: String = "",
+    val dob: String = "",
+    val aadharNumber: String = "",
+    val caste: String = "",
+    val gender: String = "Male",
+    val whatsapp: String = "",
+    val address: String = "",
+    val admissionFee: Double = 0.0
 )

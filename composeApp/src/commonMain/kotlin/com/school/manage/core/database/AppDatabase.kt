@@ -12,9 +12,10 @@ import com.school.manage.core.database.entity.*
         AttendanceEntity::class,
         FeeRecordEntity::class,
         ExpenseEntity::class,
-        StaffEntity::class
+        StaffEntity::class,
+        BatchEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,4 +25,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun feeDao(): FeeDao
     abstract fun expenseDao(): ExpenseDao
     abstract fun staffDao(): StaffDao
+    abstract fun batchDao(): BatchDao
 }
