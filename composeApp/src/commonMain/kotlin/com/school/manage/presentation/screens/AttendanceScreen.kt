@@ -1,13 +1,18 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.AttendanceEntity
 import kotlinx.coroutines.launch
@@ -20,9 +25,11 @@ fun AttendanceScreen(
     onNavigateBack: () -> Unit
 ) {
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
     val attendanceMap = remember { mutableStateMapOf<Long, String>() }
-    var submitted by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    var date by remember { mutableStateOf("02/10/2026") }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var savedMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(students) {
         students.forEach { s ->
@@ -33,82 +40,151 @@ fun AttendanceScreen(
     }
 
     Scaffold(
+        containerColor = Color(0xFFF8FAFC),
         topBar = {
             TopAppBar(
-                title = { Text("Attendance ($schoolCode)") },
-                navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
+                title = { Text("Mark Attendance", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
+                }
             )
+        },
+        bottomBar = {
+            Surface(
+                color = Color(0xFFF8FAFC),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            val list = students.map { s ->
+                                AttendanceEntity(
+                                    schoolCode = schoolCode,
+                                    studentId = s.id,
+                                    studentName = s.name,
+                                    gradeClass = s.gradeClass,
+                                    staffId = 0L,
+                                    userType = "STUDENT",
+                                    date = date,
+                                    status = attendanceMap[s.id] ?: "PRESENT"
+                                )
+                            }
+                            database.attendanceDao().insertAll(list)
+                            savedMessage = "Attendance saved successfully for $date!"
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                ) {
+                    Text("Save Attendance", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Date: 2026-10-02", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.height(10.dp))
+            item { Spacer(modifier = Modifier.height(4.dp)) }
 
-            if (submitted) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Text("Attendance records saved!", modifier = Modifier.padding(12.dp), color = MaterialTheme.colorScheme.primary)
+            item {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Attendance Date: $date", fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                        Text("📅", fontSize = 18.sp)
+                    }
                 }
-                Spacer(modifier = Modifier.height(10.dp))
             }
 
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            if (savedMessage.isNotEmpty()) {
+                item {
+                    Text(savedMessage, color = Color(0xFF16A34A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                }
+            }
+
+            if (students.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
+                        Text("No students found to mark attendance.", color = Color(0xFF64748B))
+                    }
+                }
+            } else {
                 items(students) { student ->
                     val status = attendanceMap[student.id] ?: "PRESENT"
-                    Card(modifier = Modifier.fillMaxWidth()) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color.White,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Row(
-                            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                            modifier = Modifier.padding(12.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                Text(student.name, fontWeight = FontWeight.Bold)
-                                Text("Class: ${student.gradeClass} • Roll: ${student.rollNo}")
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                                Text("Class: ${student.gradeClass.ifEmpty { "General" }}", fontSize = 12.sp, color = Color(0xFF64748B))
                             }
-                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                                Button(
-                                    onClick = { attendanceMap[student.id] = "PRESENT" },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (status == "PRESENT") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                ) { Text("P") }
-                                Button(
-                                    onClick = { attendanceMap[student.id] = "ABSENT" },
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = if (status == "ABSENT") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                ) { Text("A") }
+                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                AttendanceStatusPill("P", status == "PRESENT", Color(0xFF22C55E)) {
+                                    attendanceMap[student.id] = "PRESENT"
+                                }
+                                AttendanceStatusPill("A", status == "ABSENT", Color(0xFFEF4444)) {
+                                    attendanceMap[student.id] = "ABSENT"
+                                }
+                                AttendanceStatusPill("L", status == "LEAVE", Color(0xFFF59E0B)) {
+                                    attendanceMap[student.id] = "LEAVE"
+                                }
                             }
                         }
                     }
                 }
             }
 
-            Button(
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                onClick = {
-                    scope.launch {
-                        val records = students.map { s ->
-                            AttendanceEntity(
-                                schoolCode = schoolCode,
-                                studentId = s.id,
-                                studentName = s.name,
-                                gradeClass = s.gradeClass,
-                                date = "2026-10-02",
-                                status = attendanceMap[s.id] ?: "PRESENT"
-                            )
-                        }
-                        database.attendanceDao().insertAll(records)
-                        submitted = true
-                    }
-                }
-            ) {
-                Text("Submit Attendance")
-            }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
+        }
+
+        if (showDatePicker) {
+            ModernDatePickerDialog(
+                currentDate = date,
+                onDateSelected = { date = it },
+                onDismiss = { showDatePicker = false }
+            )
+        }
+    }
+}
+
+@Composable
+fun AttendanceStatusPill(
+    label: String,
+    isSelected: Boolean,
+    activeColor: Color,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) activeColor else Color(0xFFF1F5F9),
+        modifier = Modifier.size(36.dp)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                color = if (isSelected) Color.White else Color(0xFF64748B),
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
         }
     }
 }
