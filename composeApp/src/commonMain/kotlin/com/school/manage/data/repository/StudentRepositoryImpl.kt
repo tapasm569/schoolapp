@@ -12,7 +12,7 @@ class StudentRepositoryImpl(
 ) : StudentRepository {
 
     override fun getStudents(): Flow<List<Student>> =
-        studentDao.getAllStudents().map { list -> list.map { it.toDomain() } }
+        studentDao.getStudentsBySchool("").map { list -> list.map { it.toDomain() } }
 
     override suspend fun getStudentById(id: Long): Student? =
         studentDao.getStudentById(id)?.toDomain()
@@ -25,6 +25,7 @@ class StudentRepositoryImpl(
 
     private fun StudentEntity.toDomain() = Student(
         id = id,
+        schoolCode = schoolCode,
         rollNo = rollNo,
         name = name,
         gradeClass = gradeClass,
@@ -37,6 +38,7 @@ class StudentRepositoryImpl(
 
     private fun Student.toEntity() = StudentEntity(
         id = id,
+        schoolCode = schoolCode,
         rollNo = rollNo,
         name = name,
         gradeClass = gradeClass,

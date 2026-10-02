@@ -6,12 +6,13 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "students")
 data class StudentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val schoolCode: String,
     val rollNo: String,
     val name: String,
     val gradeClass: String,
     val section: String,
     val guardianName: String,
-    val phone: String,
+    val phone: String, // Serves as student password
     val monthlyFee: Double,
     val admissionDate: String
 )

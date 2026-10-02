@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StaffDao {
-    @Query("SELECT * FROM staff ORDER BY name ASC")
-    fun getAllStaff(): Flow<List<StaffEntity>>
+    @Query("SELECT * FROM staff WHERE schoolCode = :schoolCode ORDER BY name ASC")
+    fun getStaffBySchool(schoolCode: String): Flow<List<StaffEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStaff(staff: StaffEntity): Long

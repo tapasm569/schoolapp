@@ -16,14 +16,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun AttendanceScreen(
     database: AppDatabase,
+    schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
-    val students by database.studentDao().getAllStudents().collectAsState(initial = emptyList())
+    val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     val attendanceMap = remember { mutableStateMapOf<Long, String>() }
     var submitted by remember { mutableStateOf(false) }
 
-    // Default status to PRESENT
     LaunchedEffect(students) {
         students.forEach { s ->
             if (!attendanceMap.containsKey(s.id)) {
@@ -35,32 +35,22 @@ fun AttendanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Daily Attendance") },
+                title = { Text("Attendance ($schoolCode)") },
                 navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
             )
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp)
         ) {
-            Text("Date: 2026-10-02", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
+            Text("Date: 2026-10-02", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(10.dp))
 
             if (submitted) {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-                ) {
-                    Text(
-                        "Attendance saved successfully for today!",
-                        modifier = Modifier.padding(16.dp),
-                        fontWeight = FontWeight.SemiBold
-                    )
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Text("Attendance records saved!", modifier = Modifier.padding(12.dp), color = MaterialTheme.colorScheme.primary)
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
             }
 
             LazyColumn(
@@ -77,7 +67,7 @@ fun AttendanceScreen(
                         ) {
                             Column {
                                 Text(student.name, fontWeight = FontWeight.Bold)
-                                Text("Roll: ${student.rollNo} • Class: ${student.gradeClass}")
+                                Text("Class: ${student.gradeClass} • Roll: ${student.rollNo}")
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Button(
@@ -99,11 +89,12 @@ fun AttendanceScreen(
             }
 
             Button(
-                modifier = Modifier.fillMaxWidth().height(50.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp),
                 onClick = {
                     scope.launch {
                         val records = students.map { s ->
                             AttendanceEntity(
+                                schoolCode = schoolCode,
                                 studentId = s.id,
                                 studentName = s.name,
                                 gradeClass = s.gradeClass,

@@ -2,6 +2,7 @@ package com.school.manage.domain.model
 
 data class Student(
     val id: Long = 0,
+    val schoolCode: String = "",
     val rollNo: String,
     val name: String,
     val gradeClass: String,

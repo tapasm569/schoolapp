@@ -1,6 +1,6 @@
 package com.school.manage.presentation.navigation
 
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -10,35 +10,91 @@ import com.school.manage.presentation.screens.*
 @Composable
 fun AppNavHost(database: AppDatabase) {
     val navController = rememberNavController()
+    var currentSchoolCode by remember { mutableStateOf("") }
+    var currentSchoolName by remember { mutableStateOf("") }
+    var currentStudentId by remember { mutableStateOf(0L) }
 
-    NavHost(
-        navController = navController,
-        startDestination = Screen.Dashboard.route
-    ) {
-        composable(Screen.Dashboard.route) {
-            DashboardScreen(database = database, onNavigate = { route -> navController.navigate(route) })
-        }
-        composable(Screen.StudentList.route) {
-            StudentListScreen(
+    NavHost(navController = navController, startDestination = "login") {
+        composable("login") {
+            LoginScreen(
                 database = database,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateAdd = { navController.navigate(Screen.AddStudent.route) }
+                onSchoolLoginSuccess = { code, name ->
+                    currentSchoolCode = code
+                    currentSchoolName = name
+                    navController.navigate("dashboard") { popUpTo("login") { inclusive = true } }
+                },
+                onStudentLoginSuccess = { studentId ->
+                    currentStudentId = studentId
+                    navController.navigate("student_portal") { popUpTo("login") { inclusive = true } }
+                },
+                onNavigateRegister = { navController.navigate("register_school") }
             )
         }
-        composable(Screen.AddStudent.route) {
-            AddStudentScreen(database = database, onNavigateBack = { navController.popBackStack() })
+        composable("register_school") {
+            RegisterSchoolScreen(
+                database = database,
+                onRegisterSuccess = { navController.popBackStack() },
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
-        composable(Screen.Attendance.route) {
-            AttendanceScreen(database = database, onNavigateBack = { navController.popBackStack() })
+        composable("dashboard") {
+            DashboardScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                schoolName = currentSchoolName,
+                onNavigate = { route -> navController.navigate(route) },
+                onLogout = { navController.navigate("login") { popUpTo(0) } }
+            )
         }
-        composable(Screen.FeeCollection.route) {
-            FeeCollectionScreen(database = database, onNavigateBack = { navController.popBackStack() })
+        composable("student_portal") {
+            StudentPortalScreen(
+                database = database,
+                studentId = currentStudentId,
+                onLogout = { navController.navigate("login") { popUpTo(0) } }
+            )
         }
-        composable(Screen.ExpenseList.route) {
-            ExpenseScreen(database = database, onNavigateBack = { navController.popBackStack() })
+        composable("student_list") {
+            StudentListScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateAdd = { navController.navigate("add_student") }
+            )
         }
-        composable(Screen.StaffList.route) {
-            StaffScreen(database = database, onNavigateBack = { navController.popBackStack() })
+        composable("add_student") {
+            AddStudentScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("attendance") {
+            AttendanceScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("fee_collection") {
+            FeeCollectionScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("expense_list") {
+            ExpenseScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        composable("staff_list") {
+            StaffScreen(
+                database = database,
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
     }
 }

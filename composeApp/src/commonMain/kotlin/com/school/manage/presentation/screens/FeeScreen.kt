@@ -16,10 +16,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeeCollectionScreen(
     database: AppDatabase,
+    schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
-    val feeRecords by database.feeDao().getAllFeeRecords().collectAsState(initial = emptyList())
-    val students by database.studentDao().getAllStudents().collectAsState(initial = emptyList())
+    val feeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
     var studentName by remember { mutableStateOf("") }
@@ -30,33 +31,33 @@ fun FeeCollectionScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Fee Collection & Ledger") },
+                title = { Text("Fees ($schoolCode)") },
                 navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
             )
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item {
-                Text("Record New Payment", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            item { OutlinedTextField(value = studentName, onValueChange = { studentName = it }, label = { Text("Student Name / Roll No") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Amount Paid (₹)") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = paymentMode, onValueChange = { paymentMode = it }, label = { Text("Payment Mode (Cash, UPI, Cheque)") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = remarks, onValueChange = { remarks = it }, label = { Text("Remarks (e.g. October Fee)") }, modifier = Modifier.fillMaxWidth()) }
+            item { Text("Record Fee Receipt", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold) }
+            item { OutlinedTextField(value = studentName, onValueChange = { studentName = it }, label = { Text("Student Name") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Amount (₹)") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = paymentMode, onValueChange = { paymentMode = it }, label = { Text("Payment Mode") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = remarks, onValueChange = { remarks = it }, label = { Text("Remarks") }, modifier = Modifier.fillMaxWidth()) }
             item {
                 Button(
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         if (studentName.isNotBlank() && amount.isNotBlank()) {
                             scope.launch {
+                                val matchedStudent = students.find { it.name.contains(studentName, ignoreCase = true) }
                                 database.feeDao().insertFeeRecord(
                                     FeeRecordEntity(
-                                        studentId = 0,
+                                        schoolCode = schoolCode,
+                                        studentId = matchedStudent?.id ?: 0,
                                         studentName = studentName,
-                                        gradeClass = "General",
+                                        gradeClass = matchedStudent?.gradeClass ?: "General",
                                         amountPaid = amount.toDoubleOrNull() ?: 0.0,
                                         paymentDate = "2026-10-02",
                                         paymentMode = paymentMode,
@@ -69,14 +70,10 @@ fun FeeCollectionScreen(
                             }
                         }
                     }
-                ) {
-                    Text("Collect & Generate Receipt")
-                }
+                ) { Text("Record Payment") }
             }
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text("Payment Records (${feeRecords.size})", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
+
+            item { Spacer(modifier = Modifier.height(10.dp)); Text("Receipts Log (${feeRecords.size})", fontWeight = FontWeight.Bold) }
             items(feeRecords) { fee ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(12.dp)) {
@@ -84,8 +81,7 @@ fun FeeCollectionScreen(
                             Text(fee.studentName, fontWeight = FontWeight.Bold)
                             Text("₹${fee.amountPaid.toInt()}", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                         }
-                        Text("Mode: ${fee.paymentMode} • Date: ${fee.paymentDate}")
-                        if (fee.remarks.isNotBlank()) Text("Note: ${fee.remarks}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("Date: ${fee.paymentDate} • Mode: ${fee.paymentMode}")
                     }
                 }
             }

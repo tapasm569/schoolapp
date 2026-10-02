@@ -6,11 +6,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StudentDao {
-    @Query("SELECT * FROM students ORDER BY gradeClass ASC, rollNo ASC")
-    fun getAllStudents(): Flow<List<StudentEntity>>
+    @Query("SELECT * FROM students WHERE schoolCode = :schoolCode ORDER BY gradeClass ASC, rollNo ASC")
+    fun getStudentsBySchool(schoolCode: String): Flow<List<StudentEntity>>
 
-    @Query("SELECT * FROM students WHERE gradeClass = :gradeClass ORDER BY rollNo ASC")
-    fun getStudentsByClass(gradeClass: String): Flow<List<StudentEntity>>
+    @Query("SELECT * FROM students WHERE schoolCode = :schoolCode AND phone = :phone LIMIT 1")
+    suspend fun loginStudent(schoolCode: String, phone: String): StudentEntity?
 
     @Query("SELECT * FROM students WHERE id = :id")
     suspend fun getStudentById(id: Long): StudentEntity?

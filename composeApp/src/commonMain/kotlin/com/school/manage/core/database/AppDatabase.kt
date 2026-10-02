@@ -7,16 +7,18 @@ import com.school.manage.core.database.entity.*
 
 @Database(
     entities = [
+        SchoolEntity::class,
         StudentEntity::class,
         AttendanceEntity::class,
         FeeRecordEntity::class,
         ExpenseEntity::class,
         StaffEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
+    abstract fun schoolDao(): SchoolDao
     abstract fun studentDao(): StudentDao
     abstract fun attendanceDao(): AttendanceDao
     abstract fun feeDao(): FeeDao

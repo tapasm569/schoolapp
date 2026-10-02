@@ -17,9 +17,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun ExpenseScreen(
     database: AppDatabase,
+    schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
-    val expenses by database.expenseDao().getAllExpenses().collectAsState(initial = emptyList())
+    val expenses by database.expenseDao().getExpensesBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
@@ -28,7 +29,7 @@ fun ExpenseScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("School Expenses") },
+                title = { Text("Expenses ($schoolCode)") },
                 navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
             )
         }
@@ -37,9 +38,9 @@ fun ExpenseScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { Text("Add Expense", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium) }
-            item { OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Expense Title (e.g. Electric Bill)") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = category, onValueChange = { category = it }, label = { Text("Category (Maintenance, Salary, Utilities)") }, modifier = Modifier.fillMaxWidth()) }
+            item { Text("Add Expense", fontWeight = FontWeight.Bold) }
+            item { OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = category, onValueChange = { category = it }, label = { Text("Category") }, modifier = Modifier.fillMaxWidth()) }
             item { OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Amount (₹)") }, modifier = Modifier.fillMaxWidth()) }
             item {
                 Button(
@@ -49,6 +50,7 @@ fun ExpenseScreen(
                             scope.launch {
                                 database.expenseDao().insertExpense(
                                     ExpenseEntity(
+                                        schoolCode = schoolCode,
                                         title = title,
                                         category = category,
                                         amount = amount.toDoubleOrNull() ?: 0.0,
@@ -64,31 +66,26 @@ fun ExpenseScreen(
                     }
                 ) { Text("Save Expense") }
             }
-            item { Spacer(modifier = Modifier.height(10.dp)); Text("Expense Log (${expenses.size})", fontWeight = FontWeight.Bold) }
             items(expenses) { exp ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(exp.title, fontWeight = FontWeight.Bold)
-                            Text(exp.category, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Text("₹${exp.amount.toInt()}", color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(exp.title, fontWeight = FontWeight.Bold)
+                        Text("₹${exp.amount.toInt()}", color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StaffScreen(
     database: AppDatabase,
+    schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
-    val staffList by database.staffDao().getAllStaff().collectAsState(initial = emptyList())
+    val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var name by remember { mutableStateOf("") }
     var role by remember { mutableStateOf("") }
@@ -98,7 +95,7 @@ fun StaffScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Staff & Faculty") },
+                title = { Text("Staff ($schoolCode)") },
                 navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
             )
         }
@@ -107,11 +104,11 @@ fun StaffScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { Text("Add Staff Member", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium) }
-            item { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Staff Full Name") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = role, onValueChange = { role = it }, label = { Text("Role (Teacher, Accountant, Staff)") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Contact Phone") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = salary, onValueChange = { salary = it }, label = { Text("Monthly Salary (₹)") }, modifier = Modifier.fillMaxWidth()) }
+            item { Text("Add Staff Member", fontWeight = FontWeight.Bold) }
+            item { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Name") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = role, onValueChange = { role = it }, label = { Text("Role") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Phone") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = salary, onValueChange = { salary = it }, label = { Text("Salary") }, modifier = Modifier.fillMaxWidth()) }
             item {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
@@ -120,6 +117,7 @@ fun StaffScreen(
                             scope.launch {
                                 database.staffDao().insertStaff(
                                     StaffEntity(
+                                        schoolCode = schoolCode,
                                         name = name,
                                         role = role,
                                         phone = phone,
@@ -134,16 +132,12 @@ fun StaffScreen(
                             }
                         }
                     }
-                ) { Text("Save Staff Record") }
+                ) { Text("Save Staff") }
             }
-            item { Spacer(modifier = Modifier.height(10.dp)); Text("Staff Directory (${staffList.size})", fontWeight = FontWeight.Bold) }
             items(staffList) { staff ->
                 Card(modifier = Modifier.fillMaxWidth()) {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text(staff.name, fontWeight = FontWeight.Bold)
-                            Text("₹${staff.salary.toInt()}", color = MaterialTheme.colorScheme.primary)
-                        }
+                        Text(staff.name, fontWeight = FontWeight.Bold)
                         Text("Role: ${staff.role} • Phone: ${staff.phone}")
                     }
                 }

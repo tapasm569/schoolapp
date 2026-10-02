@@ -16,16 +16,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun StudentListScreen(
     database: AppDatabase,
+    schoolCode: String,
     onNavigateBack: () -> Unit,
     onNavigateAdd: () -> Unit
 ) {
-    val students by database.studentDao().getAllStudents().collectAsState(initial = emptyList())
+    val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Students Directory (${students.size})") },
+                title = { Text("Students ($schoolCode)") },
                 navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
             )
         },
@@ -37,7 +38,7 @@ fun StudentListScreen(
     ) { padding ->
         if (students.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                Text("No students admitted yet. Tap + to register.")
+                Text("No students registered for $schoolCode. Tap + to add.")
             }
         } else {
             LazyColumn(
@@ -46,15 +47,15 @@ fun StudentListScreen(
             ) {
                 items(students) { student ->
                     Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier.padding(14.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(student.name, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
                                 Text("Roll: ${student.rollNo}", color = MaterialTheme.colorScheme.primary)
                             }
                             Text("Class: ${student.gradeClass} (${student.section})")
-                            Text("Guardian: ${student.guardianName} • Phone: ${student.phone}")
+                            Text("Phone (Student Login): ${student.phone}")
                             Text("Monthly Fee: ₹${student.monthlyFee.toInt()}")
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(6.dp))
                             Button(
                                 onClick = { scope.launch { database.studentDao().deleteStudent(student) } },
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
@@ -73,6 +74,7 @@ fun StudentListScreen(
 @Composable
 fun AddStudentScreen(
     database: AppDatabase,
+    schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
@@ -87,38 +89,45 @@ fun AddStudentScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Admit New Student") },
+                title = { Text("Admit Student ($schoolCode)") },
                 navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Cancel") } }
             )
         }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Student Full Name") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Full Name") }, modifier = Modifier.fillMaxWidth()) }
             item { OutlinedTextField(value = rollNo, onValueChange = { rollNo = it }, label = { Text("Roll Number") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = gradeClass, onValueChange = { gradeClass = it }, label = { Text("Class (e.g. 5, 8, 10)") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = section, onValueChange = { section = it }, label = { Text("Section (A, B, C)") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = gradeClass, onValueChange = { gradeClass = it }, label = { Text("Class / Grade") }, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(value = section, onValueChange = { section = it }, label = { Text("Section") }, modifier = Modifier.fillMaxWidth()) }
             item { OutlinedTextField(value = guardian, onValueChange = { guardian = it }, label = { Text("Guardian Name") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Mobile Phone") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = fee, onValueChange = { fee = it }, label = { Text("Monthly Tuition Fee (₹)") }, modifier = Modifier.fillMaxWidth()) }
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Mobile Number (Used as Student Password)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            item { OutlinedTextField(value = fee, onValueChange = { fee = it }, label = { Text("Monthly Fee (₹)") }, modifier = Modifier.fillMaxWidth()) }
+            item {
+                Spacer(modifier = Modifier.height(10.dp))
                 Button(
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
                     onClick = {
-                        if (name.isNotBlank() && rollNo.isNotBlank()) {
+                        if (name.isNotBlank() && phone.isNotBlank()) {
                             scope.launch {
                                 database.studentDao().insertStudent(
-                                    
-                   StudentEntity(
+                                    StudentEntity(
+                                        schoolCode = schoolCode,
                                         rollNo = rollNo,
                                         name = name,
                                         gradeClass = gradeClass,
                                         section = section,
                                         guardianName = guardian,
-                                        phone = phone,
+                                        phone = phone.trim(),
                                         monthlyFee = fee.toDoubleOrNull() ?: 0.0,
                                         admissionDate = "2026-10-02"
                                     )
@@ -128,7 +137,7 @@ fun AddStudentScreen(
                         }
                     }
                 ) {
-                    Text("Save Admission Record")
+                    Text("Admit & Save Student")
                 }
             }
         }
