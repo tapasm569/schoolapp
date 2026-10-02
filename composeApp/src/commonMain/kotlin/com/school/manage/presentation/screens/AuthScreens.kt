@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,7 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -21,6 +26,95 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.SchoolEntity
 import kotlinx.coroutines.launch
 
+@Composable
+fun AppIconLogoBadge(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(80.dp)
+            .shadow(elevation = 8.dp, shape = RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(22.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(Color(0xFF1E3A8A), Color(0xFF2563EB))
+                )
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.size(56.dp)) {
+            val w = size.width
+            val h = size.height
+
+            // 1. Mortarboard Diamond Top
+            val capDiamond = Path().apply {
+                moveTo(w * 0.50f, h * 0.16f)
+                lineTo(w * 0.88f, h * 0.33f)
+                lineTo(w * 0.50f, h * 0.50f)
+                lineTo(w * 0.12f, h * 0.33f)
+                close()
+            }
+            drawPath(capDiamond, color = Color.White)
+
+            // 2. Cap Skullcap Base
+            val capBase = Path().apply {
+                moveTo(w * 0.32f, h * 0.40f)
+                lineTo(w * 0.32f, h * 0.52f)
+                quadraticTo(w * 0.50f, h * 0.63f, w * 0.68f, h * 0.52f)
+                lineTo(w * 0.68f, h * 0.40f)
+                close()
+            }
+            drawPath(capBase, color = Color(0xFFE2E8F0))
+
+            // 3. Gold Button on Cap Top
+            drawCircle(
+                color = Color(0xFFF59E0B),
+                radius = w * 0.045f,
+                center = Offset(w * 0.50f, h * 0.33f)
+            )
+
+            // 4. Gold Tassel Cord & Hanging Ribbon
+            drawLine(
+                color = Color(0xFFF59E0B),
+                start = Offset(w * 0.50f, h * 0.33f),
+                end = Offset(w * 0.80f, h * 0.48f),
+                strokeWidth = 3f
+            )
+            drawCircle(
+                color = Color(0xFFF59E0B),
+                radius = w * 0.035f,
+                center = Offset(w * 0.80f, h * 0.52f)
+            )
+
+            // 5. Open Knowledge Book - Left Page
+            val leftPage = Path().apply {
+                moveTo(w * 0.48f, h * 0.65f)
+                lineTo(w * 0.18f, h * 0.62f)
+                lineTo(w * 0.18f, h * 0.81f)
+                lineTo(w * 0.48f, h * 0.85f)
+                close()
+            }
+            drawPath(leftPage, color = Color.White)
+
+            // 6. Open Knowledge Book - Right Page
+            val rightPage = Path().apply {
+                moveTo(w * 0.52f, h * 0.65f)
+                lineTo(w * 0.82f, h * 0.62f)
+                lineTo(w * 0.82f, h * 0.81f)
+                lineTo(w * 0.52f, h * 0.85f)
+                close()
+            }
+            drawPath(rightPage, color = Color(0xFFF8FAFC))
+
+            // 7. Gold Book Spine
+            drawLine(
+                color = Color(0xFFF59E0B),
+                start = Offset(w * 0.50f, h * 0.64f),
+                end = Offset(w * 0.50f, h * 0.87f),
+                strokeWidth = 3.5f
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -30,7 +124,7 @@ fun LoginScreen(
     onStudentLoginSuccess: (Long) -> Unit,
     onNavigateRegister: () -> Unit
 ) {
-    var activeLoginRole by remember { mutableStateOf<String?>(null) } // "Admin", "Staff", "Student"
+    var activeLoginRole by remember { mutableStateOf<String?>(null) }
     var selectedLanguage by remember { mutableStateOf("English") }
     var showLangMenu by remember { mutableStateOf(false) }
 
@@ -49,42 +143,14 @@ fun LoginScreen(
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            item { Spacer(modifier = Modifier.height(16.dp)) }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
 
-            // 1. Top Logo Badge
+            // 1. App Icon Logo Badge
             item {
-                Box(
-                    modifier = Modifier
-                        .width(110.dp)
-                        .height(65.dp)
-                        .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp, topStart = 6.dp, topEnd = 6.dp))
-                        .background(Color(0xFFFFC837)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.width(14.dp).height(3.dp).background(Color(0xFF0F172A)))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "tuFee",
-                                fontWeight = FontWeight.Black,
-                                fontSize = 17.sp,
-                                color = Color(0xFF0F172A)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Box(modifier = Modifier.width(14.dp).height(3.dp).background(Color(0xFF0F172A)))
-                        }
-                        Text(
-                            text = "Online",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = Color(0xFF334155)
-                        )
-                    }
-                }
+                AppIconLogoBadge()
             }
 
-            item { Spacer(modifier = Modifier.height(28.dp)) }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
 
             // 2. Headline
             item {
@@ -138,9 +204,9 @@ fun LoginScreen(
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(30.dp)) }
+            item { Spacer(modifier = Modifier.height(28.dp)) }
 
-            // 4. Section Header
+            // 4. Role Selection Header
             item {
                 Text(
                     text = "Select role",
@@ -161,13 +227,13 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
 
-            // 5. Admin Card
+            // 5. Admin Role Card
             item {
                 RoleSelectionCard(
                     title = "Login as Admin",
                     subtitle = "Control all administrative tasks and monitor operations.",
                     iconBadgeColor = Color(0xFFE0E7FF),
-                    emoji = "👨‍💼",
+                    emoji = "👨‍‍💼",
                     onClick = {
                         schoolCode = ""
                         passwordOrPhone = ""
@@ -179,7 +245,7 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(14.dp)) }
 
-            // 6. Staff Card
+            // 6. Staff Role Card
             item {
                 RoleSelectionCard(
                     title = "Login as Staff",
@@ -197,7 +263,7 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(14.dp)) }
 
-            // 7. Student Card
+            // 7. Student Role Card
             item {
                 RoleSelectionCard(
                     title = "Login as Student",
@@ -256,7 +322,7 @@ fun LoginScreen(
             item { Spacer(modifier = Modifier.height(36.dp)) }
         }
 
-        // Login Modal Dialog
+        // Login Dialog Modal
         if (activeLoginRole != null) {
             val role = activeLoginRole!!
             val isStudent = role == "Student"
