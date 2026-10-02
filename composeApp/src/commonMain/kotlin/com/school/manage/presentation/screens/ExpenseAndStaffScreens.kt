@@ -14,13 +14,271 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.ExpenseEntity
 import com.school.manage.core.database.entity.StaffEntity
 import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddStaffScreen(
+    database: AppDatabase,
+    schoolCode: String,
+    onNavigateBack: () -> Unit
+) {
+    val scope = rememberCoroutineScope()
+
+    var name by remember { mutableStateOf("") }
+    var startDate by remember { mutableStateOf("02/10/2026") }
+    var showStartDatePicker by remember { mutableStateOf(false) }
+
+    var gender by remember { mutableStateOf("Male") }
+    var whatsapp by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var qualification by remember { mutableStateOf("") }
+
+    // NOT auto-filled (Starts empty)
+    var position by remember { mutableStateOf("") }
+    var salary by remember { mutableStateOf("") }
+
+    var salaryType by remember { mutableStateOf("Monthly") }
+    var showSalaryTypeMenu by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
+
+    Scaffold(
+        containerColor = Color(0xFFF8FAFC),
+        topBar = {
+            TopAppBar(
+                title = { Text("Add Teacher / Staff", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8FAFC))
+            )
+        },
+        bottomBar = {
+            Surface(
+                color = Color(0xFFF8FAFC),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Button(
+                    onClick = {
+                        if (name.isBlank() || phone.isBlank()) {
+                            errorMsg = "Staff Name and Mobile Number are required!"
+                            return@Button
+                        }
+                        scope.launch {
+                            database.staffDao().insertStaff(
+                                StaffEntity(
+                                    schoolCode = schoolCode,
+                                    name = name.trim(),
+                                    phone = phone.trim(), // Phone acts as login credential
+                                    joinDate = startDate,
+                                    gender = gender,
+                                    whatsapp = whatsapp.trim(),
+                                    address = address.trim(),
+                                    qualification = qualification.trim(),
+                                    role = position.ifBlank { "Teacher" },
+                                    salary = salary.toDoubleOrNull() ?: 0.0,
+                                    salaryType = salaryType,
+                                    password = phone.trim()
+                                )
+                            )
+                            onNavigateBack()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                ) {
+                    Text("Save Teacher", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            item {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = Color(0xFF64748B))
+                        }
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE2E8F0)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("👤", fontSize = 24.sp)
+                        }
+                    }
+                }
+            }
+
+            item {
+                Column {
+                    Text("Staff Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                    Text("Enter staff personal details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                }
+            }
+
+            item { CustomRoundedInput(value = name, onValueChange = { name = it }, placeholder = "Enter Name") }
+
+            // Start Date with Calendar Picker
+            item {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    modifier = Modifier.fillMaxWidth().clickable { showStartDatePicker = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Start Date: $startDate", fontSize = 14.sp, color = Color(0xFF0F172A))
+                        Text("📅", fontSize = 18.sp)
+                    }
+                }
+            }
+
+            // Gender
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    GenderOptionButton(
+                        label = "Male",
+                        icon = "♂",
+                        isSelected = gender == "Male",
+                        onClick = { gender = "Male" }
+                    )
+                    GenderOptionButton(
+                        label = "Female",
+                        icon = "♀",
+                        isSelected = gender == "Female",
+                        onClick = { gender = "Female" }
+                    )
+                }
+            }
+
+            item {
+                Column {
+                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                    Text("Enter contact details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                }
+            }
+
+            item { CustomRoundedInput(value = whatsapp, onValueChange = { whatsapp = it }, placeholder = "WhatsApp") }
+            item { CustomRoundedInput(value = phone, onValueChange = { phone = it }, placeholder = "Mobile number (Acts as login password)") }
+            item { CustomRoundedInput(value = address, onValueChange = { address = it }, placeholder = "Enter Address") }
+
+            item {
+                Column {
+                    Text("Qualification And Salary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                    Text("Enter Qualification details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                }
+            }
+
+            item { CustomRoundedInput(value = qualification, onValueChange = { qualification = it }, placeholder = "Enter Qualification") }
+            // Empty placeholder for Position
+            item { CustomRoundedInput(value = position, onValueChange = { position = it }, placeholder = "Enter Position (e.g. Math Teacher)") }
+            // Empty placeholder for Salary
+            item { CustomRoundedInput(value = salary, onValueChange = { salary = it }, placeholder = "Enter Salary (e.g. 15000)") }
+
+            item {
+                Box {
+                    DropdownTriggerInput(
+                        label = "Select Salary Frequency",
+                        value = salaryType,
+                        onClick = { showSalaryTypeMenu = true }
+                    )
+                    DropdownMenu(
+                        expanded = showSalaryTypeMenu,
+                        onDismissRequest = { showSalaryTypeMenu = false }
+                    ) {
+                        listOf("Monthly", "Annual", "Weekly", "Daily").forEach { st ->
+                            DropdownMenuItem(
+                                text = { Text(st) },
+                                onClick = { salaryType = st; showSalaryTypeMenu = false }
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (errorMsg.isNotEmpty()) {
+                item {
+                    Text(errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(20.dp)) }
+        }
+
+        if (showStartDatePicker) {
+            ModernDatePickerDialog(
+                currentDate = startDate,
+                onDateSelected = { startDate = it },
+                onDismiss = { showStartDatePicker = false }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StaffScreen(
+    database: AppDatabase,
+    schoolCode: String,
+    onNavigateBack: () -> Unit
+) {
+    val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Staff & Faculty Directory (${staffList.size})") },
+                navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
+            )
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            items(staffList) { staff ->
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(14.dp)) {
+                        Text(staff.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text("Position: ${staff.role} • Contact: ${staff.phone}")
+                        Text("Salary: ₹${staff.salary.toInt()} (${staff.salaryType})")
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,262 +338,6 @@ fun ExpenseScreen(
                     Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(exp.title, fontWeight = FontWeight.Bold)
                         Text("₹${exp.amount.toInt()}", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
-        }
-    }
-}
-
-// -------------------------------------------------------------
-// ADD STAFF SCREEN (Image 4)
-// -------------------------------------------------------------
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AddStaffScreen(
-    database: AppDatabase,
-    schoolCode: String,
-    onNavigateBack: () -> Unit
-) {
-    val scope = rememberCoroutineScope()
-
-    var name by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf("02/10/2026") }
-    var gender by remember { mutableStateOf("Male") }
-    var whatsapp by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-    var qualification by remember { mutableStateOf("") }
-    var position by remember { mutableStateOf("Teacher") }
-    var salary by remember { mutableStateOf("0.0") }
-    var salaryType by remember { mutableStateOf("Monthly") }
-    var showSalaryTypeMenu by remember { mutableStateOf(false) }
-    var password by remember { mutableStateOf("") }
-    var errorMsg by remember { mutableStateOf("") }
-
-    Scaffold(
-        containerColor = Color(0xFFF8FAFC),
-        topBar = {
-            TopAppBar(
-                title = { Text("Add Staff", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8FAFC))
-            )
-        },
-        bottomBar = {
-            Surface(
-                color = Color(0xFFF8FAFC),
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            ) {
-                Button(
-                    onClick = {
-                        if (name.isBlank() || phone.isBlank()) {
-                            errorMsg = "Staff Name and Mobile Number are required!"
-                            return@Button
-                        }
-                        scope.launch {
-                            database.staffDao().insertStaff(
-                                StaffEntity(
-                                    schoolCode = schoolCode,
-                                    name = name.trim(),
-                                    phone = phone.trim(),
-                                    joinDate = startDate,
-                                    gender = gender,
-                                    whatsapp = whatsapp.trim(),
-                                    address = address.trim(),
-                                    qualification = qualification.trim(),
-                                    role = position.ifBlank { "Teacher" },
-                                    salary = salary.toDoubleOrNull() ?: 0.0,
-                                    salaryType = salaryType,
-                                    password = password.trim()
-                                )
-                            )
-                            onNavigateBack()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
-                ) {
-                    Text("Save", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            // Profile photo card
-            item {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = Color(0xFF64748B))
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFE2E8F0)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("👤", fontSize = 24.sp)
-                        }
-                    }
-                }
-            }
-
-            // Staff Information
-            item {
-                Column {
-                    Text("Staff information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter staff personal details here.", fontSize = 12.sp, color = Color(0xFF64748B))
-                }
-            }
-
-            item { CustomRoundedInput(value = name, onValueChange = { name = it }, placeholder = "Enter Name") }
-            item {
-                CustomRoundedInput(
-                    value = startDate,
-                    onValueChange = { startDate = it },
-                    placeholder = "Start Date",
-                    trailingIcon = "📅"
-                )
-            }
-
-            // Gender
-            item {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    GenderOptionButton(
-                        label = "Male",
-                        icon = "♂",
-                        isSelected = gender == "Male",
-                        onClick = { gender = "Male" }
-                    )
-                    GenderOptionButton(
-                        label = "Female",
-                        icon = "♀",
-                        isSelected = gender == "Female",
-                        onClick = { gender = "Female" }
-                    )
-                }
-            }
-
-            // Contact Information
-            item {
-                Column {
-                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter contact details here.", fontSize = 12.sp, color = Color(0xFF64748B))
-                }
-            }
-
-            item { CustomRoundedInput(value = whatsapp, onValueChange = { whatsapp = it }, placeholder = "WhatsApp") }
-            item { CustomRoundedInput(value = phone, onValueChange = { phone = it }, placeholder = "Mobile number") }
-            item { CustomRoundedInput(value = address, onValueChange = { address = it }, placeholder = "Enter Address") }
-
-            // Qualification And Salary
-            item {
-                Column {
-                    Text("Qualification And Salary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter Qualification details here.", fontSize = 12.sp, color = Color(0xFF64748B))
-                }
-            }
-
-            item { CustomRoundedInput(value = qualification, onValueChange = { qualification = it }, placeholder = "Enter Qualification") }
-            item { CustomRoundedInput(value = position, onValueChange = { position = it }, placeholder = "Enter Position") }
-            item { CustomRoundedInput(value = salary, onValueChange = { salary = it }, placeholder = "Enter Salary") }
-
-            item {
-                Box {
-                    DropdownTriggerInput(
-                        label = "Select Salary",
-                        value = salaryType,
-                        onClick = { showSalaryTypeMenu = true }
-                    )
-                    DropdownMenu(
-                        expanded = showSalaryTypeMenu,
-                        onDismissRequest = { showSalaryTypeMenu = false }
-                    ) {
-                        listOf("Monthly", "Annual", "Weekly", "Daily").forEach { st ->
-                            DropdownMenuItem(
-                                text = { Text(st) },
-                                onClick = { salaryType = st; showSalaryTypeMenu = false }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Password
-            item {
-                Column {
-                    Text("Staff Password", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("*Enter Staff Login Password here.", fontSize = 12.sp, color = Color(0xFF64748B))
-                }
-            }
-            item {
-                CustomRoundedInput(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = "Enter Password"
-                )
-            }
-
-            if (errorMsg.isNotEmpty()) {
-                item {
-                    Text(errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(20.dp)) }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun StaffScreen(
-    database: AppDatabase,
-    schoolCode: String,
-    onNavigateBack: () -> Unit
-) {
-    val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Staff Directory ($schoolCode)") },
-                navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(staffList) { staff ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Text(staff.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text("Position: ${staff.role} • Contact: ${staff.phone}")
-                        Text("Salary: ₹${staff.salary.toInt()} (${staff.salaryType})")
                     }
                 }
             }

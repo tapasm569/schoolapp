@@ -1,8 +1,6 @@
 package com.school.manage.presentation.screens
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.core.database.entity.FeeRecordEntity
 import com.school.manage.core.database.entity.StudentEntity
 import kotlinx.coroutines.launch
 
@@ -34,11 +33,15 @@ fun StudentListScreen(
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
+    val categorizedStudents = remember(students) {
+        students.groupBy { it.gradeClass.ifBlank { "Unassigned Class" } }
+    }
+
     Scaffold(
         containerColor = Color(0xFFF8FAFC),
         topBar = {
             TopAppBar(
-                title = { Text("Students ($schoolCode)", fontWeight = FontWeight.Bold) },
+                title = { Text("Students Directory (${students.size})", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
                 }
@@ -57,48 +60,76 @@ fun StudentListScreen(
     ) { padding ->
         if (students.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No students registered yet. Tap + to add.", color = Color(0xFF64748B))
+                Text("No students enrolled yet. Tap + to register.", color = Color(0xFF64748B))
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                items(students) { student ->
-                    Surface(
-                        shape = RoundedCornerShape(16.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(student.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF0F172A))
-                                Text(student.gradeClass.ifEmpty { "Unassigned" }, color = Color(0xFF0D529C), fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                            }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text("Mobile: ${student.phone}  •  Gender: ${student.gender}", fontSize = 12.sp, color = Color(0xFF64748B))
-                            Text("Monthly Fee: ₹${student.monthlyFee.toInt()}", fontSize = 12.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.SemiBold)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(
-                                onClick = { scope.launch { database.studentDao().deleteStudent(student) } },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2), contentColor = Color(0xFFDC2626)),
-                                shape = RoundedCornerShape(8.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                                modifier = Modifier.height(32.dp)
+                item { Spacer(modifier = Modifier.height(6.dp)) }
+
+                categorizedStudents.forEach { (className, studentGroup) ->
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFE0F2FE),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                Text("Class: $className", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = Color(0xFF0D529C))
+                                Text("${studentGroup.size} Students", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF0369A1))
                             }
                         }
                     }
+
+                    items(studentGroup) { student ->
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color.White,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(14.dp)) {
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                                    Text("Admission Fee: ₹${student.admissionFee.toInt()}", color = Color(0xFF0D529C), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("Phone: ${student.phone}  •  Gender: ${student.gender}  •  DOB: ${student.dob.ifEmpty { "N/A" }}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                Text("Monthly Tuition: ₹${student.monthlyFee.toInt()}/mo", fontSize = 12.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.Bold)
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                    Button(
+                                        onClick = { scope.launch { database.studentDao().deleteStudent(student) } },
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2), contentColor = Color(0xFFDC2626)),
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                                        modifier = Modifier.height(28.dp)
+                                    ) {
+                                        Text("Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(4.dp)) }
                 }
+
+                item { Spacer(modifier = Modifier.height(20.dp)) }
             }
         }
     }
 }
 
 // -------------------------------------------------------------
-// ADD STUDENT SCREEN (Images 1 & 2)
+// ADD STUDENT SCREEN (With DOB Calendar Picker)
 // -------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,6 +145,7 @@ fun AddStudentScreen(
     var fatherName by remember { mutableStateOf("") }
     var motherName by remember { mutableStateOf("") }
     var dob by remember { mutableStateOf("") }
+    var showDobPicker by remember { mutableStateOf(false) }
     var aadhar by remember { mutableStateOf("") }
     var caste by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("Male") }
@@ -171,7 +203,7 @@ fun AddStudentScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
                 ) {
-                    Text("Save", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Save & Assign Class", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -183,7 +215,6 @@ fun AddStudentScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Profile photo card
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -213,7 +244,6 @@ fun AddStudentScreen(
                 }
             }
 
-            // Student Information Header
             item {
                 Column {
                     Text("Student Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
@@ -224,14 +254,30 @@ fun AddStudentScreen(
             item { CustomRoundedInput(value = name, onValueChange = { name = it }, placeholder = "Student Name (Required)") }
             item { CustomRoundedInput(value = fatherName, onValueChange = { fatherName = it }, placeholder = "Father name") }
             item { CustomRoundedInput(value = motherName, onValueChange = { motherName = it }, placeholder = "Mother name") }
+
+            // Date of Birth with Calendar Dialog
             item {
-                CustomRoundedInput(
-                    value = dob,
-                    onValueChange = { dob = it },
-                    placeholder = "Date of Birth",
-                    trailingIcon = "📅"
-                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    modifier = Modifier.fillMaxWidth().clickable { showDobPicker = true }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (dob.isEmpty()) "Date of Birth (Tap to select)" else dob,
+                            fontSize = 14.sp,
+                            color = if (dob.isEmpty()) Color(0xFF94A3B8) else Color(0xFF0F172A)
+                        )
+                        Text("📅", fontSize = 18.sp)
+                    }
+                }
             }
+
             item { CustomRoundedInput(value = aadhar, onValueChange = { aadhar = it }, placeholder = "Aadhar number") }
             item { CustomRoundedInput(value = caste, onValueChange = { caste = it }, placeholder = "Caste") }
 
@@ -257,7 +303,6 @@ fun AddStudentScreen(
                 }
             }
 
-            // Contact Information Header
             item {
                 Spacer(modifier = Modifier.height(6.dp))
                 Column {
@@ -282,11 +327,19 @@ fun AddStudentScreen(
 
             item { Spacer(modifier = Modifier.height(20.dp)) }
         }
+
+        if (showDobPicker) {
+            ModernDatePickerDialog(
+                currentDate = "02/10/2026",
+                onDateSelected = { dob = it },
+                onDismiss = { showDobPicker = false }
+            )
+        }
     }
 }
 
 // -------------------------------------------------------------
-// ASSIGN BATCH SCREEN (Image 3)
+// ASSIGN BATCH & REDESIGNED FEE STRUCTURE SCREEN
 // -------------------------------------------------------------
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -302,25 +355,19 @@ fun AssignBatchScreen(
 
     var selectedBatch by remember { mutableStateOf("") }
     var showBatchMenu by remember { mutableStateOf(false) }
-    var joinDate by remember { mutableStateOf("02/10/2026") }
 
-    var feeCategory by remember { mutableStateOf("Select Fee Category") }
-    var showCategoryMenu by remember { mutableStateOf(false) }
-    var feeType by remember { mutableStateOf("Monthly") }
-    var showFeeTypeMenu by remember { mutableStateOf(false) }
+    var admissionFeeInput by remember { mutableStateOf("") }
+    var tuitionFeeInput by remember { mutableStateOf("") }
 
-    var feeStartsFrom by remember { mutableStateOf("02/10/2026") }
-    var feeEnds by remember { mutableStateOf("") }
-    var feeAmount by remember { mutableStateOf("0") }
-
-    var partialFeeSupported by remember { mutableStateOf(false) }
-    var collectFeeOnMonthStart by remember { mutableStateOf(false) }
+    val admissionFee = admissionFeeInput.toDoubleOrNull() ?: 0.0
+    val monthlyTuition = tuitionFeeInput.toDoubleOrNull() ?: 0.0
+    val totalInitialPayable = admissionFee + monthlyTuition
 
     Scaffold(
         containerColor = Color(0xFFF8FAFC),
         topBar = {
             TopAppBar(
-                title = { Text("Assign Batch", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text("Assign Batch & Fee Plan", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onBatchAssigned) {
                         Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -341,10 +388,26 @@ fun AssignBatchScreen(
                             if (existing != null) {
                                 database.studentDao().insertStudent(
                                     existing.copy(
-                                        gradeClass = selectedBatch.ifEmpty { "General Batch" },
-                                        monthlyFee = feeAmount.toDoubleOrNull() ?: 0.0
+                                        gradeClass = selectedBatch.ifEmpty { "General Class" },
+                                        admissionFee = admissionFee,
+                                        monthlyFee = monthlyTuition
                                     )
                                 )
+                                // Record the initial payment record (Admission + 1st Month Tuition)
+                                if (totalInitialPayable > 0.0) {
+                                    database.feeDao().insertFeeRecord(
+                                        FeeRecordEntity(
+                                            schoolCode = schoolCode,
+                                            studentId = studentId,
+                                            studentName = studentName,
+                                            gradeClass = selectedBatch.ifEmpty { "General Class" },
+                                            amountPaid = totalInitialPayable,
+                                            paymentDate = "02/10/2026",
+                                            feeMonth = "10/2026",
+                                            paymentMode = "CASH"
+                                        )
+                                    )
+                                }
                             }
                             onBatchAssigned()
                         }
@@ -353,7 +416,7 @@ fun AssignBatchScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
                 ) {
-                    Text("Save", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Confirm & Save", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -365,19 +428,14 @@ fun AssignBatchScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Blue Fee Plan Banners
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FeePlanPillBanner()
-                    FeePlanPillBanner()
-                }
+                FeePlanPillBanner()
             }
 
-            // Student Name Centered
             item {
                 Text(
                     text = studentName.ifEmpty { "Student" },
-                    fontSize = 18.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF0F172A),
                     textAlign = TextAlign.Center,
@@ -385,20 +443,19 @@ fun AssignBatchScreen(
                 )
             }
 
-            // Batch Information
+            // Batch / Class Selection from Classes Option
             item {
                 Column {
-                    Text("Batch Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter batch details here", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Batch / Class Selection", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                    Text("Select from classes created in School Classes module", fontSize = 12.sp, color = Color(0xFF64748B))
                 }
             }
 
-            // Select Batch Dropdown
             item {
                 Box {
                     DropdownTriggerInput(
-                        label = "Select Batch",
-                        value = if (selectedBatch.isEmpty()) "Select Batch" else selectedBatch,
+                        label = "Select Class / Batch",
+                        value = if (selectedBatch.isEmpty()) "Select Class" else selectedBatch,
                         onClick = { showBatchMenu = true }
                     )
                     DropdownMenu(
@@ -406,7 +463,7 @@ fun AssignBatchScreen(
                         onDismissRequest = { showBatchMenu = false }
                     ) {
                         if (batches.isEmpty()) {
-                            listOf("Class 1", "Class 2", "Class 3", "General Batch").forEach { b ->
+                            listOf("Nursery", "LKG", "UKG", "Class 1", "Class 2", "Class 5").forEach { b ->
                                 DropdownMenuItem(
                                     text = { Text(b) },
                                     onClick = { selectedBatch = b; showBatchMenu = false }
@@ -424,268 +481,77 @@ fun AssignBatchScreen(
                 }
             }
 
+            // Fee Structure Section
+            item {
+                Column {
+                    Text("Fee Structure Setup", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                    Text("Set admission and monthly tuition parameters", fontSize = 12.sp, color = Color(0xFF64748B))
+                }
+            }
+
+            // 1. Admission Fee Input (Yearly)
             item {
                 CustomRoundedInput(
-                    value = joinDate,
-                    onValueChange = { joinDate = it },
-                    placeholder = "Join Date",
-                    trailingIcon = "📅"
+                    value = admissionFeeInput,
+                    onValueChange = { admissionFeeInput = it },
+                    placeholder = "ADMISSION FEE (Yearly Payment) e.g. 5000"
                 )
             }
 
-            // Fee Item #1 Card Header
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Fee Item #1", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("✕", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF64748B))
-                }
-            }
-
-            // Select Fee Category
-            item {
-                Box {
-                    DropdownTriggerInput(
-                        label = "Select Fee Category",
-                        value = feeCategory,
-                        onClick = { showCategoryMenu = true }
-                    )
-                    DropdownMenu(
-                        expanded = showCategoryMenu,
-                        onDismissRequest = { showCategoryMenu = false }
-                    ) {
-                        listOf("Tuition Fee", "Admission Fee", "Monthly Fee", "Exam Fee").forEach { cat ->
-                            DropdownMenuItem(
-                                text = { Text(cat) },
-                                onClick = { feeCategory = cat; showCategoryMenu = false }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Fee Type
-            item {
-                Box {
-                    DropdownTriggerInput(
-                        label = "Fee type",
-                        value = feeType,
-                        onClick = { showFeeTypeMenu = true }
-                    )
-                    DropdownMenu(
-                        expanded = showFeeTypeMenu,
-                        onDismissRequest = { showFeeTypeMenu = false }
-                    ) {
-                        listOf("Monthly", "One Time", "Annual", "Quarterly").forEach { ft ->
-                            DropdownMenuItem(
-                                text = { Text(ft) },
-                                onClick = { feeType = ft; showFeeTypeMenu = false }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Dates Row (Starts From & Ends)
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomRoundedInput(
-                            value = feeStartsFrom,
-                            onValueChange = { feeStartsFrom = it },
-                            placeholder = "Fee starts from",
-                            trailingIcon = "📅"
-                        )
-                    }
-                    Box(modifier = Modifier.weight(1f)) {
-                        CustomRoundedInput(
-                            value = feeEnds,
-                            onValueChange = { feeEnds = it },
-                            placeholder = "Ends (optional)",
-                            trailingIcon = "📅"
-                        )
-                    }
-                }
-            }
-
-            // Fee Amount
+            // 2. Monthly Tuition Fee Input
             item {
                 CustomRoundedInput(
-                    value = feeAmount,
-                    onValueChange = { feeAmount = it },
-                    placeholder = "Fee Amount"
+                    value = tuitionFeeInput,
+                    onValueChange = { tuitionFeeInput = it },
+                    placeholder = "TUITION FEE (Monthly Fee) e.g. 800"
                 )
             }
 
-            // Switches
+            // Auto-Sum Fee Calculation Card
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFFEFF6FF),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF93C5FD)),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Partial Fee Supported", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
-                    Switch(
-                        checked = partialFeeSupported,
-                        onCheckedChange = { partialFeeSupported = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF0D529C))
-                    )
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Collect Fee On Month Start", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
-                    Switch(
-                        checked = collectFeeOnMonthStart,
-                        onCheckedChange = { collectFeeOnMonthStart = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color.White, checkedTrackColor = Color(0xFF0D529C))
-                    )
-                }
-            }
-
-            // Add Fee Item Button
-            item {
-                OutlinedButton(
-                    onClick = { /* Add additional fee item */ },
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF0D529C))
-                ) {
-                    Text("Add Fee Item", color = Color(0xFF0D529C), fontWeight = FontWeight.Bold)
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "FEE BREAKDOWN & AUTO-SUM",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = Color(0xFF1E40AF),
+                            letterSpacing = 0.5.sp
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Admission Fee (Yearly):", fontSize = 13.sp, color = Color(0xFF334155))
+                            Text("₹${admissionFee.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("1st Month Tuition (Auto-Sum):", fontSize = 13.sp, color = Color(0xFF334155))
+                            Text("₹${monthlyTuition.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = Color(0xFFBFDBFE))
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total Initial Due at Admission:", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E40AF))
+                            Text("₹${totalInitialPayable.toInt()}", fontSize = 16.sp, fontWeight = FontWeight.Black, color = Color(0xFF16A34A))
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = "ℹ Student pays initial admission total now. Monthly tuition fee (₹${monthlyTuition.toInt()}) will be due starting from next month.",
+                            fontSize = 11.sp,
+                            color = Color(0xFF1E40AF),
+                            lineHeight = 15.sp
+                        )
+                    }
                 }
             }
 
             item { Spacer(modifier = Modifier.height(20.dp)) }
-        }
-    }
-}
-
-// -------------------------------------------------------------
-// REUSABLE UI HELPERS FOR FORM INPUTS
-// -------------------------------------------------------------
-@Composable
-fun CustomRoundedInput(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    trailingIcon: String? = null
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(
-                value = value,
-                onValueChange = onValueChange,
-                placeholder = { Text(placeholder, color = Color(0xFF94A3B8), fontSize = 14.sp) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
-                modifier = Modifier.weight(1f),
-                singleLine = true
-            )
-            if (trailingIcon != null) {
-                Text(trailingIcon, fontSize = 18.sp, color = Color(0xFF475569))
-            }
-        }
-    }
-}
-
-@Composable
-fun DropdownTriggerInput(
-    label: String,
-    value: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(label, fontSize = 10.sp, color = Color(0xFF64748B))
-                Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0F172A))
-            }
-            Text("▾", fontSize = 14.sp, color = Color(0xFF475569))
-        }
-    }
-}
-
-@Composable
-fun GenderOptionButton(
-    label: String,
-    icon: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(10.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(
-            1.5.dp,
-            if (isSelected) Color(0xFFF97316) else Color(0xFFE2E8F0)
-        ),
-        modifier = Modifier.width(110.dp).height(44.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(icon, fontSize = 14.sp, color = if (isSelected) Color(0xFFF97316) else Color(0xFF64748B), fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (isSelected) Color(0xFFF97316) else Color(0xFF0F172A))
-        }
-    }
-}
-
-@Composable
-fun FeePlanPillBanner() {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = Color(0xFFDBEAFE),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("⏱", fontSize = 12.sp)
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "FEE PLAN • what this student owes",
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E40AF)
-            )
         }
     }
 }
