@@ -3,7 +3,6 @@ package com.school.manage.presentation.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -18,78 +17,6 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.BatchEntity
 import kotlinx.coroutines.launch
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BatchListScreen(
-    database: AppDatabase,
-    schoolCode: String,
-    onNavigateBack: () -> Unit,
-    onNavigateAdd: () -> Unit
-) {
-    val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val scope = rememberCoroutineScope()
-
-    Scaffold(
-        containerColor = Color(0xFFF8FAFC),
-        topBar = {
-            TopAppBar(
-                title = { Text("School Classes (${batches.size})", fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = onNavigateAdd,
-                containerColor = Color(0xFF0D529C),
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Text("+", fontSize = 28.sp)
-            }
-        }
-    ) { padding ->
-        if (batches.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No classes added yet. Tap + to add.", color = Color(0xFF64748B))
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(batches) { batch ->
-                    Surface(
-                        shape = RoundedCornerShape(14.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(14.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(batch.batchName, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = Color(0xFF0D529C))
-                                Button(
-                                    onClick = { scope.launch { database.batchDao().deleteBatch(batch) } },
-                                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2), contentColor = Color(0xFFDC2626)),
-                                    shape = RoundedCornerShape(8.dp),
-                                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                    modifier = Modifier.height(28.dp)
-                                ) {
-                                    Text("Delete", fontSize = 11.sp)
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text("Subjects: ${batch.subjects.ifEmpty { "None" }}", fontSize = 12.sp, color = Color(0xFF475569))
-                            Text("Sections: ${batch.sections.ifEmpty { "Default" }}", fontSize = 12.sp, color = Color(0xFF64748B))
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -113,7 +40,7 @@ fun AddBatchScreen(
         containerColor = Color(0xFFF8FAFC),
         topBar = {
             TopAppBar(
-                title = { Text("Add Batch / Class", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text("Add Batch", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
@@ -135,8 +62,8 @@ fun AddBatchScreen(
                                     BatchEntity(
                                         schoolCode = schoolCode,
                                         batchName = batchName.trim(),
-                                        subjects = subjects.joinToString(", "),
-                                        sections = sections.joinToString(", ")
+                                        subjects = subjects.joinToString(","),
+                                        sections = sections.joinToString(",")
                                     )
                                 )
                                 onNavigateBack()
@@ -147,7 +74,7 @@ fun AddBatchScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
                 ) {
-                    Text("Save Class", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text("Save", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -159,6 +86,7 @@ fun AddBatchScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            // Profile photo Card
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -188,6 +116,7 @@ fun AddBatchScreen(
                 }
             }
 
+            // Batch Information Card
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -197,7 +126,7 @@ fun AddBatchScreen(
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Batch Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                        Text("Enter class/batch name here (e.g. Class 1)", fontSize = 12.sp, color = Color(0xFF64748B))
+                        Text("Enter batch details here", fontSize = 12.sp, color = Color(0xFF64748B))
                         Spacer(modifier = Modifier.height(12.dp))
                         CustomRoundedInput(
                             value = batchName,
@@ -208,6 +137,7 @@ fun AddBatchScreen(
                 }
             }
 
+            // Subjects Card
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -252,6 +182,7 @@ fun AddBatchScreen(
                 }
             }
 
+            // Sections Card
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -297,6 +228,7 @@ fun AddBatchScreen(
             }
         }
 
+        // Add Subject Dialog
         if (showAddSubjectDialog) {
             AlertDialog(
                 onDismissRequest = { showAddSubjectDialog = false },
@@ -305,7 +237,7 @@ fun AddBatchScreen(
                     OutlinedTextField(
                         value = newSubject,
                         onValueChange = { newSubject = it },
-                        label = { Text("Subject Name (e.g. Mathematics)") }
+                        label = { Text("Subject Name (e.g. Math)") }
                     )
                 },
                 confirmButton = {
@@ -323,6 +255,7 @@ fun AddBatchScreen(
             )
         }
 
+        // Add Section Dialog
         if (showAddSectionDialog) {
             AlertDialog(
                 onDismissRequest = { showAddSectionDialog = false },

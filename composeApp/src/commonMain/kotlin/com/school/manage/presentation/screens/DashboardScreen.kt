@@ -34,38 +34,10 @@ fun DashboardScreen(
     val feeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
     val expenses by database.expenseDao().getExpensesBySchool(schoolCode).collectAsState(initial = emptyList())
     val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
-    val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val attendanceList by database.attendanceDao().getAttendanceBySchool(schoolCode).collectAsState(initial = emptyList())
 
-    val monthsList = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    var selectedMonthIndex by remember { mutableStateOf(9) } // 9 = October
-    var selectedYear by remember { mutableStateOf(2026) }
-
-    val currentMonthLabel = "${monthsList[selectedMonthIndex]}-$selectedYear"
-    val monthNumberStr = if (selectedMonthIndex + 1 < 10) "0${selectedMonthIndex + 1}" else "${selectedMonthIndex + 1}"
-    val monthFilterPattern = "$monthNumberStr/$selectedYear"
-
-    // Filter fees & expenses for selected month
-    val monthlyFees = feeRecords.filter { it.feeMonth.contains(monthFilterPattern) || it.paymentDate.contains(monthFilterPattern) }.sumOf { it.amountPaid }
+    val distinctClasses = students.map { it.gradeClass }.distinct().size
     val totalFees = feeRecords.sumOf { it.amountPaid }
-    val monthlyExpenses = expenses.filter { it.date.contains(monthFilterPattern) }.sumOf { it.amount }
     val totalExpenses = expenses.sumOf { it.amount }
-
-    // Filter Attendance for selected month
-    val studentAttendance = attendanceList.filter { it.userType == "STUDENT" && it.date.contains(monthFilterPattern) }
-    val teacherAttendance = attendanceList.filter { it.userType == "STAFF" && it.date.contains(monthFilterPattern) }
-
-    val presentCount = studentAttendance.count { it.status == "PRESENT" }
-    val absentCount = studentAttendance.count { it.status == "ABSENT" }
-    val leaveCount = studentAttendance.count { it.status == "LEAVE" }
-    val holidayCount = studentAttendance.count { it.status == "HOLIDAY" }
-
-    val studentTotalMarked = presentCount + absentCount + leaveCount
-    val studentPct = if (studentTotalMarked > 0) (presentCount * 100 / studentTotalMarked) else 0
-
-    val teacherPresent = teacherAttendance.count { it.status == "PRESENT" }
-    val teacherTotalMarked = teacherAttendance.count { it.status in listOf("PRESENT", "ABSENT", "LEAVE") }
-    val teacherPct = if (teacherTotalMarked > 0) (teacherPresent * 100 / teacherTotalMarked) else 0
 
     var showAddNewDialog by remember { mutableStateOf(false) }
 
@@ -92,7 +64,7 @@ fun DashboardScreen(
         ) {
             item { Spacer(modifier = Modifier.height(6.dp)) }
 
-            // 1. Top Header Profile
+            // 1. Top Header Profile Row
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -139,7 +111,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 2. Top Counter Tri-Cards (Students, Classes, Teacher)
+            // 2. Top Counter Tri-Cards
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -148,25 +120,25 @@ fun DashboardScreen(
                     TopCountCard(
                         count = "${students.size}",
                         title = "Students",
-                        subtitle = "${students.size} active",
+                        subtitle = "0 closed",
                         bannerColor = Color(0xFFE0F2FE),
                         icon = "👥",
                         modifier = Modifier.weight(1f),
                         onClick = { onNavigate("student_list") }
                     )
                     TopCountCard(
-                        count = "${batches.size}",
+                        count = "$distinctClasses",
                         title = "Classes",
-                        subtitle = "${batches.size} active",
+                        subtitle = "0 closed",
                         bannerColor = Color(0xFFDCFCE7),
                         icon = "🏫",
                         modifier = Modifier.weight(1f),
-                        onClick = { onNavigate("batch_list") }
+                        onClick = { onNavigate("add_batch") }
                     )
                     TopCountCard(
                         count = "${staffList.size}",
                         title = "Teacher",
-                        subtitle = "${staffList.size} active",
+                        subtitle = "0 closed",
                         bannerColor = Color(0xFFFEF3C7),
                         icon = "👨‍🏫",
                         modifier = Modifier.weight(1f),
@@ -175,7 +147,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 3. Attendance Summary Graph Card (Interactive Month Switcher)
+            // 3. Attendance Summary Graph Card
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
@@ -197,25 +169,11 @@ fun DashboardScreen(
                                 lineHeight = 18.sp
                             )
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "‹",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF0F52BA),
-                                    modifier = Modifier.clickable {
-                                        if (selectedMonthIndex > 0) selectedMonthIndex -= 1 else { selectedMonthIndex = 11; selectedYear -= 1 }
-                                    }.padding(horizontal = 6.dp)
-                                )
-                                Text(currentMonthLabel, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
-                                Text(
-                                    text = "›",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF0F52BA),
-                                    modifier = Modifier.clickable {
-                                        if (selectedMonthIndex < 11) selectedMonthIndex += 1 else { selectedMonthIndex = 0; selectedYear += 1 }
-                                    }.padding(horizontal = 6.dp)
-                                )
+                                Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("›", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
                             }
                         }
 
@@ -227,16 +185,16 @@ fun DashboardScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            LegendPill("Present: $presentCount", Color(0xFF22C55E))
-                            LegendPill("Absent: $absentCount", Color(0xFFEF4444))
-                            LegendPill("Leave: $leaveCount", Color(0xFFF59E0B))
-                            LegendPill("Holiday: $holidayCount", Color(0xFF3B82F6))
+                            LegendPill("Present", Color(0xFF22C55E))
+                            LegendPill("Absent", Color(0xFFEF4444))
+                            LegendPill("Leave", Color(0xFFF59E0B))
+                            LegendPill("Holiday", Color(0xFF3B82F6))
                         }
                     }
                 }
             }
 
-            // 4. Marking Attendance Progress Bars (Percentages & Ratios)
+            // 4. Marking Attendance Progress Bars
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -245,17 +203,15 @@ fun DashboardScreen(
                     AttendanceProgressBarCard(
                         title = "Student",
                         subtitle = "Marking Attendance",
-                        pct = "$studentPct%",
-                        ratio = "$presentCount/$studentTotalMarked",
-                        progress = studentPct / 100f,
+                        pct = "0%",
+                        ratio = "0/0",
                         modifier = Modifier.weight(1f)
                     )
                     AttendanceProgressBarCard(
                         title = "Teacher",
                         subtitle = "Marking Attendance",
-                        pct = "$teacherPct%",
-                        ratio = "$teacherPresent/$teacherTotalMarked",
-                        progress = teacherPct / 100f,
+                        pct = "0%",
+                        ratio = "0/0",
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -281,11 +237,11 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column {
-                                Text("(0) ₹0", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
+                                Text("(0) 0", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
                                 Text("Active", fontSize = 12.sp, color = Color(0xFF64748B))
                             }
                             Column(horizontalAlignment = Alignment.End) {
-                                Text("(0) ₹0", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
+                                Text("(0) 0", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
                                 Text("Close", fontSize = 12.sp, color = Color(0xFF64748B))
                             }
                         }
@@ -293,7 +249,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 6. Monthly Summary (Working Month Switcher & Totals)
+            // 6. Monthly Summary
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
@@ -309,25 +265,11 @@ fun DashboardScreen(
                         ) {
                             Text("Monthly Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "‹",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF0F52BA),
-                                    modifier = Modifier.clickable {
-                                        if (selectedMonthIndex > 0) selectedMonthIndex -= 1 else { selectedMonthIndex = 11; selectedYear -= 1 }
-                                    }.padding(horizontal = 6.dp)
-                                )
-                                Text(currentMonthLabel, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
-                                Text(
-                                    text = "›",
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF0F52BA),
-                                    modifier = Modifier.clickable {
-                                        if (selectedMonthIndex < 11) selectedMonthIndex += 1 else { selectedMonthIndex = 0; selectedYear += 1 }
-                                    }.padding(horizontal = 6.dp)
-                                )
+                                Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("›", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
                             }
                         }
 
@@ -355,8 +297,8 @@ fun DashboardScreen(
                         // Incomes
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text("₹0", fontSize = 13.sp, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${monthlyFees.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${totalFees.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹${totalFees.toInt()}", fontSize = 13.sp, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹${totalFees.toInt()}", fontSize = 13.sp, color = Color(0xFF22C55E), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                         }
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -366,14 +308,14 @@ fun DashboardScreen(
                         // Expenses
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Text("₹0", fontSize = 13.sp, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${monthlyExpenses.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹${totalExpenses.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹${totalExpenses.toInt()}", fontSize = 13.sp, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹${totalExpenses.toInt()}", fontSize = 13.sp, color = Color(0xFFEF4444), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                         }
                     }
                 }
             }
 
-            // 7. FEATURES Section
+            // 7. FEATURES 4x3 Grid Section
             item {
                 Text("FEATURES", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF475569), letterSpacing = 1.sp)
             }
@@ -394,9 +336,9 @@ fun DashboardScreen(
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         FeatureIconItem("Leave\nManagement", "➖", Color(0xFFF0FDF4), onClick = { onNavigate("attendance") })
-                        FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("batch_list") })
-                        FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("batch_list") })
-                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("batch_list") })
+                        FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("add_batch") })
+                        FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("add_batch") })
+                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("add_batch") })
                     }
                 }
             }
@@ -451,7 +393,7 @@ fun DashboardScreen(
                         )
                         AddNewOptionItem(
                             title = "Class",
-                            subtitle = "You can add new school class here",
+                            subtitle = "You can add new batch here",
                             icon = "👥",
                             onClick = {
                                 showAddNewDialog = false
@@ -502,12 +444,48 @@ fun DashboardScreen(
 }
 
 @Composable
+fun TopCountCard(
+    count: String,
+    title: String,
+    subtitle: String,
+    bannerColor: Color,
+    icon: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = Color.White,
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        modifier = modifier
+    ) {
+        Column {
+            Box(
+                modifier = Modifier.fillMaxWidth().height(26.dp).background(bannerColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(icon, fontSize = 12.sp)
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(count, fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color(0xFF0F766E))
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF1E293B))
+                Text(subtitle, fontSize = 10.sp, color = Color(0xFF64748B))
+            }
+        }
+    }
+}
+
+@Composable
 fun AttendanceProgressBarCard(
     title: String,
     subtitle: String,
     pct: String,
     ratio: String,
-    progress: Float = 0f,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -541,14 +519,133 @@ fun AttendanceProgressBarCard(
                     .clip(RoundedCornerShape(4.dp))
                     .background(Color(0xFFF1F5F9))
                     .border(1.dp, Color(0xFF93C5FD), RoundedCornerShape(4.dp))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
-                        .fillMaxHeight()
-                        .background(Color(0xFF2563EB))
+            )
+        }
+    }
+}
+
+@Composable
+fun LegendPill(label: String, color: Color) {
+    Surface(
+        shape = RoundedCornerShape(4.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, color),
+        color = Color.White
+    ) {
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF1E293B),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+        )
+    }
+}
+
+@Composable
+fun ChartGridCanvas(lineColor: Color) {
+    Column {
+        Box(
+            modifier = Modifier.fillMaxWidth().height(100.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val stepY = size.height / 5
+                val stepX = size.width / 9
+
+                for (i in 0..5) {
+                    drawLine(
+                        color = Color(0xFFE2E8F0),
+                        start = Offset(0f, i * stepY),
+                        end = Offset(size.width, i * stepY),
+                        strokeWidth = 1f
+                    )
+                }
+                for (j in 0..9) {
+                    drawLine(
+                        color = Color(0xFFE2E8F0),
+                        start = Offset(j * stepX, 0f),
+                        end = Offset(j * stepX, size.height),
+                        strokeWidth = 1f
+                    )
+                }
+
+                val baseline = size.height
+                drawLine(
+                    color = lineColor,
+                    start = Offset(0f, baseline),
+                    end = Offset(size.width, baseline),
+                    strokeWidth = 3f
                 )
+                for (k in 0..9) {
+                    drawCircle(
+                        color = lineColor,
+                        radius = 4f,
+                        center = Offset(k * stepX, baseline)
+                    )
+                }
             }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            (1..9).forEach {
+                Text("$it", fontSize = 10.sp, color = Color(0xFF64748B), textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+fun FeatureIconItem(
+    title: String,
+    iconEmoji: String,
+    bgColor: Color,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(72.dp).clickable(onClick = onClick)
+    ) {
+        Box(
+            modifier = Modifier.size(46.dp).clip(RoundedCornerShape(12.dp)).background(bgColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(iconEmoji, fontSize = 22.sp)
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = title,
+            fontSize = 11.sp,
+            color = Color(0xFF334155),
+            textAlign = TextAlign.Center,
+            lineHeight = 13.sp,
+            maxLines = 2
+        )
+    }
+}
+
+@Composable
+fun AddNewOptionItem(
+    title: String,
+    subtitle: String,
+    icon: String,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier.size(38.dp).clip(CircleShape).background(Color(0xFFEFF6FF)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(icon, fontSize = 18.sp)
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Column {
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+            Text(subtitle, fontSize = 12.sp, color = Color(0xFF64748B))
         }
     }
 }

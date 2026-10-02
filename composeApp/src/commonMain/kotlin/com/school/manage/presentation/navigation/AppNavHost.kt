@@ -54,14 +54,6 @@ fun AppNavHost(database: AppDatabase) {
                 onLogout = { navController.navigate("login") { popUpTo(0) } }
             )
         }
-        composable("batch_list") {
-            BatchListScreen(
-                database = database,
-                schoolCode = currentSchoolCode,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateAdd = { navController.navigate("add_batch") }
-            )
-        }
         composable("staff_portal") {
             StaffPortalScreen(
                 database = database,
