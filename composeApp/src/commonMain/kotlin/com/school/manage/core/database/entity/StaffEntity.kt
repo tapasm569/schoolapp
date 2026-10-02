@@ -6,10 +6,10 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "staff")
 data class StaffEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val schoolCode: String,
-    val name: String,
+    val schoolCode: String = "",
+    val name: String = "",
     val role: String = "Teacher",
-    val phone: String,
+    val phone: String = "",
     val salary: Double = 0.0,
     val joinDate: String = "02/10/2026",
     val gender: String = "Male",

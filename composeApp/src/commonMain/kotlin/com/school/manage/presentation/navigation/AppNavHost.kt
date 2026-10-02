@@ -54,20 +54,19 @@ fun AppNavHost(database: AppDatabase) {
                 onLogout = { navController.navigate("login") { popUpTo(0) } }
             )
         }
-        composable("staff_portal") {
-            StaffPortalScreen(
+        composable("batch_list") {
+            BatchListScreen(
                 database = database,
-                staffId = currentStaffId,
                 schoolCode = currentSchoolCode,
-                onNavigate = { route -> navController.navigate(route) },
-                onLogout = { navController.navigate("login") { popUpTo(0) } }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateAdd = { navController.navigate("add_batch") }
             )
         }
-        composable("student_portal") {
-            StudentPortalScreen(
+        composable("add_batch") {
+            AddBatchScreen(
                 database = database,
-                studentId = currentStudentId,
-                onLogout = { navController.navigate("login") { popUpTo(0) } }
+                schoolCode = currentSchoolCode,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
         composable("student_list") {
@@ -103,19 +102,23 @@ fun AppNavHost(database: AppDatabase) {
                 studentId = sId,
                 studentName = sName,
                 onBatchAssigned = {
-                    navController.popBackStack("student_list", inclusive = false)
+                    if (!navController.popBackStack("student_list", inclusive = false)) {
+                        navController.navigate("dashboard") {
+                            popUpTo("dashboard") { inclusive = true }
+                        }
+                    }
                 }
             )
         }
-        composable("add_staff") {
-            AddStaffScreen(
+        composable("staff_list") {
+            StaffScreen(
                 database = database,
                 schoolCode = currentSchoolCode,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
-        composable("add_batch") {
-            AddBatchScreen(
+        composable("add_staff") {
+            AddStaffScreen(
                 database = database,
                 schoolCode = currentSchoolCode,
                 onNavigateBack = { navController.popBackStack() }
@@ -142,11 +145,20 @@ fun AppNavHost(database: AppDatabase) {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
-        composable("staff_list") {
-            StaffScreen(
+        composable("staff_portal") {
+            StaffPortalScreen(
                 database = database,
+                staffId = currentStaffId,
                 schoolCode = currentSchoolCode,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigate = { route -> navController.navigate(route) },
+                onLogout = { navController.navigate("login") { popUpTo(0) } }
+            )
+        }
+        composable("student_portal") {
+            StudentPortalScreen(
+                database = database,
+                studentId = currentStudentId,
+                onLogout = { navController.navigate("login") { popUpTo(0) } }
             )
         }
     }

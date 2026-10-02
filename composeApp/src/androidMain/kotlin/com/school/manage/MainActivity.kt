@@ -5,18 +5,22 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.room.Room
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.presentation.navigation.AppNavHost
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
         val database = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java,
-            "school_operations.db"
-        ).fallbackToDestructiveMigration().build()
+            "school_management.db"
+        )
+            .fallbackToDestructiveMigration(true)
+            .build()
 
         setContent {
-            App(database = database)
+            AppNavHost(database = database)
         }
     }
 }
