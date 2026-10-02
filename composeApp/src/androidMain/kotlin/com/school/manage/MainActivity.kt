@@ -16,7 +16,7 @@ class MainActivity : ComponentActivity() {
             AppDatabase::class.java,
             "school_management.db"
         )
-            .fallbackToDestructiveMigration(true)
+            .fallbackToDestructiveMigration()
             .build()
 
         setContent {

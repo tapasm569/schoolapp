@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BatchDao {
-    @Query("SELECT * FROM batches WHERE schoolCode = :schoolCode ORDER BY batchName ASC")
+    @Query("SELECT * FROM batches WHERE schoolCode = :schoolCode ORDER BY id DESC")
     fun getBatchesBySchool(schoolCode: String): Flow<List<BatchEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -14,4 +14,7 @@ interface BatchDao {
 
     @Delete
     suspend fun deleteBatch(batch: BatchEntity)
+
+    @Delete
+    suspend fun delete(batch: BatchEntity)
 }

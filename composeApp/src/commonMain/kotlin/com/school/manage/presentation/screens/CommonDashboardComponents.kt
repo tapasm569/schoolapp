@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -34,7 +35,7 @@ fun CustomRoundedInput(
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = colors.inputBg,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
+        border = BorderStroke(1.dp, colors.inputBorder),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -45,14 +46,13 @@ fun CustomRoundedInput(
                 value = value,
                 onValueChange = onValueChange,
                 placeholder = { Text(placeholder, color = colors.textSecondary, fontSize = 14.sp) },
+                textStyle = LocalTextStyle.current.copy(color = colors.textPrimary),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = colors.textPrimary,
-                    unfocusedTextColor = colors.textPrimary
+                    unfocusedIndicatorColor = Color.Transparent
                 ),
                 modifier = Modifier.weight(1f),
                 singleLine = true
@@ -74,7 +74,7 @@ fun DropdownTriggerInput(
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = colors.inputBg,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
+        border = BorderStroke(1.dp, colors.inputBorder),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
         Row(
@@ -103,7 +103,7 @@ fun GenderOptionButton(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
         color = if (isSelected) colors.brandPrimary.copy(alpha = 0.15f) else colors.bgCard,
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             1.5.dp,
             if (isSelected) colors.brandPrimary else colors.borderCard
         ),
@@ -160,7 +160,7 @@ fun TopCountCard(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         color = colors.bgCard,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+        border = BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
         Column {
@@ -201,7 +201,7 @@ fun AttendanceProgressBarCard(
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = colors.bgCard,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+        border = BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -245,7 +245,7 @@ fun LegendPill(label: String, color: Color) {
     val colors = LocalSchoolColors.current
     Surface(
         shape = RoundedCornerShape(6.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, color),
+        border = BorderStroke(1.dp, color),
         color = colors.bgCard
     ) {
         Text(
@@ -390,18 +390,18 @@ fun AddNewOptionItem(
 
 @Composable
 fun StatMetricTile(
-    title: String,
-    value: String,
-    icon: String,
-    bgTint: Color,
-    textColor: Color,
+    title: String = "",
+    value: String = "",
+    icon: String = "",
+    bgTint: Color = Color(0xFFEFF6FF),
+    textColor: Color = Color.Unspecified,
     modifier: Modifier = Modifier
 ) {
     val colors = LocalSchoolColors.current
     Surface(
         shape = RoundedCornerShape(18.dp),
         color = colors.bgCard,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+        border = BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
         Row(
@@ -428,19 +428,19 @@ fun StatMetricTile(
 
 @Composable
 fun ModernActionTile(
-    title: String,
-    desc: String,
-    emoji: String,
-    tint: Color,
+    title: String = "",
+    desc: String = "",
+    emoji: String = "",
+    tint: Color = Color(0xFFEFF6FF),
     modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    onClick: () -> Unit = {}
 ) {
     val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(18.dp),
         color = colors.bgCard,
-        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+        border = BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
@@ -477,7 +477,7 @@ fun ModernDatePickerDialog(
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = colors.bgCard,
-            border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+            border = BorderStroke(1.dp, colors.borderCard),
             modifier = Modifier.fillMaxWidth().padding(8.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
