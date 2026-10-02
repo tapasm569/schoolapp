@@ -1,17 +1,25 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StudentEntity
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentPortalScreen(
     database: AppDatabase,
@@ -19,84 +27,371 @@ fun StudentPortalScreen(
     onLogout: () -> Unit
 ) {
     var student by remember { mutableStateOf<StudentEntity?>(null) }
+    var school by remember { mutableStateOf<SchoolEntity?>(null) }
     val attendanceList by database.attendanceDao().getAttendanceByStudent(studentId).collectAsState(initial = emptyList())
     val feeRecords by database.feeDao().getFeeRecordsByStudent(studentId).collectAsState(initial = emptyList())
 
     LaunchedEffect(studentId) {
-        student = database.studentDao().getStudentById(studentId)
+        val s = database.studentDao().getStudentById(studentId)
+        student = s
+        if (s != null) {
+            school = database.schoolDao().getSchoolByCode(s.schoolCode)
+        }
     }
 
+    val totalPaid = feeRecords.sumOf { it.amountPaid }.toInt()
+    val presentDays = attendanceList.count { it.status == "PRESENT" }
+    val absentDays = attendanceList.count { it.status == "ABSENT" }
+    val leaveDays = attendanceList.count { it.status == "LEAVE" }
+
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(student?.name ?: "Student Portal") },
-                actions = {
-                    TextButton(onClick = onLogout) { Text("Logout") }
-                }
-            )
-        }
+        containerColor = Color(0xFFF8FAFC)
     ) { padding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+
+            // 1. Top Header Profile Row
             item {
-                Card(
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(student?.name ?: "Student", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("Roll No: ${student?.rollNo} • Class: ${student?.gradeClass} (${student?.section})")
-                        Text("School Code: ${student?.schoolCode}")
-                        Text("Guardian: ${student?.guardianName}")
-                        Text("Monthly Fee: ₹${student?.monthlyFee?.toInt() ?: 0}")
+                    Column {
+                        Text(
+                            text = student?.name ?: "Dipto Roy",
+                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 17.sp,
+                            color = Color(0xFF0F172A)
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.clickable { onLogout() }
+                        ) {
+                            Text(
+                                text = "Change Account",
+                                fontSize = 12.sp,
+                                color = Color(0xFF64748B)
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text("▾", fontSize = 11.sp, color = Color(0xFF64748B))
+                        }
+                    }
+
+                    // Top Action Icons
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("🔲", fontSize = 18.sp, color = Color(0xFF2563EB))
+                        Text("💬", fontSize = 18.sp, color = Color(0xFF2563EB))
+                        Text("🔔", fontSize = 18.sp, color = Color(0xFF2563EB))
+                        Text(
+                            text = "⎋",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFFDC2626),
+                            modifier = Modifier.clickable { onLogout() }
+                        )
                     }
                 }
             }
 
+            // 2. Feature Action Icons Grid
             item {
-                Text("Attendance History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        StudentActionTile("Fees", "💰", Color(0xFFDCFCE7))
+                        StudentActionTile("Exams", "📝", Color(0xFFE0F2FE))
+                        StudentActionTile("Classwork", "🖥️", Color(0xFFFEF3C7))
+                        StudentActionTile("Homework", "📖", Color(0xFFFFE4E6))
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(22.dp)
+                    ) {
+                        StudentActionTile("Live Class", "⏱️", Color(0xFFFFEDD5))
+                        StudentActionTile("Leave", "➖", Color(0xFFFEF9C3))
+                    }
+                }
             }
-            if (attendanceList.isEmpty()) {
-                item { Text("No attendance records logged yet.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            } else {
-                items(attendanceList) { att ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
+
+            // 3. Batch Information Title
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "BATCH INFORMATION",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
+                        color = Color(0xFF475569),
+                        letterSpacing = 0.5.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    HorizontalDivider(color = Color(0xFFE2E8F0), modifier = Modifier.weight(1f))
+                }
+            }
+
+            // 4. Batch Information Card
+            item {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Row(
-                            modifier = Modifier.fillMaxWidth().padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0xFFE6F4EA)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("👥", fontSize = 22.sp)
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column {
+                                Text(
+                                    text = student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    color = Color(0xFF0F172A)
+                                )
+                                Text("Monthly • 0", fontSize = 12.sp, color = Color(0xFF64748B))
+                                Text("Monthly • 0", fontSize = 12.sp, color = Color(0xFF64748B))
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = Color(0xFFF1F5F9))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Joined", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text(
+                                    text = student?.admissionDate ?: "02/10/2026",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF0F172A)
+                                )
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text("Paid", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text(
+                                    text = "$totalPaid",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = Color(0xFF16A34A)
+                                )
+                            }
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Finish", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("Running", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF16A34A))
+                                Spacer(modifier = Modifier.height(10.dp))
+                                Text("Due", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("0", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF16A34A))
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 5. Attendance Summary Card with Calendar Grid
+            item {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("Attendance Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
+                                Text(student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
+                            }
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text("›", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Calendar Day Labels
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
+                            listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach { day ->
+                                Text(day, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // October 2026 Calendar Grid (Thu 01 to Sat 31)
+                        val weeks = listOf(
+                            listOf("", "", "", "01", "02", "03", "04"),
+                            listOf("05", "06", "07", "08", "09", "10", "11"),
+                            listOf("12", "13", "14", "15", "16", "17", "18"),
+                            listOf("19", "20", "21", "22", "23", "24", "25"),
+                            listOf("26", "27", "28", "29", "30", "31", "")
+                        )
+
+                        weeks.forEach { week ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                                horizontalArrangement = Arrangement.SpaceAround
+                            ) {
+                                week.forEach { date ->
+                                    Text(
+                                        text = date,
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (date.isEmpty()) Color.Transparent else Color(0xFF0F172A),
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        // Bottom Status Badge Pills
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(att.date)
+                            StatusCountPill("✓", "$presentDays", Color(0xFF86EFAC), Color(0xFF15803D))
+                            StatusCountPill("✕", "$absentDays", Color(0xFFFCA5A5), Color(0xFFB91C1C))
+                            StatusCountPill("−", "$leaveDays", Color(0xFFFDE68A), Color(0xFFB45309))
+                            StatusCountPill("🏃", "0", Color(0xFF93C5FD), Color(0xFF1D4ED8))
+                        }
+                    }
+                }
+            }
+
+            // 6. Bottom Institute Profile Card
+            item {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color.White,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFFE2E8F0)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("👤", fontSize = 22.sp)
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
                             Text(
-                                att.status,
+                                text = school?.schoolName?.ifEmpty { "ST. JHON SCHOOL" } ?: "ST. JHON SCHOOL",
+                                fontWeight = FontWeight.Black,
+                                fontSize = 14.sp,
+                                color = Color(0xFF0F172A)
+                            )
+                            Text(
+                                text = "Institute Code: ${school?.schoolCode ?: "TJMMJN"}",
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (att.status == "PRESENT") MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                                color = Color(0xFF2563EB)
+                            )
+                            Text(
+                                text = school?.phone?.ifEmpty { "9932655607" } ?: "9932655607",
+                                fontSize = 12.sp,
+                                color = Color(0xFF64748B)
                             )
                         }
                     }
                 }
             }
 
-            item {
-                Text("Fee Payment History", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-            if (feeRecords.isEmpty()) {
-                item { Text("No fee payment records found.", color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            } else {
-                items(feeRecords) { fee ->
-                    Card(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text("Amount: ₹${fee.amountPaid.toInt()}", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                                Text(fee.paymentDate)
-                            }
-                            Text("Payment Mode: ${fee.paymentMode}")
-                            if (fee.remarks.isNotBlank()) Text("Notes: ${fee.remarks}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
-            }
+            item { Spacer(modifier = Modifier.height(20.dp)) }
+        }
+    }
+}
+
+@Composable
+fun StudentActionTile(
+    label: String,
+    emoji: String,
+    bgColor: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(72.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(bgColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(emoji, fontSize = 22.sp)
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF334155),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+fun StatusCountPill(
+    symbol: String,
+    count: String,
+    bgColor: Color,
+    textColor: Color
+) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = bgColor,
+        modifier = Modifier.width(68.dp).height(30.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(symbol, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor)
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(count, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor)
         }
     }
 }
