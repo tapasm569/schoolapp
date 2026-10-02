@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.FeeRecordEntity
+import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,11 +24,12 @@ fun FeeCollectionScreen(
     schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val feeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
-    var selectedStudentId by remember { mutableStateOf<Long?>(null) }
+    var selectedStudentId by remember { mutableStateOf(null) }
     var selectedStudentName by remember { mutableStateOf("") }
     var selectedStudentClass by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
@@ -36,13 +38,14 @@ fun FeeCollectionScreen(
     var showStudentDropdown by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Fee Collection", fontWeight = FontWeight.Bold) },
+                title = { Text("Fee Collection", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
-                }
+                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         }
     ) { padding ->
@@ -55,17 +58,17 @@ fun FeeCollectionScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Collect Student Fee", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF0F172A))
+                        Text("Collect Student Fee", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
 
                         Box {
                             DropdownTriggerInput(
                                 label = "Select Student",
-                                value = if (selectedStudentName.isEmpty()) "Select Student" else "$selectedStudentName ($selectedStudentClass)",
+                                value = if (selectedStudentName.isEmpty()) "Select Student" else selectedStudentName + " (" + selectedStudentClass + ")",
                                 onClick = { showStudentDropdown = true }
                             )
                             DropdownMenu(
@@ -74,12 +77,12 @@ fun FeeCollectionScreen(
                             ) {
                                 students.forEach { s ->
                                     DropdownMenuItem(
-                                        text = { Text("${s.name} - ${s.gradeClass}") },
+                                        text = { Text(s.name + " - " + s.gradeClass) },
                                         onClick = {
                                             selectedStudentId = s.id
                                             selectedStudentName = s.name
                                             selectedStudentClass = s.gradeClass
-                                            amount = "${s.monthlyFee.toInt()}"
+                                            amount = s.monthlyFee.toInt().toString()
                                             showStudentDropdown = false
                                         }
                                     )
@@ -132,7 +135,7 @@ fun FeeCollectionScreen(
                             },
                             modifier = Modifier.fillMaxWidth().height(48.dp),
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
                         ) {
                             Text("Record Payment", fontWeight = FontWeight.Bold)
                         }
@@ -141,14 +144,14 @@ fun FeeCollectionScreen(
             }
 
             item {
-                Text("Recent Payments (${feeRecords.size})", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                Text("Recent Payments (" + feeRecords.size + ")", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
             }
 
             items(feeRecords) { fee ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -157,13 +160,13 @@ fun FeeCollectionScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text(fee.studentName, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                            Text("Month: ${fee.feeMonth}  •  ${fee.paymentDate}", fontSize = 12.sp, color = Color(0xFF64748B))
+                            Text(fee.studentName, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                            Text("Month: " + fee.feeMonth + "  •  " + fee.paymentDate, fontSize = 12.sp, color = colors.textSecondary)
                             if (fee.remarks.isNotEmpty()) {
-                                Text(fee.remarks, fontSize = 11.sp, color = Color(0xFF0D529C))
+                                Text(fee.remarks, fontSize = 11.sp, color = colors.brandPrimary)
                             }
                         }
-                        Text("₹${fee.amountPaid.toInt()}", fontWeight = FontWeight.Black, fontSize = 16.sp, color = Color(0xFF16A34A))
+                        Text("₹" + fee.amountPaid.toInt(), fontWeight = FontWeight.Black, fontSize = 16.sp, color = colors.success)
                     }
                 }
             }

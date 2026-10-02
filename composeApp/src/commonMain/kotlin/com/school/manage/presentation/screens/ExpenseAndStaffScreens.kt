@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.ExpenseEntity
 import com.school.manage.core.database.entity.StaffEntity
+import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +29,7 @@ fun AddStaffScreen(
     schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
@@ -48,21 +50,21 @@ fun AddStaffScreen(
     var errorMsg by remember { mutableStateOf("") }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Add Teacher / Staff", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text("Add Teacher / Staff", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8FAFC))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         },
         bottomBar = {
             Surface(
-                color = Color(0xFFF8FAFC),
+                color = colors.bgApp,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Button(
@@ -93,7 +95,7 @@ fun AddStaffScreen(
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
                 ) {
                     Text("Save Teacher", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -110,8 +112,8 @@ fun AddStaffScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -120,14 +122,14 @@ fun AddStaffScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = Color(0xFF64748B))
+                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = colors.textSecondary)
                         }
                         Box(
                             modifier = Modifier
                                 .size(50.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFE2E8F0)),
+                                .background(colors.borderCard),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("👤", fontSize = 24.sp)
@@ -138,8 +140,8 @@ fun AddStaffScreen(
 
             item {
                 Column {
-                    Text("Staff Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter staff personal details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Staff Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Enter staff personal details here.", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -148,8 +150,8 @@ fun AddStaffScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    color = colors.inputBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
                     modifier = Modifier.fillMaxWidth().clickable { showStartDatePicker = true }
                 ) {
                     Row(
@@ -157,7 +159,7 @@ fun AddStaffScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Start Date: $startDate", fontSize = 14.sp, color = Color(0xFF0F172A))
+                        Text("Start Date: " + startDate, fontSize = 14.sp, color = colors.textPrimary)
                         Text("📅", fontSize = 18.sp)
                     }
                 }
@@ -182,8 +184,8 @@ fun AddStaffScreen(
 
             item {
                 Column {
-                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter contact details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Enter contact details here.", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -193,8 +195,8 @@ fun AddStaffScreen(
 
             item {
                 Column {
-                    Text("Qualification And Salary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter Qualification details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Qualification And Salary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Enter Qualification details here.", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -225,7 +227,7 @@ fun AddStaffScreen(
 
             if (errorMsg.isNotEmpty()) {
                 item {
-                    Text(errorMsg, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(errorMsg, color = colors.error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -249,12 +251,17 @@ fun StaffScreen(
     schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
     Scaffold(
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Staff & Faculty Directory (${staffList.size})") },
-                navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
+                title = { Text("Staff & Faculty Directory (" + staffList.size + ")", color = colors.textPrimary) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         }
     ) { padding ->
@@ -263,11 +270,16 @@ fun StaffScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(staffList) { staff ->
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Column(modifier = Modifier.padding(14.dp)) {
-                        Text(staff.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                        Text("Position: ${staff.role} • Contact: ${staff.phone}")
-                        Text("Salary: ₹${staff.salary.toInt()} (${staff.salaryType})")
+                        Text(staff.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
+                        Text("Position: " + staff.role + " • Contact: " + staff.phone, color = colors.textSecondary)
+                        Text("Salary: ₹" + staff.salary.toInt() + " (" + staff.salaryType + ")", color = colors.brandPrimary, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -282,6 +294,7 @@ fun ExpenseScreen(
     schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val expenses by database.expenseDao().getExpensesBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
     var title by remember { mutableStateOf("") }
@@ -289,10 +302,14 @@ fun ExpenseScreen(
     var amount by remember { mutableStateOf("") }
 
     Scaffold(
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Expenses ($schoolCode)") },
-                navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
+                title = { Text("Expenses (" + schoolCode + ")", color = colors.textPrimary) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         }
     ) { padding ->
@@ -300,13 +317,15 @@ fun ExpenseScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { Text("Add Expense", fontWeight = FontWeight.Bold) }
-            item { OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = category, onValueChange = { category = it }, label = { Text("Category") }, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(value = amount, onValueChange = { amount = it }, label = { Text("Amount (₹)") }, modifier = Modifier.fillMaxWidth()) }
+            item { Text("Add Expense", fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+            item { CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Title") }
+            item { CustomRoundedInput(value = category, onValueChange = { category = it }, placeholder = "Category") }
+            item { CustomRoundedInput(value = amount, onValueChange = { amount = it }, placeholder = "Amount (₹)") }
             item {
                 Button(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().height(48.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
                     onClick = {
                         if (title.isNotBlank() && amount.isNotBlank()) {
                             scope.launch {
@@ -326,13 +345,18 @@ fun ExpenseScreen(
                             }
                         }
                     }
-                ) { Text("Save Expense") }
+                ) { Text("Save Expense", fontWeight = FontWeight.Bold) }
             }
             items(expenses) { exp ->
-                Card(modifier = Modifier.fillMaxWidth()) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(exp.title, fontWeight = FontWeight.Bold)
-                        Text("₹${exp.amount.toInt()}", color = MaterialTheme.colorScheme.error)
+                        Text(exp.title, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                        Text("₹" + exp.amount.toInt(), color = colors.error, fontWeight = FontWeight.Bold)
                     }
                 }
             }

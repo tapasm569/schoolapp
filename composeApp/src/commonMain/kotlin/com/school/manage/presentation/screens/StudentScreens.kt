@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.FeeRecordEntity
 import com.school.manage.core.database.entity.StudentEntity
+import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,6 +31,7 @@ fun StudentListScreen(
     onNavigateBack: () -> Unit,
     onNavigateAdd: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
@@ -38,19 +40,20 @@ fun StudentListScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Students Directory (${students.size})", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text("Students Directory (" + students.size + ")", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
-                }
+                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateAdd,
-                containerColor = Color(0xFF0D529C),
+                containerColor = colors.brandPrimary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp)
             ) {
@@ -60,7 +63,7 @@ fun StudentListScreen(
     ) { padding ->
         if (students.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No students enrolled yet. Tap + to register.", color = Color(0xFF64748B))
+                Text("No students enrolled yet. Tap + to register.", color = colors.textSecondary)
             }
         } else {
             LazyColumn(
@@ -73,7 +76,7 @@ fun StudentListScreen(
                     item {
                         Surface(
                             shape = RoundedCornerShape(10.dp),
-                            color = Color(0xFFE0F2FE),
+                            color = colors.brandPrimary.copy(alpha = 0.15f),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Row(
@@ -81,8 +84,8 @@ fun StudentListScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Class: $className", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = Color(0xFF0D529C))
-                                Text("${studentGroup.size} Students", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF0369A1))
+                                Text("Class: " + className, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = colors.brandPrimary)
+                                Text(studentGroup.size.toString() + " Students", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.brandPrimary)
                             }
                         }
                     }
@@ -90,24 +93,24 @@ fun StudentListScreen(
                     items(studentGroup) { student ->
                         Surface(
                             shape = RoundedCornerShape(14.dp),
-                            color = Color.White,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                            color = colors.bgCard,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                                    Text("Admission Fee: ₹${student.admissionFee.toInt()}", color = Color(0xFF0D529C), fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+                                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                                    Text("Admission Fee: ₹" + student.admissionFee.toInt(), color = colors.brandPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
-                                Text("Phone: ${student.phone}  •  Gender: ${student.gender}  •  DOB: ${student.dob.ifEmpty { "N/A" }}", fontSize = 12.sp, color = Color(0xFF64748B))
-                                Text("Monthly Tuition: ₹${student.monthlyFee.toInt()}/mo", fontSize = 12.sp, color = Color(0xFF16A34A), fontWeight = FontWeight.Bold)
+                                Text("Phone: " + student.phone + "  •  Gender: " + student.gender + "  •  DOB: " + student.dob.ifEmpty { "N/A" }, fontSize = 12.sp, color = colors.textSecondary)
+                                Text("Monthly Tuition: ₹" + student.monthlyFee.toInt() + "/mo", fontSize = 12.sp, color = colors.success, fontWeight = FontWeight.Bold)
 
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                     Button(
                                         onClick = { scope.launch { database.studentDao().deleteStudent(student) } },
-                                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFEE2E2), contentColor = Color(0xFFDC2626)),
+                                        colors = ButtonDefaults.buttonColors(containerColor = colors.error.copy(alpha = 0.15f), contentColor = colors.error),
                                         shape = RoundedCornerShape(8.dp),
                                         contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
                                         modifier = Modifier.height(28.dp)
@@ -136,6 +139,7 @@ fun AddStudentScreen(
     onNavigateBack: () -> Unit,
     onStudentSaved: (Long, String) -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
@@ -152,21 +156,21 @@ fun AddStudentScreen(
     var errorMessage by remember { mutableStateOf("") }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Add Student", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text("Add Student", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8FAFC))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         },
         bottomBar = {
             Surface(
-                color = Color(0xFFF8FAFC),
+                color = colors.bgApp,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Button(
@@ -198,7 +202,7 @@ fun AddStudentScreen(
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
                 ) {
                     Text("Save & Assign Class", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -215,8 +219,8 @@ fun AddStudentScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(14.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -225,14 +229,14 @@ fun AddStudentScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = Color(0xFF64748B))
+                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = colors.textSecondary)
                         }
                         Box(
                             modifier = Modifier
                                 .size(50.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFE2E8F0)),
+                                .background(colors.borderCard),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("👤", fontSize = 24.sp)
@@ -243,8 +247,8 @@ fun AddStudentScreen(
 
             item {
                 Column {
-                    Text("Student Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Enter student personal details here.", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Student Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Enter student personal details here.", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -255,8 +259,8 @@ fun AddStudentScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    color = colors.inputBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
                     modifier = Modifier.fillMaxWidth().clickable { showDobPicker = true }
                 ) {
                     Row(
@@ -267,7 +271,7 @@ fun AddStudentScreen(
                         Text(
                             text = if (dob.isEmpty()) "Date of Birth (Tap to select)" else dob,
                             fontSize = 14.sp,
-                            color = if (dob.isEmpty()) Color(0xFF94A3B8) else Color(0xFF0F172A)
+                            color = if (dob.isEmpty()) colors.textSecondary else colors.textPrimary
                         )
                         Text("📅", fontSize = 18.sp)
                     }
@@ -279,7 +283,7 @@ fun AddStudentScreen(
 
             item {
                 Column {
-                    Text("Gender", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
+                    Text("Gender", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         GenderOptionButton(
@@ -301,11 +305,11 @@ fun AddStudentScreen(
             item {
                 Spacer(modifier = Modifier.height(6.dp))
                 Column {
-                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
+                    Text("Contact Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
                     Text(
                         "Enter student personal details here. (Country Code Required like 91XXXXXXXXXX)",
                         fontSize = 12.sp,
-                        color = Color(0xFF64748B)
+                        color = colors.textSecondary
                     )
                 }
             }
@@ -316,7 +320,7 @@ fun AddStudentScreen(
 
             if (errorMessage.isNotEmpty()) {
                 item {
-                    Text(errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    Text(errorMessage, color = colors.error, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -342,6 +346,7 @@ fun AssignBatchScreen(
     studentName: String,
     onBatchAssigned: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
 
@@ -356,21 +361,21 @@ fun AssignBatchScreen(
     val totalInitialPayable = admissionFee + monthlyTuition
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Assign Batch & Fee Plan", fontWeight = FontWeight.Bold, fontSize = 18.sp) },
+                title = { Text("Assign Batch & Fee Plan", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onBatchAssigned) {
-                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8FAFC))
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         },
         bottomBar = {
             Surface(
-                color = Color(0xFFF8FAFC),
+                color = colors.bgApp,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Button(
@@ -406,7 +411,7 @@ fun AssignBatchScreen(
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
                 ) {
                     Text("Confirm & Save", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -427,7 +432,7 @@ fun AssignBatchScreen(
                     text = studentName.ifEmpty { "Student" },
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF0F172A),
+                    color = colors.textPrimary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                 )
@@ -435,8 +440,8 @@ fun AssignBatchScreen(
 
             item {
                 Column {
-                    Text("Batch / Class Selection", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Select from classes created in School Classes module", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Batch / Class Selection", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Select from classes created in School Classes module", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -472,8 +477,8 @@ fun AssignBatchScreen(
 
             item {
                 Column {
-                    Text("Fee Structure Setup", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                    Text("Set admission and monthly tuition parameters", fontSize = 12.sp, color = Color(0xFF64748B))
+                    Text("Fee Structure Setup", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Set admission and monthly tuition parameters", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
@@ -496,8 +501,8 @@ fun AssignBatchScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFFEFF6FF),
-                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF93C5FD)),
+                    color = colors.brandPrimary.copy(alpha = 0.12f),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, colors.brandPrimary.copy(alpha = 0.4f)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -505,31 +510,31 @@ fun AssignBatchScreen(
                             text = "FEE BREAKDOWN & AUTO-SUM",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFF1E40AF),
+                            color = colors.brandPrimary,
                             letterSpacing = 0.5.sp
                         )
                         Spacer(modifier = Modifier.height(10.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Admission Fee (Yearly):", fontSize = 13.sp, color = Color(0xFF334155))
-                            Text("₹${admissionFee.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                            Text("Admission Fee (Yearly):", fontSize = 13.sp, color = colors.textSecondary)
+                            Text("₹" + admissionFee.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                         }
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("1st Month Tuition (Auto-Sum):", fontSize = 13.sp, color = Color(0xFF334155))
-                            Text("₹${monthlyTuition.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                            Text("1st Month Tuition (Auto-Sum):", fontSize = 13.sp, color = colors.textSecondary)
+                            Text("₹" + monthlyTuition.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                         }
                         Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider(color = Color(0xFFBFDBFE))
+                        HorizontalDivider(color = colors.brandPrimary.copy(alpha = 0.2f))
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                            Text("Total Initial Due at Admission:", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E40AF))
-                            Text("₹${totalInitialPayable.toInt()}", fontSize = 16.sp, fontWeight = FontWeight.Black, color = Color(0xFF16A34A))
+                            Text("Total Initial Due at Admission:", fontSize = 14.sp, fontWeight = FontWeight.ExtraBold, color = colors.brandPrimary)
+                            Text("₹" + totalInitialPayable.toInt(), fontSize = 16.sp, fontWeight = FontWeight.Black, color = colors.success)
                         }
                         Spacer(modifier = Modifier.height(10.dp))
                         Text(
-                            text = "ℹ Student pays initial admission total now. Monthly tuition fee (₹${monthlyTuition.toInt()}) will be due starting from next month.",
+                            text = "ℹ Student pays initial admission total now. Monthly tuition fee (₹" + monthlyTuition.toInt() + ") will be due starting from next month.",
                             fontSize = 11.sp,
-                            color = Color(0xFF1E40AF),
+                            color = colors.brandPrimary,
                             lineHeight = 15.sp
                         )
                     }

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.AttendanceEntity
+import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,8 +25,9 @@ fun AttendanceScreen(
     schoolCode: String,
     onNavigateBack: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val attendanceMap = remember { mutableStateMapOf<Long, String>() }
+    val attendanceMap = remember { mutableStateMapOf() }
     val scope = rememberCoroutineScope()
     var date by remember { mutableStateOf("02/10/2026") }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -40,18 +42,19 @@ fun AttendanceScreen(
     }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC),
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Mark Attendance", fontWeight = FontWeight.Bold) },
+                title = { Text("Mark Attendance", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold) }
-                }
+                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         },
         bottomBar = {
             Surface(
-                color = Color(0xFFF8FAFC),
+                color = colors.bgApp,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Button(
@@ -70,12 +73,12 @@ fun AttendanceScreen(
                                 )
                             }
                             database.attendanceDao().insertAll(list)
-                            savedMessage = "Attendance saved successfully for $date!"
+                            savedMessage = "Attendance saved successfully for " + date + "!"
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
                     shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
                 ) {
                     Text("Save Attendance", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
@@ -91,8 +94,8 @@ fun AttendanceScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                    color = colors.inputBg,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
                     modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
                 ) {
                     Row(
@@ -100,7 +103,7 @@ fun AttendanceScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Attendance Date: $date", fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                        Text("Attendance Date: " + date, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                         Text("📅", fontSize = 18.sp)
                     }
                 }
@@ -108,14 +111,14 @@ fun AttendanceScreen(
 
             if (savedMessage.isNotEmpty()) {
                 item {
-                    Text(savedMessage, color = Color(0xFF16A34A), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(savedMessage, color = colors.success, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                 }
             }
 
             if (students.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                        Text("No students found to mark attendance.", color = Color(0xFF64748B))
+                        Text("No students found to mark attendance.", color = colors.textSecondary)
                     }
                 }
             } else {
@@ -123,8 +126,8 @@ fun AttendanceScreen(
                     val status = attendanceMap[student.id] ?: "PRESENT"
                     Surface(
                         shape = RoundedCornerShape(12.dp),
-                        color = Color.White,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        color = colors.bgCard,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(
@@ -133,8 +136,8 @@ fun AttendanceScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-                                Text("Class: ${student.gradeClass.ifEmpty { "General" }}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                                Text("Class: " + student.gradeClass.ifEmpty { "General" }, fontSize = 12.sp, color = colors.textSecondary)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 AttendanceStatusPill("P", status == "PRESENT", Color(0xFF22C55E)) {
@@ -172,16 +175,17 @@ fun AttendanceStatusPill(
     activeColor: Color,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(8.dp),
-        color = if (isSelected) activeColor else Color(0xFFF1F5F9),
+        color = if (isSelected) activeColor else colors.borderCard,
         modifier = Modifier.size(36.dp)
     ) {
         Box(contentAlignment = Alignment.Center) {
             Text(
                 text = label,
-                color = if (isSelected) Color.White else Color(0xFF64748B),
+                color = if (isSelected) Color.White else colors.textSecondary,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
             )

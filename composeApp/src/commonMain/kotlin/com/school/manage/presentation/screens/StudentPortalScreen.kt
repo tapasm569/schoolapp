@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StudentEntity
+import com.school.manage.presentation.theme.LocalSchoolColors
 
 @Composable
 fun StudentPortalScreen(
@@ -26,8 +27,9 @@ fun StudentPortalScreen(
     studentId: Long,
     onLogout: () -> Unit
 ) {
-    var student by remember { mutableStateOf<StudentEntity?>(null) }
-    var school by remember { mutableStateOf<SchoolEntity?>(null) }
+    val colors = LocalSchoolColors.current
+    var student by remember { mutableStateOf(null) }
+    var school by remember { mutableStateOf(null) }
     val attendanceList by database.attendanceDao().getAttendanceByStudent(studentId).collectAsState(initial = emptyList())
     val feeRecords by database.feeDao().getFeeRecordsByStudent(studentId).collectAsState(initial = emptyList())
 
@@ -45,7 +47,7 @@ fun StudentPortalScreen(
     val leaveDays = attendanceList.count { it.status == "LEAVE" }
 
     Scaffold(
-        containerColor = Color(0xFFF8FAFC)
+        containerColor = colors.bgApp
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -68,7 +70,7 @@ fun StudentPortalScreen(
                             text = student?.name ?: "Dipto Roy",
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 17.sp,
-                            color = Color(0xFF0F172A)
+                            color = colors.textPrimary
                         )
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -77,26 +79,25 @@ fun StudentPortalScreen(
                             Text(
                                 text = "Change Account",
                                 fontSize = 12.sp,
-                                color = Color(0xFF64748B)
+                                color = colors.textSecondary
                             )
                             Spacer(modifier = Modifier.width(3.dp))
-                            Text("▾", fontSize = 11.sp, color = Color(0xFF64748B))
+                            Text("▾", fontSize = 11.sp, color = colors.textSecondary)
                         }
                     }
 
-                    // Top Action Icons
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(14.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("🔲", fontSize = 18.sp, color = Color(0xFF2563EB))
-                        Text("💬", fontSize = 18.sp, color = Color(0xFF2563EB))
-                        Text("🔔", fontSize = 18.sp, color = Color(0xFF2563EB))
+                        Text("🔲", fontSize = 18.sp, color = colors.brandPrimary)
+                        Text("💬", fontSize = 18.sp, color = colors.brandPrimary)
+                        Text("🔔", fontSize = 18.sp, color = colors.brandPrimary)
                         Text(
                             text = "⎋",
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Black,
-                            color = Color(0xFFDC2626),
+                            color = colors.error,
                             modifier = Modifier.clickable { onLogout() }
                         )
                     }
@@ -135,11 +136,11 @@ fun StudentPortalScreen(
                         text = "BATCH INFORMATION",
                         fontWeight = FontWeight.Bold,
                         fontSize = 12.sp,
-                        color = Color(0xFF475569),
+                        color = colors.textSecondary,
                         letterSpacing = 0.5.sp
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    HorizontalDivider(color = Color(0xFFE2E8F0), modifier = Modifier.weight(1f))
+                    HorizontalDivider(color = colors.borderCard, modifier = Modifier.weight(1f))
                 }
             }
 
@@ -147,19 +148,17 @@ fun StudentPortalScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(46.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(Color(0xFFE6F4EA)),
+                                    .background(colors.brandPrimary.copy(alpha = 0.15f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("👥", fontSize = 22.sp)
@@ -170,41 +169,41 @@ fun StudentPortalScreen(
                                     text = student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
-                                    color = Color(0xFF0F172A)
+                                    color = colors.textPrimary
                                 )
-                                Text("Monthly • 0", fontSize = 12.sp, color = Color(0xFF64748B))
-                                Text("Monthly • 0", fontSize = 12.sp, color = Color(0xFF64748B))
+                                Text("Monthly • 0", fontSize = 12.sp, color = colors.textSecondary)
+                                Text("Monthly • 0", fontSize = 12.sp, color = colors.textSecondary)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
-                        HorizontalDivider(color = Color(0xFFF1F5F9))
+                        HorizontalDivider(color = colors.borderCard.copy(alpha = 0.5f))
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Joined", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("Joined", fontSize = 11.sp, color = colors.textSecondary)
                                 Text(
                                     text = student?.admissionDate ?: "02/10/2026",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = Color(0xFF0F172A)
+                                    color = colors.textPrimary
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Text("Paid", fontSize = 11.sp, color = Color(0xFF64748B))
+                                Text("Paid", fontSize = 11.sp, color = colors.textSecondary)
                                 Text(
-                                    text = "$totalPaid",
+                                    text = totalPaid.toString(),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
-                                    color = Color(0xFF16A34A)
+                                    color = colors.success
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Finish", fontSize = 11.sp, color = Color(0xFF64748B))
-                                Text("Running", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF16A34A))
+                                Text("Finish", fontSize = 11.sp, color = colors.textSecondary)
+                                Text("Running", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
                                 Spacer(modifier = Modifier.height(10.dp))
-                                Text("Due", fontSize = 11.sp, color = Color(0xFF64748B))
-                                Text("0", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF16A34A))
+                                Text("Due", fontSize = 11.sp, color = colors.textSecondary)
+                                Text("0", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
                             }
                         }
                     }
@@ -215,8 +214,8 @@ fun StudentPortalScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -226,30 +225,28 @@ fun StudentPortalScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Attendance Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F52BA))
-                                Text(student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
+                                Text("Attendance Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.brandPrimary)
+                                Text(student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
                             }
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
+                                Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A))
+                                Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("›", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F52BA))
+                                Text("›", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Calendar Day Labels
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
                             listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach { day ->
-                                Text(day, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0F172A), modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                                Text(day, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                             }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        // October 2026 Calendar Grid (Thu 01 to Sat 31)
                         val weeks = listOf(
                             listOf("", "", "", "01", "02", "03", "04"),
                             listOf("05", "06", "07", "08", "09", "10", "11"),
@@ -268,7 +265,7 @@ fun StudentPortalScreen(
                                         text = date,
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = if (date.isEmpty()) Color.Transparent else Color(0xFF0F172A),
+                                        color = if (date.isEmpty()) Color.Transparent else colors.textPrimary,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Center
                                     )
@@ -278,14 +275,13 @@ fun StudentPortalScreen(
 
                         Spacer(modifier = Modifier.height(18.dp))
 
-                        // Bottom Status Badge Pills
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            StatusCountPill("✓", "$presentDays", Color(0xFF86EFAC), Color(0xFF15803D))
-                            StatusCountPill("✕", "$absentDays", Color(0xFFFCA5A5), Color(0xFFB91C1C))
-                            StatusCountPill("−", "$leaveDays", Color(0xFFFDE68A), Color(0xFFB45309))
+                            StatusCountPill("✓", presentDays.toString(), Color(0xFF86EFAC), Color(0xFF15803D))
+                            StatusCountPill("✕", absentDays.toString(), Color(0xFFFCA5A5), Color(0xFFB91C1C))
+                            StatusCountPill("−", leaveDays.toString(), Color(0xFFFDE68A), Color(0xFFB45309))
                             StatusCountPill("🏃", "0", Color(0xFF93C5FD), Color(0xFF1D4ED8))
                         }
                     }
@@ -296,8 +292,8 @@ fun StudentPortalScreen(
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color.White,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                    color = colors.bgCard,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -308,7 +304,7 @@ fun StudentPortalScreen(
                             modifier = Modifier
                                 .size(46.dp)
                                 .clip(CircleShape)
-                                .background(Color(0xFFE2E8F0)),
+                                .background(colors.borderCard),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("👤", fontSize = 22.sp)
@@ -319,18 +315,18 @@ fun StudentPortalScreen(
                                 text = school?.schoolName?.ifEmpty { "ST. JHON SCHOOL" } ?: "ST. JHON SCHOOL",
                                 fontWeight = FontWeight.Black,
                                 fontSize = 14.sp,
-                                color = Color(0xFF0F172A)
+                                color = colors.textPrimary
                             )
                             Text(
-                                text = "Institute Code: ${school?.schoolCode ?: "TJMMJN"}",
+                                text = "Institute Code: " + (school?.schoolCode ?: "TJMMJN"),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF2563EB)
+                                color = colors.brandPrimary
                             )
                             Text(
                                 text = school?.phone?.ifEmpty { "9932655607" } ?: "9932655607",
                                 fontSize = 12.sp,
-                                color = Color(0xFF64748B)
+                                color = colors.textSecondary
                             )
                         }
                     }
@@ -348,6 +344,7 @@ fun StudentActionTile(
     emoji: String,
     bgColor: Color
 ) {
+    val colors = LocalSchoolColors.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(72.dp)
@@ -356,7 +353,7 @@ fun StudentActionTile(
             modifier = Modifier
                 .size(48.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(bgColor),
+                .background(bgColor.copy(alpha = if (colors.isDark) 0.3f else 0.85f)),
             contentAlignment = Alignment.Center
         ) {
             Text(emoji, fontSize = 22.sp)
@@ -366,7 +363,7 @@ fun StudentActionTile(
             text = label,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF334155),
+            color = colors.textPrimary,
             textAlign = TextAlign.Center
         )
     }
