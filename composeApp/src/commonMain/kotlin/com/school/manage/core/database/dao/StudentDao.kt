@@ -12,6 +12,9 @@ interface StudentDao {
     @Query("SELECT * FROM students WHERE gradeClass = :gradeClass ORDER BY rollNo ASC")
     fun getStudentsByClass(gradeClass: String): Flow<List<StudentEntity>>
 
+    @Query("SELECT * FROM students WHERE id = :id")
+    suspend fun getStudentById(id: Long): StudentEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStudent(student: StudentEntity): Long
 

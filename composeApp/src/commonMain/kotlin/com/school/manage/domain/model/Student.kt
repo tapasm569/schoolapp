@@ -8,6 +8,6 @@ data class Student(
     val section: String,
     val guardianName: String,
     val phone: String,
-    val admissionDate: Long,
-    val monthlyFee: Double
+    val monthlyFee: Double,
+    val admissionDate: String
 )

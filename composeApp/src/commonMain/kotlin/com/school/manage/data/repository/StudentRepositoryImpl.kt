@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.map
 class StudentRepositoryImpl(
     private val studentDao: StudentDao
 ) : StudentRepository {
+
     override fun getStudents(): Flow<List<Student>> =
         studentDao.getAllStudents().map { list -> list.map { it.toDomain() } }
 
@@ -23,14 +24,26 @@ class StudentRepositoryImpl(
         studentDao.deleteStudent(student.toEntity())
 
     private fun StudentEntity.toDomain() = Student(
-        id = id, rollNo = rollNo, name = name, gradeClass = gradeClass,
-        section = section, guardianName = guardianName, phone = phone,
-        admissionDate = admissionDate, monthlyFee = monthlyFee
+        id = id,
+        rollNo = rollNo,
+        name = name,
+        gradeClass = gradeClass,
+        section = section,
+        guardianName = guardianName,
+        phone = phone,
+        monthlyFee = monthlyFee,
+        admissionDate = admissionDate
     )
 
     private fun Student.toEntity() = StudentEntity(
-        id = id, rollNo = rollNo, name = name, gradeClass = gradeClass,
-        section = section, guardianName = guardianName, phone = phone,
-        admissionDate = admissionDate, monthlyFee = monthlyFee
+        id = id,
+        rollNo = rollNo,
+        name = name,
+        gradeClass = gradeClass,
+        section = section,
+        guardianName = guardianName,
+        phone = phone,
+        monthlyFee = monthlyFee,
+        admissionDate = admissionDate
     )
 }
