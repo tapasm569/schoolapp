@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.school.manage.presentation.theme.LocalSchoolColors
 
 @Composable
 fun CustomRoundedInput(
@@ -29,10 +30,11 @@ fun CustomRoundedInput(
     placeholder: String,
     trailingIcon: String? = null
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+        shape = RoundedCornerShape(14.dp),
+        color = colors.inputBg,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -42,19 +44,21 @@ fun CustomRoundedInput(
             TextField(
                 value = value,
                 onValueChange = onValueChange,
-                placeholder = { Text(placeholder, color = Color(0xFF94A3B8), fontSize = 14.sp) },
+                placeholder = { Text(placeholder, color = colors.textSecondary, fontSize = 14.sp) },
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = colors.textPrimary,
+                    unfocusedTextColor = colors.textPrimary
                 ),
                 modifier = Modifier.weight(1f),
                 singleLine = true
             )
             if (trailingIcon != null) {
-                Text(trailingIcon, fontSize = 18.sp, color = Color(0xFF475569))
+                Text(trailingIcon, fontSize = 18.sp, color = colors.textSecondary)
             }
         }
     }
@@ -66,10 +70,11 @@ fun DropdownTriggerInput(
     value: String,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(12.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFCBD5E1)),
+        shape = RoundedCornerShape(14.dp),
+        color = colors.inputBg,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
         Row(
@@ -78,10 +83,10 @@ fun DropdownTriggerInput(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(label, fontSize = 10.sp, color = Color(0xFF64748B))
-                Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF0F172A))
+                Text(label, fontSize = 11.sp, color = colors.textSecondary)
+                Text(value, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
             }
-            Text("▾", fontSize = 14.sp, color = Color(0xFF475569))
+            Text("▾", fontSize = 14.sp, color = colors.textSecondary)
         }
     }
 }
@@ -93,46 +98,48 @@ fun GenderOptionButton(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(10.dp),
-        color = Color.White,
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) colors.brandPrimary.copy(alpha = 0.15f) else colors.bgCard,
         border = androidx.compose.foundation.BorderStroke(
             1.5.dp,
-            if (isSelected) Color(0xFFF97316) else Color(0xFFE2E8F0)
+            if (isSelected) colors.brandPrimary else colors.borderCard
         ),
-        modifier = Modifier.width(110.dp).height(44.dp)
+        modifier = Modifier.width(115.dp).height(46.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(icon, fontSize = 14.sp, color = if (isSelected) Color(0xFFF97316) else Color(0xFF64748B), fontWeight = FontWeight.Bold)
+            Text(icon, fontSize = 16.sp, color = if (isSelected) colors.brandPrimary else colors.textSecondary, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(6.dp))
-            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (isSelected) Color(0xFFF97316) else Color(0xFF0F172A))
+            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (isSelected) colors.brandPrimary else colors.textPrimary)
         }
     }
 }
 
 @Composable
 fun FeePlanPillBanner() {
+    val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = Color(0xFFDBEAFE),
+        shape = RoundedCornerShape(10.dp),
+        color = colors.brandPrimary.copy(alpha = 0.15f),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("⏱", fontSize = 12.sp)
-            Spacer(modifier = Modifier.width(6.dp))
+            Text("⏱", fontSize = 14.sp)
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = "FEE PLAN • what this student owes",
                 fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1E40AF)
+                fontWeight = FontWeight.ExtraBold,
+                color = colors.brandPrimary
             )
         }
     }
@@ -148,22 +155,23 @@ fun TopCountCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(14.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        shape = RoundedCornerShape(16.dp),
+        color = colors.bgCard,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
         Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(26.dp)
-                    .background(bannerColor),
+                    .height(28.dp)
+                    .background(bannerColor.copy(alpha = if (colors.isDark) 0.3f else 0.8f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(icon, fontSize = 12.sp)
+                Text(icon, fontSize = 13.sp)
             }
             Column(
                 modifier = Modifier
@@ -171,10 +179,10 @@ fun TopCountCard(
                     .padding(8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(count, fontWeight = FontWeight.Black, fontSize = 18.sp, color = Color(0xFF0F766E))
+                Text(count, fontWeight = FontWeight.Black, fontSize = 18.sp, color = colors.brandPrimary)
                 Spacer(modifier = Modifier.height(2.dp))
-                Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF1E293B))
-                Text(subtitle, fontSize = 10.sp, color = Color(0xFF64748B))
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.textPrimary)
+                Text(subtitle, fontSize = 10.sp, color = colors.textSecondary)
             }
         }
     }
@@ -189,43 +197,43 @@ fun AttendanceProgressBarCard(
     progress: Float = 0f,
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        shape = RoundedCornerShape(16.dp),
+        color = colors.bgCard,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
-        Column(modifier = Modifier.padding(10.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("👥", fontSize = 13.sp)
-                Spacer(modifier = Modifier.width(4.dp))
+                Text("👥", fontSize = 14.sp)
+                Spacer(modifier = Modifier.width(6.dp))
                 Column {
-                    Text(title, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF0F172A))
-                    Text(subtitle, fontSize = 9.sp, color = Color(0xFF64748B))
+                    Text(title, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = colors.textPrimary)
+                    Text(subtitle, fontSize = 10.sp, color = colors.textSecondary)
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(pct, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF0F52BA))
-                Text(ratio, fontWeight = FontWeight.Bold, fontSize = 12.sp, color = Color(0xFF0F52BA))
+                Text(pct, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, color = colors.brandPrimary)
+                Text(ratio, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = colors.brandPrimary)
             }
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(Color(0xFFF1F5F9))
-                    .border(1.dp, Color(0xFF93C5FD), RoundedCornerShape(4.dp))
+                    .background(colors.borderCard)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
                         .fillMaxHeight()
-                        .background(Color(0xFF2563EB))
+                        .background(colors.brandPrimary)
                 )
             }
         }
@@ -234,23 +242,25 @@ fun AttendanceProgressBarCard(
 
 @Composable
 fun LegendPill(label: String, color: Color) {
+    val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(4.dp),
+        shape = RoundedCornerShape(6.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, color),
-        color = Color.White
+        color = colors.bgCard
     ) {
         Text(
             text = label,
             fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color(0xFF1E293B),
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            fontWeight = FontWeight.SemiBold,
+            color = colors.textPrimary,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
         )
     }
 }
 
 @Composable
 fun ChartGridCanvas(lineColor: Color) {
+    val colors = LocalSchoolColors.current
     Column {
         Box(
             modifier = Modifier
@@ -263,7 +273,7 @@ fun ChartGridCanvas(lineColor: Color) {
 
                 for (i in 0..5) {
                     drawLine(
-                        color = Color(0xFFE2E8F0),
+                        color = colors.borderCard.copy(alpha = 0.6f),
                         start = Offset(0f, i * stepY),
                         end = Offset(size.width, i * stepY),
                         strokeWidth = 1f
@@ -271,7 +281,7 @@ fun ChartGridCanvas(lineColor: Color) {
                 }
                 for (j in 0..9) {
                     drawLine(
-                        color = Color(0xFFE2E8F0),
+                        color = colors.borderCard.copy(alpha = 0.6f),
                         start = Offset(j * stepX, 0f),
                         end = Offset(j * stepX, size.height),
                         strokeWidth = 1f
@@ -294,13 +304,13 @@ fun ChartGridCanvas(lineColor: Color) {
                 }
             }
         }
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             (1..9).forEach {
-                Text("$it", fontSize = 10.sp, color = Color(0xFF64748B), textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+                Text("$it", fontSize = 10.sp, color = colors.textSecondary, textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
             }
         }
     }
@@ -313,6 +323,7 @@ fun FeatureIconItem(
     bgColor: Color,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -321,9 +332,9 @@ fun FeatureIconItem(
     ) {
         Box(
             modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(bgColor),
+                .size(48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(bgColor.copy(alpha = if (colors.isDark) 0.25f else 0.85f)),
             contentAlignment = Alignment.Center
         ) {
             Text(iconEmoji, fontSize = 22.sp)
@@ -332,7 +343,8 @@ fun FeatureIconItem(
         Text(
             text = title,
             fontSize = 11.sp,
-            color = Color(0xFF334155),
+            fontWeight = FontWeight.Medium,
+            color = colors.textPrimary,
             textAlign = TextAlign.Center,
             lineHeight = 13.sp,
             maxLines = 2
@@ -347,26 +359,31 @@ fun AddNewOptionItem(
     icon: String,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+    val colors = LocalSchoolColors.current
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(Color(0xFFEFF6FF)),
-            contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.padding(vertical = 10.dp, horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(icon, fontSize = 18.sp)
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF0F172A))
-            Text(subtitle, fontSize = 12.sp, color = Color(0xFF64748B))
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(colors.brandPrimary.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(icon, fontSize = 20.sp)
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                Text(subtitle, fontSize = 12.sp, color = colors.textSecondary)
+            }
+            Text("›", fontSize = 20.sp, color = colors.textSecondary, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -380,10 +397,11 @@ fun StatMetricTile(
     textColor: Color,
     modifier: Modifier = Modifier
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
         shape = RoundedCornerShape(18.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        color = colors.bgCard,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
         Row(
@@ -394,15 +412,15 @@ fun StatMetricTile(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(bgTint),
+                    .background(bgTint.copy(alpha = if (colors.isDark) 0.3f else 1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(icon, fontSize = 20.sp)
             }
             Spacer(modifier = Modifier.width(10.dp))
             Column {
-                Text(value, fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color(0xFF0F172A))
-                Text(title, fontSize = 11.sp, color = Color(0xFF64748B), fontWeight = FontWeight.Medium)
+                Text(value, fontSize = 18.sp, fontWeight = FontWeight.Black, color = colors.textPrimary)
+                Text(title, fontSize = 11.sp, color = colors.textSecondary, fontWeight = FontWeight.Medium)
             }
         }
     }
@@ -417,29 +435,28 @@ fun ModernActionTile(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(18.dp),
-        color = Color.White,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE2E8F0)),
+        color = colors.bgCard,
+        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
         modifier = modifier
     ) {
-        Column(
-            modifier = Modifier.padding(14.dp)
-        ) {
+        Column(modifier = Modifier.padding(14.dp)) {
             Box(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(tint),
+                    .background(tint.copy(alpha = if (colors.isDark) 0.3f else 1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(emoji, fontSize = 20.sp)
             }
             Spacer(modifier = Modifier.height(10.dp))
-            Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF0F172A))
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(desc, fontSize = 11.sp, color = Color(0xFF64748B), lineHeight = 14.sp)
+            Text(desc, fontSize = 11.sp, color = colors.textSecondary, lineHeight = 14.sp)
         }
     }
 }
@@ -450,6 +467,7 @@ fun ModernDatePickerDialog(
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     var selectedYear by remember { mutableStateOf(2026) }
     var selectedMonthIndex by remember { mutableStateOf(9) }
@@ -457,19 +475,20 @@ fun ModernDatePickerDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(20.dp),
-            color = Color.White,
-            modifier = Modifier.fillMaxWidth().padding(10.dp)
+            shape = RoundedCornerShape(24.dp),
+            color = colors.bgCard,
+            border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     text = "Select Date",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 17.sp,
-                    color = Color(0xFF0F172A)
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    color = colors.textPrimary
                 )
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -484,14 +503,14 @@ fun ModernDatePickerDialog(
                             selectedYear -= 1
                         }
                     }) {
-                        Text("‹", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D529C))
+                        Text("‹", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
                     }
 
                     Text(
-                        text = "${months[selectedMonthIndex]} $selectedYear",
+                        text = "\({months[selectedMonthIndex]}\)selectedYear",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
-                        color = Color(0xFF0F172A)
+                        fontSize = 16.sp,
+                        color = colors.textPrimary
                     )
 
                     IconButton(onClick = {
@@ -502,15 +521,15 @@ fun ModernDatePickerDialog(
                             selectedYear += 1
                         }
                     }) {
-                        Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF0D529C))
+                        Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(7),
-                    modifier = Modifier.height(200.dp)
+                    modifier = Modifier.height(210.dp)
                 ) {
                     items(31) { idx ->
                         val day = idx + 1
@@ -520,41 +539,42 @@ fun ModernDatePickerDialog(
                                 .padding(3.dp)
                                 .size(34.dp)
                                 .clip(CircleShape)
-                                .background(if (isSelected) Color(0xFF0D529C) else Color.Transparent)
+                                .background(if (isSelected) colors.brandPrimary else Color.Transparent)
                                 .clickable { selectedDay = day },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = "$day",
                                 fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                color = if (isSelected) Color.White else Color(0xFF1E293B)
+                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                                color = if (isSelected) Color.White else colors.textPrimary
                             )
                         }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = Color(0xFF64748B))
+                        Text("Cancel", color = colors.textSecondary)
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val dayStr = if (selectedDay < 10) "0$selectedDay" else "$selectedDay"
+                            val dayStr = if (selectedDay < 10) "0\(selectedDay" else "\)selectedDay"
                             val monthNum = selectedMonthIndex + 1
-                            val monthStr = if (monthNum < 10) "0$monthNum" else "$monthNum"
-                            onDateSelected("$dayStr/$monthStr/$selectedYear")
+                            val monthStr = if (monthNum < 10) "0\(monthNum" else "\)monthNum"
+                            onDateSelected("\(dayStr/\)monthStr/$selectedYear")
                             onDismiss()
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D529C))
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Select")
+                        Text("Done", fontWeight = FontWeight.Bold)
                     }
                 }
             }
