@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,7 +30,7 @@ fun AttendanceScreen(
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val attendanceMap = remember { mutableStateMapOf() }
     val scope = rememberCoroutineScope()
-    var date by remember { mutableStateOf("02/10/2026") }
+    var date by remember { mutableStateOf("03/10/2026") }
     var showDatePicker by remember { mutableStateOf(false) }
     var savedMessage by remember { mutableStateOf("") }
 
@@ -95,7 +96,7 @@ fun AttendanceScreen(
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = colors.inputBg,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.inputBorder),
+                    border = BorderStroke(1.dp, colors.inputBorder),
                     modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
                 ) {
                     Row(
@@ -127,7 +128,7 @@ fun AttendanceScreen(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = colors.bgCard,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                        border = BorderStroke(1.dp, colors.borderCard),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Row(

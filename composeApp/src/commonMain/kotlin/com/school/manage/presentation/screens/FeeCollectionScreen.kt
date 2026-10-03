@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,7 +9,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,7 +59,7 @@ fun FeeCollectionScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -75,7 +75,7 @@ fun FeeCollectionScreen(
                                 expanded = showStudentDropdown,
                                 onDismissRequest = { showStudentDropdown = false }
                             ) {
-                                students.forEach { s ->
+                                for (s in students) {
                                     DropdownMenuItem(
                                         text = { Text(s.name + " - " + s.gradeClass) },
                                         onClick = {
@@ -121,7 +121,7 @@ fun FeeCollectionScreen(
                                                 studentName = selectedStudentName,
                                                 gradeClass = selectedStudentClass,
                                                 amountPaid = amt,
-                                                paymentDate = "02/10/2026",
+                                                paymentDate = "03/10/2026",
                                                 feeMonth = feeMonth,
                                                 paymentMode = "CASH",
                                                 remarks = remarks
@@ -151,7 +151,7 @@ fun FeeCollectionScreen(
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(

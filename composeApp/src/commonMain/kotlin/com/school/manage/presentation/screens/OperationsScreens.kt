@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,12 +17,16 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.school.manage.core.database.AppDatabase
-import com.school.manage.core.database.entity.*
+import com.school.manage.core.database.entity.AnnouncementEntity
+import com.school.manage.core.database.entity.EnquiryEntity
+import com.school.manage.core.database.entity.StaffLogEntity
+import com.school.manage.core.database.entity.StudentEntity
 import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
-// 1. ENQUIRY / ADMISSION LEADS SCREEN
+// 1. ENQUIRY SCREEN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnquiryScreen(
@@ -73,7 +78,7 @@ fun EnquiryScreen(
 
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("ALL", "NEW", "FOLLOW_UP", "ADMITTED").forEach { st ->
+                    for (st in listOf("ALL", "NEW", "FOLLOW_UP", "ADMITTED")) {
                         Surface(
                             onClick = { selectedFilter = st },
                             shape = RoundedCornerShape(8.dp),
@@ -165,49 +170,51 @@ fun EnquiryScreen(
         }
 
         if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                containerColor = colors.bgCard,
-                title = { Text("New Admission Enquiry", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Dialog(onDismissRequest = { showAddDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("New Admission Enquiry", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
                         CustomRoundedInput(value = studentName, onValueChange = { studentName = it }, placeholder = "Student Name")
                         CustomRoundedInput(value = parentName, onValueChange = { parentName = it }, placeholder = "Parent / Guardian Name")
                         CustomRoundedInput(value = phone, onValueChange = { phone = it }, placeholder = "Mobile Number")
                         CustomRoundedInput(value = gradeClass, onValueChange = { gradeClass = it }, placeholder = "Seeking Class (e.g. Nursery)")
                         CustomRoundedInput(value = notes, onValueChange = { notes = it }, placeholder = "Discussion / Background Notes")
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                        onClick = {
-                            if (studentName.isNotBlank() && phone.isNotBlank()) {
-                                scope.launch {
-                                    database.enquiryDao().insertEnquiry(
-                                        EnquiryEntity(
-                                            schoolCode = schoolCode,
-                                            studentName = studentName.trim(),
-                                            parentName = parentName.trim(),
-                                            phone = phone.trim(),
-                                            gradeClass = gradeClass.trim(),
-                                            notes = notes.trim()
-                                        )
-                                    )
-                                    studentName = ""
-                                    parentName = ""
-                                    phone = ""
-                                    notes = ""
-                                    showAddDialog = false
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                                onClick = {
+                                    if (studentName.isNotBlank() && phone.isNotBlank()) {
+                                        scope.launch {
+                                            database.enquiryDao().insertEnquiry(
+                                                EnquiryEntity(
+                                                    schoolCode = schoolCode,
+                                                    studentName = studentName.trim(),
+                                                    parentName = parentName.trim(),
+                                                    phone = phone.trim(),
+                                                    gradeClass = gradeClass.trim(),
+                                                    notes = notes.trim()
+                                                )
+                                            )
+                                            studentName = ""
+                                            parentName = ""
+                                            phone = ""
+                                            notes = ""
+                                            showAddDialog = false
+                                        }
+                                    }
                                 }
-                            }
+                            ) { Text("Save Lead") }
                         }
-                    ) { Text("Save Lead") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                    }
                 }
-            )
+            }
         }
     }
 }
@@ -298,12 +305,15 @@ fun StaffLogsScreen(
         }
 
         if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                containerColor = colors.bgCard,
-                title = { Text("Log Staff Check-In", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Dialog(onDismissRequest = { showAddDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Log Staff Check-In", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
                         Box {
                             DropdownTriggerInput(
                                 label = "Select Faculty",
@@ -311,7 +321,7 @@ fun StaffLogsScreen(
                                 onClick = { showStaffDropdown = true }
                             )
                             DropdownMenu(expanded = showStaffDropdown, onDismissRequest = { showStaffDropdown = false }) {
-                                staffList.forEach { st ->
+                                for (st in staffList) {
                                     DropdownMenuItem(
                                         text = { Text(st.name + " (" + st.role + ")") },
                                         onClick = {
@@ -326,39 +336,38 @@ fun StaffLogsScreen(
                         CustomRoundedInput(value = checkIn, onValueChange = { checkIn = it }, placeholder = "Check-In (e.g. 09:00 AM)")
                         CustomRoundedInput(value = checkOut, onValueChange = { checkOut = it }, placeholder = "Check-Out (e.g. 03:30 PM)")
                         CustomRoundedInput(value = note, onValueChange = { note = it }, placeholder = "Activity Note")
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                        onClick = {
-                            if (selectedStaffName.isNotBlank()) {
-                                scope.launch {
-                                    database.staffLogDao().insertStaffLog(
-                                        StaffLogEntity(
-                                            schoolCode = schoolCode,
-                                            staffId = selectedStaffId,
-                                            staffName = selectedStaffName,
-                                            checkIn = checkIn.trim(),
-                                            checkOut = checkOut.trim(),
-                                            activityNote = note.trim()
-                                        )
-                                    )
-                                    showAddDialog = false
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                                onClick = {
+                                    if (selectedStaffName.isNotBlank()) {
+                                        scope.launch {
+                                            database.staffLogDao().insertStaffLog(
+                                                StaffLogEntity(
+                                                    schoolCode = schoolCode,
+                                                    staffId = selectedStaffId,
+                                                    staffName = selectedStaffName,
+                                                    checkIn = checkIn.trim(),
+                                                    checkOut = checkOut.trim(),
+                                                    activityNote = note.trim()
+                                                )
+                                            )
+                                            showAddDialog = false
+                                        }
+                                    }
                                 }
-                            }
+                            ) { Text("Save Log") }
                         }
-                    ) { Text("Save Log") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                    }
                 }
-            )
+            }
         }
     }
 }
 
-// 3. ANNOUNCEMENTS (NOTICE BOARD) SCREEN
+// 3. ANNOUNCEMENTS SCREEN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnnouncementsScreen(
@@ -447,17 +456,20 @@ fun AnnouncementsScreen(
         }
 
         if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                containerColor = colors.bgCard,
-                title = { Text("Publish Announcement", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Dialog(onDismissRequest = { showAddDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Publish Announcement", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
                         CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Title (e.g. Diwali Holiday Notice)")
                         CustomRoundedInput(value = message, onValueChange = { message = it }, placeholder = "Circular content / instructions")
 
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            listOf("NORMAL", "URGENT", "EVENT").forEach { pr ->
+                            for (pr in listOf("NORMAL", "URGENT", "EVENT")) {
                                 Surface(
                                     onClick = { priority = pr },
                                     shape = RoundedCornerShape(8.dp),
@@ -467,40 +479,39 @@ fun AnnouncementsScreen(
                                 }
                             }
                         }
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                        onClick = {
-                            if (title.isNotBlank() && message.isNotBlank()) {
-                                scope.launch {
-                                    database.announcementDao().insertAnnouncement(
-                                        AnnouncementEntity(
-                                            schoolCode = schoolCode,
-                                            title = title.trim(),
-                                            message = message.trim(),
-                                            priority = priority,
-                                            targetAudience = audience
-                                        )
-                                    )
-                                    title = ""
-                                    message = ""
-                                    showAddDialog = false
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                                onClick = {
+                                    if (title.isNotBlank() && message.isNotBlank()) {
+                                        scope.launch {
+                                            database.announcementDao().insertAnnouncement(
+                                                AnnouncementEntity(
+                                                    schoolCode = schoolCode,
+                                                    title = title.trim(),
+                                                    message = message.trim(),
+                                                    priority = priority,
+                                                    targetAudience = audience
+                                                )
+                                            )
+                                            title = ""
+                                            message = ""
+                                            showAddDialog = false
+                                        }
+                                    }
                                 }
-                            }
+                            ) { Text("Publish") }
                         }
-                    ) { Text("Publish") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                    }
                 }
-            )
+            }
         }
     }
 }
 
-// 4. MESSAGES (WHATSAPP REMINDERS & CIRCULARS) SCREEN
+// 4. MESSAGES SCREEN (Standard itemsIndexed in LazyRow)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesScreen(
@@ -512,10 +523,14 @@ fun MessagesScreen(
     val uriHandler = LocalUriHandler.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
 
-    var selectedStudent by remember { mutableStateOf<StudentEntity?>(null) }
+    var selectedStudent by remember { mutableStateOf(null) }
     var showStudentDropdown by remember { mutableStateOf(false) }
     var customMessage by remember { mutableStateOf("") }
     var selectedTemplateIndex by remember { mutableStateOf(0) }
+
+    val templateList = remember {
+        listOf("Fee Due Reminder", "Absence Alert", "Exam Schedule", "General Circular")
+    }
 
     LaunchedEffect(selectedTemplateIndex, selectedStudent) {
         val stName = selectedStudent?.name ?: "Student"
@@ -561,7 +576,7 @@ fun MessagesScreen(
                                 onClick = { showStudentDropdown = true }
                             )
                             DropdownMenu(expanded = showStudentDropdown, onDismissRequest = { showStudentDropdown = false }) {
-                                students.forEach { s ->
+                                for (s in students) {
                                     DropdownMenuItem(
                                         text = { Text(s.name + " - Class " + s.gradeClass + " (" + s.phone + ")") },
                                         onClick = {
@@ -582,7 +597,7 @@ fun MessagesScreen(
 
             item {
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Fee Due Reminder", "Absence Alert", "Exam Schedule", "General Circular").forEachIndexed { idx, label ->
+                    itemsIndexed(templateList) { idx, label ->
                         val isSel = selectedTemplateIndex == idx
                         Surface(
                             onClick = { selectedTemplateIndex = idx },

@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.BatchEntity
 import com.school.manage.presentation.theme.LocalSchoolColors
@@ -45,7 +47,7 @@ fun BatchListScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onNavigateAdd,
+                onClick = { onNavigateAdd() },
                 containerColor = colors.brandPrimary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp)
@@ -67,7 +69,7 @@ fun BatchListScreen(
                     Surface(
                         shape = RoundedCornerShape(14.dp),
                         color = colors.bgCard,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                        border = BorderStroke(1.dp, colors.borderCard),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
@@ -167,7 +169,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -196,7 +198,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -216,7 +218,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -231,7 +233,7 @@ fun AddBatchScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                subjects.forEach { sub ->
+                                for (sub in subjects) {
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
                                         color = colors.bgCardHover,
@@ -260,7 +262,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -275,7 +277,7 @@ fun AddBatchScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                sections.forEach { sec ->
+                                for (sec in sections) {
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
                                         color = colors.bgCardHover,
@@ -302,71 +304,79 @@ fun AddBatchScreen(
         }
 
         if (showAddSubjectDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddSubjectDialog = false },
-                containerColor = colors.bgCard,
-                title = { Text("Add Subject", color = colors.textPrimary) },
-                text = {
-                    OutlinedTextField(
-                        value = newSubject,
-                        onValueChange = { newSubject = it },
-                        label = { Text("Subject Name (e.g. Mathematics)") },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = colors.textPrimary,
-                            unfocusedTextColor = colors.textPrimary
+            Dialog(onDismissRequest = { showAddSubjectDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text("Add Subject", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
+                        CustomRoundedInput(
+                            value = newSubject,
+                            onValueChange = { newSubject = it },
+                            placeholder = "Subject Name (e.g. Mathematics)"
                         )
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                        onClick = {
-                            if (newSubject.isNotBlank()) {
-                                subjects.add(newSubject.trim())
-                                newSubject = ""
-                                showAddSubjectDialog = false
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showAddSubjectDialog = false }) {
+                                Text("Cancel", color = colors.textSecondary)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    if (newSubject.isNotBlank()) {
+                                        subjects.add(newSubject.trim())
+                                        newSubject = ""
+                                        showAddSubjectDialog = false
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                            ) {
+                                Text("Add")
                             }
                         }
-                    ) { Text("Add") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddSubjectDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                    }
                 }
-            )
+            }
         }
 
         if (showAddSectionDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddSectionDialog = false },
-                containerColor = colors.bgCard,
-                title = { Text("Add Section", color = colors.textPrimary) },
-                text = {
-                    OutlinedTextField(
-                        value = newSection,
-                        onValueChange = { newSection = it },
-                        label = { Text("Section (e.g. Section A)") },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = colors.textPrimary,
-                            unfocusedTextColor = colors.textPrimary
+            Dialog(onDismissRequest = { showAddSectionDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().padding(16.dp)
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Text("Add Section", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
+                        CustomRoundedInput(
+                            value = newSection,
+                            onValueChange = { newSection = it },
+                            placeholder = "Section (e.g. Section A)"
                         )
-                    )
-                },
-                confirmButton = {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                        onClick = {
-                            if (newSection.isNotBlank()) {
-                                sections.add(newSection.trim())
-                                newSection = ""
-                                showAddSectionDialog = false
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = { showAddSectionDialog = false }) {
+                                Text("Cancel", color = colors.textSecondary)
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Button(
+                                onClick = {
+                                    if (newSection.isNotBlank()) {
+                                        sections.add(newSection.trim())
+                                        newSection = ""
+                                        showAddSectionDialog = false
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                            ) {
+                                Text("Add")
                             }
                         }
-                    ) { Text("Add") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddSectionDialog = false }) { Text("Cancel", color = colors.textSecondary) }
+                    }
                 }
-            )
+            }
         }
     }
 }

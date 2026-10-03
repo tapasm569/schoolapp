@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -58,7 +59,6 @@ fun StudentPortalScreen(
         ) {
             item { Spacer(modifier = Modifier.height(10.dp)) }
 
-            // 1. Top Header Profile Row
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -67,7 +67,7 @@ fun StudentPortalScreen(
                 ) {
                     Column {
                         Text(
-                            text = student?.name ?: "Dipto Roy",
+                            text = student?.name ?: "Student",
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 17.sp,
                             color = colors.textPrimary
@@ -104,7 +104,6 @@ fun StudentPortalScreen(
                 }
             }
 
-            // 2. Feature Action Icons Grid
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Row(
@@ -126,7 +125,6 @@ fun StudentPortalScreen(
                 }
             }
 
-            // 3. Batch Information Title
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -144,12 +142,11 @@ fun StudentPortalScreen(
                 }
             }
 
-            // 4. Batch Information Card
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -166,13 +163,12 @@ fun StudentPortalScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG",
+                                    text = student?.gradeClass?.ifEmpty { "General" } ?: "General",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 16.sp,
                                     color = colors.textPrimary
                                 )
-                                Text("Monthly • 0", fontSize = 12.sp, color = colors.textSecondary)
-                                Text("Monthly • 0", fontSize = 12.sp, color = colors.textSecondary)
+                                Text("Monthly Tuition", fontSize = 12.sp, color = colors.textSecondary)
                             }
                         }
 
@@ -184,7 +180,7 @@ fun StudentPortalScreen(
                             Column(modifier = Modifier.weight(1f)) {
                                 Text("Joined", fontSize = 11.sp, color = colors.textSecondary)
                                 Text(
-                                    text = student?.admissionDate ?: "02/10/2026",
+                                    text = student?.admissionDate ?: "03/10/2026",
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = colors.textPrimary
@@ -199,8 +195,8 @@ fun StudentPortalScreen(
                                 )
                             }
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Finish", fontSize = 11.sp, color = colors.textSecondary)
-                                Text("Running", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
+                                Text("Status", fontSize = 11.sp, color = colors.textSecondary)
+                                Text("Active", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text("Due", fontSize = 11.sp, color = colors.textSecondary)
                                 Text("0", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
@@ -210,12 +206,11 @@ fun StudentPortalScreen(
                 }
             }
 
-            // 5. Attendance Summary Card with Calendar Grid
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -226,54 +221,12 @@ fun StudentPortalScreen(
                         ) {
                             Column {
                                 Text("Attendance Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.brandPrimary)
-                                Text(student?.gradeClass?.ifEmpty { "UKG" } ?: "UKG", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
+                                Text(student?.gradeClass?.ifEmpty { "General" } ?: "General", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
                             }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("‹", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text("›", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                            }
+                            Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
-
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround) {
-                            listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun").forEach { day ->
-                                Text(day, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        val weeks = listOf(
-                            listOf("", "", "", "01", "02", "03", "04"),
-                            listOf("05", "06", "07", "08", "09", "10", "11"),
-                            listOf("12", "13", "14", "15", "16", "17", "18"),
-                            listOf("19", "20", "21", "22", "23", "24", "25"),
-                            listOf("26", "27", "28", "29", "30", "31", "")
-                        )
-
-                        weeks.forEach { week ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
-                                horizontalArrangement = Arrangement.SpaceAround
-                            ) {
-                                week.forEach { date ->
-                                    Text(
-                                        text = date,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (date.isEmpty()) Color.Transparent else colors.textPrimary,
-                                        modifier = Modifier.weight(1f),
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(18.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -288,12 +241,11 @@ fun StudentPortalScreen(
                 }
             }
 
-            // 6. Bottom Institute Profile Card
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -307,24 +259,24 @@ fun StudentPortalScreen(
                                 .background(colors.borderCard),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("👤", fontSize = 22.sp)
+                            Text("🏫", fontSize = 22.sp)
                         }
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text(
-                                text = school?.schoolName?.ifEmpty { "ST. JHON SCHOOL" } ?: "ST. JHON SCHOOL",
+                                text = school?.schoolName?.ifEmpty { "SCHOOL APP" } ?: "SCHOOL APP",
                                 fontWeight = FontWeight.Black,
                                 fontSize = 14.sp,
                                 color = colors.textPrimary
                             )
                             Text(
-                                text = "Institute Code: " + (school?.schoolCode ?: "TJMMJN"),
+                                text = "Institute Code: " + (school?.schoolCode ?: "SCHOOL"),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = colors.brandPrimary
                             )
                             Text(
-                                text = school?.phone?.ifEmpty { "9932655607" } ?: "9932655607",
+                                text = school?.phone?.ifEmpty { "N/A" } ?: "N/A",
                                 fontSize = 12.sp,
                                 color = colors.textSecondary
                             )
