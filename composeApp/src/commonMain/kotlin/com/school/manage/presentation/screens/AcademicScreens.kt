@@ -1,19 +1,16 @@
 package com.school.manage.presentation.screens
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -23,6 +20,7 @@ import com.school.manage.core.database.entity.*
 import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
+// 1. EXAMS & MARKS SCREEN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExamsScreen(
@@ -89,10 +87,7 @@ fun ExamsScreen(
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(exam.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
-                                Surface(
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = colors.brandPrimary.copy(alpha = 0.15f)
-                                ) {
+                                Surface(shape = RoundedCornerShape(8.dp), color = colors.brandPrimary.copy(alpha = 0.15f)) {
                                     Text(
                                         text = exam.gradeClass,
                                         color = colors.brandPrimary,
@@ -333,6 +328,7 @@ fun ExamsScreen(
     }
 }
 
+// 2. BIRTHDAYS SCREEN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BirthdaysScreen(
@@ -368,7 +364,7 @@ fun BirthdaysScreen(
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
+     ) {
             item { Spacer(modifier = Modifier.height(4.dp)) }
 
             item {
@@ -462,6 +458,7 @@ fun BirthdaysScreen(
     }
 }
 
+// 3. HOME WORK SCREEN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeworkScreen(
@@ -622,8 +619,7 @@ fun HomeworkScreen(
                             }
                         }
                     }
-                },
-                confirmButton = {
+                },confirmButton = {
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
                         onClick = {
@@ -661,6 +657,7 @@ fun HomeworkScreen(
     }
 }
 
+// 4. CLASS WORK (DAILY LOG) SCREEN
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClassworkScreen(
@@ -820,8 +817,7 @@ fun ClassworkScreen(
                             }
                         }
                     }
-                },
-                confirmButton = {
+                },confirmButton = {
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
                         onClick = {

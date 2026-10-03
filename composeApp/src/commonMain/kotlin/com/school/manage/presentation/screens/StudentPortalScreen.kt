@@ -28,8 +28,8 @@ fun StudentPortalScreen(
     onLogout: () -> Unit
 ) {
     val colors = LocalSchoolColors.current
-    var student by remember { mutableStateOf<StudentEntity?>(null) }
-    var school by remember { mutableStateOf<SchoolEntity?>(null) }
+    var student by remember { mutableStateOf(null) }
+    var school by remember { mutableStateOf(null) }
     val attendanceList by database.attendanceDao().getAttendanceByStudent(studentId).collectAsState(initial = emptyList())
     val feeRecords by database.feeDao().getFeeRecordsByStudent(studentId).collectAsState(initial = emptyList())
 

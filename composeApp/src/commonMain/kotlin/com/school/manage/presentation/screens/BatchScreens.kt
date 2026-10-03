@@ -1,6 +1,5 @@
 package com.school.manage.presentation.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -68,7 +67,7 @@ fun BatchListScreen(
                     Surface(
                         shape = RoundedCornerShape(14.dp),
                         color = colors.bgCard,
-                        border = BorderStroke(1.dp, colors.borderCard),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
@@ -105,8 +104,8 @@ fun AddBatchScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     var batchName by remember { mutableStateOf("") }
-    val subjects = remember { mutableStateListOf<String>() }
-    val sections = remember { mutableStateListOf<String>() }
+    val subjects = remember { mutableStateListOf() }
+    val sections = remember { mutableStateListOf() }
 
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     var newSubject by remember { mutableStateOf("") }
@@ -168,7 +167,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
@@ -197,7 +196,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -217,7 +216,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -261,7 +260,7 @@ fun AddBatchScreen(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
@@ -312,7 +311,10 @@ fun AddBatchScreen(
                         value = newSubject,
                         onValueChange = { newSubject = it },
                         label = { Text("Subject Name (e.g. Mathematics)") },
-                        textStyle = LocalTextStyle.current.copy(color = colors.textPrimary)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = colors.textPrimary,
+                            unfocusedTextColor = colors.textPrimary
+                        )
                     )
                 },
                 confirmButton = {
@@ -343,7 +345,10 @@ fun AddBatchScreen(
                         value = newSection,
                         onValueChange = { newSection = it },
                         label = { Text("Section (e.g. Section A)") },
-                        textStyle = LocalTextStyle.current.copy(color = colors.textPrimary)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = colors.textPrimary,
+                            unfocusedTextColor = colors.textPrimary
+                        )
                     )
                 },
                 confirmButton = {
