@@ -17,9 +17,12 @@ import com.school.manage.core.database.entity.*
         ExamEntity::class,
         ExamMarksEntity::class,
         HomeworkEntity::class,
-        ClassworkEntity::class
+        ClassworkEntity::class,
+        EnquiryEntity::class,
+        StaffLogEntity::class,
+        AnnouncementEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,4 +36,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun examDao(): ExamDao
     abstract fun homeworkDao(): HomeworkDao
     abstract fun classworkDao(): ClassworkDao
+    abstract fun enquiryDao(): EnquiryDao
+    abstract fun staffLogDao(): StaffLogDao
+    abstract fun announcementDao(): AnnouncementDao
 }
