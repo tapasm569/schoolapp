@@ -27,18 +27,15 @@ fun AttendanceScreen(
 ) {
     val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val attendanceMap = remember { mutableStateMapOf() }
+    var attendanceMap by remember { mutableStateOf<Map<Long, String>>(emptyMap()) }
     val scope = rememberCoroutineScope()
     var date by remember { mutableStateOf("02/10/2026") }
     var showDatePicker by remember { mutableStateOf(false) }
     var savedMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(students) {
-        students.forEach { s ->
-            if (!attendanceMap.containsKey(s.id)) {
-                attendanceMap[s.id] = "PRESENT"
-            }
-        }
+        val initialMap = students.associate { it.id to (attendanceMap[it.id] ?: "PRESENT") }
+        attendanceMap = initialMap
     }
 
     Scaffold(
@@ -141,13 +138,13 @@ fun AttendanceScreen(
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 AttendanceStatusPill("P", status == "PRESENT", Color(0xFF22C55E)) {
-                                    attendanceMap[student.id] = "PRESENT"
+                                    attendanceMap = attendanceMap + (student.id to "PRESENT")
                                 }
                                 AttendanceStatusPill("A", status == "ABSENT", Color(0xFFEF4444)) {
-                                    attendanceMap[student.id] = "ABSENT"
+                                    attendanceMap = attendanceMap + (student.id to "ABSENT")
                                 }
                                 AttendanceStatusPill("L", status == "LEAVE", Color(0xFFF59E0B)) {
-                                    attendanceMap[student.id] = "LEAVE"
+                                    attendanceMap = attendanceMap + (student.id to "LEAVE")
                                 }
                             }
                         }

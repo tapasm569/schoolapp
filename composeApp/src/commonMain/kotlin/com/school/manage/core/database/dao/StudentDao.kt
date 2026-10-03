@@ -15,6 +15,12 @@ interface StudentDao {
     @Query("SELECT * FROM students WHERE phone = :phone LIMIT 1")
     suspend fun getStudentByPhone(phone: String): StudentEntity?
 
+    @Query("SELECT * FROM students WHERE phone = :phone LIMIT 1")
+    suspend fun loginStudent(phone: String): StudentEntity?
+
+    @Query("SELECT * FROM students WHERE schoolCode = :schoolCode AND phone = :phone LIMIT 1")
+    suspend fun loginStudent(schoolCode: String, phone: String): StudentEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStudent(student: StudentEntity): Long
 
