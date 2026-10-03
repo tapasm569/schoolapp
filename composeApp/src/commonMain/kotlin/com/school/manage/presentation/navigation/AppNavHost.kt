@@ -152,6 +152,34 @@ fun AppNavHost(database: AppDatabase) {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+            composable("exams") {
+                ExamsScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("birthdays") {
+                BirthdaysScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("homework") {
+                HomeworkScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("classwork") {
+                ClassworkScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
             composable("staff_portal") {
                 StaffPortalScreen(
                     database = database,
