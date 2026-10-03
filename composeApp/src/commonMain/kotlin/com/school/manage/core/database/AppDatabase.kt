@@ -20,9 +20,13 @@ import com.school.manage.core.database.entity.*
         ClassworkEntity::class,
         EnquiryEntity::class,
         StaffLogEntity::class,
-        AnnouncementEntity::class
+        AnnouncementEntity::class,
+        LeaveRequestEntity::class,
+        TimetableEntity::class,
+        OnlineClassEntity::class,
+        QuestionBankEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -39,4 +43,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun enquiryDao(): EnquiryDao
     abstract fun staffLogDao(): StaffLogDao
     abstract fun announcementDao(): AnnouncementDao
+    abstract fun leaveDao(): LeaveDao
+    abstract fun timetableDao(): TimetableDao
+    abstract fun onlineClassDao(): OnlineClassDao
+    abstract fun questionBankDao(): QuestionBankDao
 }
