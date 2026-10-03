@@ -1,9 +1,12 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -19,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.presentation.theme.LocalSchoolColors
 import com.school.manage.presentation.theme.LocalThemeToggle
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,32 +44,60 @@ fun DashboardScreen(
     val attendanceList by database.attendanceDao().getAttendanceBySchool(schoolCode).collectAsState(initial = emptyList())
 
     val monthsList = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    var selectedMonthIndex by remember { mutableStateOf(9) }
+    var selectedMonthIndex by remember { mutableStateOf(9) } // 9 = October
     var selectedYear by remember { mutableStateOf(2026) }
+
+    // Selected day for Attendance Inspection (null = entire month)
+    var selectedAttendanceDay by remember { mutableStateOf<Int?>(null) }
+    var selectedStatusFilter by remember { mutableStateOf("ALL") }
 
     val currentMonthLabel = monthsList[selectedMonthIndex] + "-" + selectedYear
     val monthNumVal = selectedMonthIndex + 1
     val monthNumberStr = if (monthNumVal < 10) "0" + monthNumVal else monthNumVal.toString()
     val monthFilterPattern = monthNumberStr + "/" + selectedYear
 
+    // Days in selected month calculation
+    val daysInMonth = remember(selectedMonthIndex, selectedYear) {
+        when (selectedMonthIndex) {
+            1 -> if (selectedYear % 4 == 0 && (selectedYear % 100 != 0 || selectedYear % 400 == 0)) 29 else 28
+            3, 5, 8, 10 -> 30
+            else -> 31
+        }
+    }
+
+    // Filter fees & expenses for entire selected month
     val monthlyFees = feeRecords.filter { it.feeMonth.contains(monthFilterPattern) || it.paymentDate.contains(monthFilterPattern) }.sumOf { it.amountPaid }
     val totalFees = feeRecords.sumOf { it.amountPaid }
     val monthlyExpenses = expenses.filter { it.date.contains(monthFilterPattern) }.sumOf { it.amount }
     val totalExpenses = expenses.sumOf { it.amount }
+    val netMonthCashFlow = monthlyFees - monthlyExpenses
 
-    val studentAttendance = attendanceList.filter { it.userType == "STUDENT" && it.date.contains(monthFilterPattern) }
-    val teacherAttendance = attendanceList.filter { it.userType == "STAFF" && it.date.contains(monthFilterPattern) }
+    // Monthly Attendance Filter
+    val studentMonthAttendance = attendanceList.filter { it.userType == "STUDENT" && it.date.contains(monthFilterPattern) }
+    val teacherMonthAttendance = attendanceList.filter { it.userType == "STAFF" && it.date.contains(monthFilterPattern) }
 
-    val presentCount = studentAttendance.count { it.status == "PRESENT" }
-    val absentCount = studentAttendance.count { it.status == "ABSENT" }
-    val leaveCount = studentAttendance.count { it.status == "LEAVE" }
-    val holidayCount = studentAttendance.count { it.status == "HOLIDAY" }
+    // Day-specific Attendance Filter
+    val activeAttendanceRecords = remember(selectedAttendanceDay, studentMonthAttendance, selectedMonthIndex, selectedYear) {
+        if (selectedAttendanceDay == null) {
+            studentMonthAttendance
+        } else {
+            val dStr = if (selectedAttendanceDay!! < 10) "0" + selectedAttendanceDay else selectedAttendanceDay.toString()
+            val fullTargetDate = dStr + "/" + monthNumberStr + "/" + selectedYear
+            val altTargetDate = selectedAttendanceDay.toString() + "/" + monthNumberStr + "/" + selectedYear
+            studentMonthAttendance.filter { it.date == fullTargetDate || it.date == altTargetDate }
+        }
+    }
+
+    val presentCount = activeAttendanceRecords.count { it.status == "PRESENT" }
+    val absentCount = activeAttendanceRecords.count { it.status == "ABSENT" }
+    val leaveCount = activeAttendanceRecords.count { it.status == "LEAVE" }
+    val holidayCount = activeAttendanceRecords.count { it.status == "HOLIDAY" }
 
     val studentTotalMarked = presentCount + absentCount + leaveCount
     val studentPct = if (studentTotalMarked > 0) (presentCount * 100 / studentTotalMarked) else 0
 
-    val teacherPresent = teacherAttendance.count { it.status == "PRESENT" }
-    val teacherTotalMarked = teacherAttendance.count { it.status in listOf("PRESENT", "ABSENT", "LEAVE") }
+    val teacherPresent = teacherMonthAttendance.count { it.status == "PRESENT" }
+    val teacherTotalMarked = teacherMonthAttendance.count { it.status in listOf("PRESENT", "ABSENT", "LEAVE") }
     val teacherPct = if (teacherTotalMarked > 0) (teacherPresent * 100 / teacherTotalMarked) else 0
 
     var showAddNewBottomSheet by remember { mutableStateOf(false) }
@@ -93,7 +125,7 @@ fun DashboardScreen(
         ) {
             item { Spacer(modifier = Modifier.height(6.dp)) }
 
-            // 1. Top Header Profile Row with Theme Switcher
+            // 1. Header Profile & Theme Mode Switcher
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -133,7 +165,6 @@ fun DashboardScreen(
                         }
                     }
 
-                    // Night/Day Switcher & Action Icons
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically
@@ -142,7 +173,7 @@ fun DashboardScreen(
                             onClick = toggleTheme,
                             shape = CircleShape,
                             color = colors.bgCard,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                            border = BorderStroke(1.dp, colors.borderCard),
                             modifier = Modifier.size(38.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -154,7 +185,7 @@ fun DashboardScreen(
                             onClick = { onLogout() },
                             shape = CircleShape,
                             color = colors.bgCard,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                            border = BorderStroke(1.dp, colors.borderCard),
                             modifier = Modifier.size(38.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
@@ -165,7 +196,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 2. Counter Tri-Cards
+            // 2. Directory Counts (Students, Classes, Teachers)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -201,12 +232,12 @@ fun DashboardScreen(
                 }
             }
 
-            // 3. Attendance Summary Graph Card
+            // 3. ATTENDANCE SUMMARY (SCROLLABLE TIMELINE + DYNAMIC DAY TILES)
             item {
                 Surface(
                     shape = RoundedCornerShape(18.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -215,13 +246,15 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                "Attendance\nSummary",
-                                fontWeight = FontWeight.ExtraBold,
-                                fontSize = 15.sp,
-                                color = colors.brandPrimary,
-                                lineHeight = 18.sp
-                            )
+                            Column {
+                                Text("Attendance Summary", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
+                                Text(
+                                    text = if (selectedAttendanceDay == null) "All Month Overview" else "Day: " + (if (selectedAttendanceDay!! < 10) "0" + selectedAttendanceDay else selectedAttendanceDay.toString()) + "/" + monthNumberStr + "/" + selectedYear,
+                                    fontSize = 11.sp,
+                                    color = colors.textSecondary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "‹",
@@ -230,6 +263,7 @@ fun DashboardScreen(
                                     color = colors.brandPrimary,
                                     modifier = Modifier.clickable {
                                         if (selectedMonthIndex > 0) selectedMonthIndex -= 1 else { selectedMonthIndex = 11; selectedYear -= 1 }
+                                        selectedAttendanceDay = null
                                     }.padding(horizontal = 6.dp)
                                 )
                                 Text(currentMonthLabel, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
@@ -240,29 +274,166 @@ fun DashboardScreen(
                                     color = colors.brandPrimary,
                                     modifier = Modifier.clickable {
                                         if (selectedMonthIndex < 11) selectedMonthIndex += 1 else { selectedMonthIndex = 0; selectedYear += 1 }
+                                        selectedAttendanceDay = null
                                     }.padding(horizontal = 6.dp)
                                 )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(14.dp))
-                        ChartGridCanvas(lineColor = colors.brandAccent)
 
-                        Spacer(modifier = Modifier.height(12.dp))
+                        // Horizontally Scrollable Days Table (Start to End of Month)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            item {
+                                Surface(
+                                    onClick = { selectedAttendanceDay = null },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (selectedAttendanceDay == null) colors.brandPrimary else colors.bgCardHover,
+                                    border = BorderStroke(1.dp, if (selectedAttendanceDay == null) colors.brandPrimary else colors.borderCard),
+                                    modifier = Modifier.height(46.dp)
+                                ) {
+                                    Box(modifier = Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
+                                        Text(
+                                            "All Month",
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (selectedAttendanceDay == null) Color.White else colors.textPrimary
+                                        )
+                                    }
+                                }
+                            }
+
+                            items((1..daysInMonth).toList()) { day ->
+                                val isSelected = (selectedAttendanceDay == day)
+                                val dStr = if (day < 10) "0" + day else day.toString()
+                                val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
+                                val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
+                                val hasRecords = studentMonthAttendance.any { it.date == dayDateStr || it.date == altDateStr }
+
+                                Surface(
+                                    onClick = { selectedAttendanceDay = day },
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = if (isSelected) colors.brandPrimary else colors.bgCardHover,
+                                    border = BorderStroke(1.dp, if (isSelected) colors.brandPrimary else colors.borderCard),
+                                    modifier = Modifier.width(46.dp).height(46.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            dStr,
+                                            fontSize = 13.sp,
+                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
+                                            color = if (isSelected) Color.White else colors.textPrimary
+                                        )
+                                        if (hasRecords) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(top = 2.dp)
+                                                    .size(4.dp)
+                                                    .clip(CircleShape)
+                                                    .background(if (isSelected) Color.White else colors.brandPrimary)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Dynamic Attendance Status Tiles
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            LegendPill("Present: " + presentCount, Color(0xFF22C55E))
-                            LegendPill("Absent: " + absentCount, Color(0xFFEF4444))
-                            LegendPill("Leave: " + leaveCount, Color(0xFFF59E0B))
-                            LegendPill("Holiday: " + holidayCount, Color(0xFF3B82F6))
+                            AttendanceCountTile(
+                                label = "Present",
+                                count = presentCount.toString(),
+                                isSelected = selectedStatusFilter == "PRESENT",
+                                activeColor = Color(0xFF22C55E),
+                                modifier = Modifier.weight(1f),
+                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "PRESENT") "ALL" else "PRESENT" }
+                            )
+                            AttendanceCountTile(
+                                label = "Absent",
+                                count = absentCount.toString(),
+                                isSelected = selectedStatusFilter == "ABSENT",
+                                activeColor = Color(0xFFEF4444),
+                                modifier = Modifier.weight(1f),
+                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "ABSENT") "ALL" else "ABSENT" }
+                            )
+                            AttendanceCountTile(
+                                label = "Leave",
+                                count = leaveCount.toString(),
+                                isSelected = selectedStatusFilter == "LEAVE",
+                                activeColor = Color(0xFFF59E0B),
+                                modifier = Modifier.weight(1f),
+                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "LEAVE") "ALL" else "LEAVE" }
+                            )
+                            AttendanceCountTile(
+                                label = "Holiday",
+                                count = holidayCount.toString(),
+                                isSelected = selectedStatusFilter == "HOLIDAY",
+                                activeColor = Color(0xFF3B82F6),
+                                modifier = Modifier.weight(1f),
+                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "HOLIDAY") "ALL" else "HOLIDAY" }
+                            )
+                        }
+
+                        // Drill-Down: Shows list of students for selected tile
+                        if (selectedStatusFilter != "ALL" && activeAttendanceRecords.isNotEmpty()) {
+                            val filteredList = activeAttendanceRecords.filter { it.status == selectedStatusFilter }
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = colors.bgCardHover,
+                                border = BorderStroke(1.dp, colors.borderCard),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
+                                    Text(
+                                        text = selectedStatusFilter + " Students (" + filteredList.size + ")",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 12.sp,
+                                        color = colors.textPrimary
+                                    )
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    if (filteredList.isEmpty()) {
+                                        Text("No students marked " + selectedStatusFilter.lowercase() + " on this date.", fontSize = 11.sp, color = colors.textSecondary)
+                                    } else {
+                                        filteredList.forEach { att ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text(
+                                                    text = att.studentName.ifEmpty { "Student #" + att.studentId },
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = colors.textPrimary
+                                                )
+                                                Text(
+                                                    text = att.gradeClass.ifEmpty { "General" },
+                                                    fontSize = 11.sp,
+                                                    color = colors.textSecondary
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
 
-            // 4. Marking Attendance Progress Bars
+            // 4. Student & Teacher Marking Percentages
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -287,44 +458,12 @@ fun DashboardScreen(
                 }
             }
 
-            // 5. Due Fees Card
+            // 5. MONTHLY FINANCIAL SUMMARY (SCROLLABLE TIMELINE + GREEN/RED NET SUM)
             item {
                 Surface(
                     shape = RoundedCornerShape(18.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("📑", fontSize = 16.sp)
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text("Due Fees", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
-                        }
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column {
-                                Text("(0) ₹0", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = colors.brandPrimary)
-                                Text("Active", fontSize = 12.sp, color = colors.textSecondary)
-                            }
-                            Column(horizontalAlignment = Alignment.End) {
-                                Text("(0) ₹0", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = colors.brandPrimary)
-                                Text("Close", fontSize = 12.sp, color = colors.textSecondary)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // 6. Monthly Summary Card
-            item {
-                Surface(
-                    shape = RoundedCornerShape(18.dp),
-                    color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -333,7 +472,7 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Monthly Summary", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = colors.brandPrimary)
+                            Text("Monthly Summary", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "‹",
@@ -357,49 +496,136 @@ fun DashboardScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-                        ChartGridCanvas(lineColor = colors.error)
+                        Spacer(modifier = Modifier.height(12.dp))
 
+                        // Monthly Net Balance Badge (Green if positive, Red if negative, Neutral if zero)
+                        val monthNetPrefix = if (netMonthCashFlow > 0) "+₹" else if (netMonthCashFlow < 0) "-₹" else "₹"
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (netMonthCashFlow > 0) colors.success.copy(alpha = 0.12f) else if (netMonthCashFlow < 0) colors.error.copy(alpha = 0.12f) else colors.borderCard.copy(alpha = 0.3f),
+                            border = BorderStroke(1.dp, if (netMonthCashFlow > 0) colors.success.copy(alpha = 0.4f) else if (netMonthCashFlow < 0) colors.error.copy(alpha = 0.4f) else colors.borderCard),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("MONTH NET BALANCE", fontSize = 10.sp, fontWeight = FontWeight.ExtraBold, color = colors.textSecondary, letterSpacing = 0.5.sp)
+                                    Text(
+                                        text = monthNetPrefix + abs(netMonthCashFlow).toInt(),
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 18.sp,
+                                        color = if (netMonthCashFlow > 0) colors.success else if (netMonthCashFlow < 0) colors.error else colors.textPrimary
+                                    )
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (netMonthCashFlow > 0) colors.success else if (netMonthCashFlow < 0) colors.error else colors.brandPrimary
+                                ) {
+                                    Text(
+                                        text = if (netMonthCashFlow > 0) "Surplus" else if (netMonthCashFlow < 0) "Deficit" else "Balanced",
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Text("DAILY TRANSACTIONS (SCROLLABLE)", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = colors.textSecondary, letterSpacing = 0.5.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Horizontally Scrollable Daily Ledger for whole month
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items((1..daysInMonth).toList()) { day ->
+                                val dStr = if (day < 10) "0" + day else day.toString()
+                                val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
+                                val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
+
+                                val dayIncome = feeRecords.filter { 
+                                    it.paymentDate == dayDateStr || it.paymentDate == altDateStr || (it.feeMonth == (monthNumberStr + "/" + selectedYear) && it.paymentDate.startsWith(dStr + "/"))
+                                }.sumOf { it.amountPaid }
+
+                                val dayExpense = expenses.filter { 
+                                    it.date == dayDateStr || it.date == altDateStr 
+                                }.sumOf { it.amount }
+
+                                val dayNet = dayIncome - dayExpense
+                                val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
+
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = colors.bgCardHover,
+                                    border = BorderStroke(1.dp, colors.borderCard),
+                                    modifier = Modifier.width(130.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Text(
+                                            dStr + " " + monthsList[selectedMonthIndex],
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = colors.textPrimary
+                                        )
+                                        Spacer(modifier = Modifier.height(6.dp))
+
+                                        // Income Line
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text("In:", fontSize = 10.sp, color = colors.textSecondary)
+                                            Text("+₹" + dayIncome.toInt(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.success)
+                                        }
+
+                                        // Expense Line
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text("Out:", fontSize = 10.sp, color = colors.textSecondary)
+                                            Text("-₹" + dayExpense.toInt(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
+                                        }
+
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        HorizontalDivider(color = colors.borderCard.copy(alpha = 0.5f))
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        // Sum Number Line (Green if positive, Red if negative, Neutral if zero)
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Text("Net:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                                            Text(
+                                                text = netPrefix + abs(dayNet).toInt(),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Black,
+                                                color = if (dayNet > 0) colors.success else if (dayNet < 0) colors.error else colors.textSecondary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+Spacer(modifier = Modifier.height(14.dp))
+                        HorizontalDivider(color = colors.borderCard.copy(alpha = 0.5f))
                         Spacer(modifier = Modifier.height(10.dp))
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                            LegendPill("Incomes", Color(0xFF22C55E))
-                            Spacer(modifier = Modifier.width(16.dp))
-                            LegendPill("Expenses", Color(0xFFEF4444))
-                        }
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        // Monthly Totals Comparison Row
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            Text("Today", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("Monthly", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("Total", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("Monthly Incomes", fontSize = 11.sp, color = colors.textSecondary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("Monthly Expenses", fontSize = 11.sp, color = colors.textSecondary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("All-Time Incomes", fontSize = 11.sp, color = colors.textSecondary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                         }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-                        HorizontalDivider(color = colors.borderCard.copy(alpha = 0.5f))
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        // Incomes
+                        Spacer(modifier = Modifier.height(4.dp))
                         Row(modifier = Modifier.fillMaxWidth()) {
-                            Text("₹0", fontSize = 13.sp, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                             Text("₹" + monthlyFees.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹" + totalFees.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.success, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-                        HorizontalDivider(color = colors.borderCard.copy(alpha = 0.5f))
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        // Expenses
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Text("₹0", fontSize = 13.sp, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                             Text("₹" + monthlyExpenses.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
-                            Text("₹" + totalExpenses.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                            Text("₹" + totalFees.toInt(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
                         }
                     }
                 }
             }
 
-            // 7. FEATURES Section
+            // 6. FEATURES Grid
             item {
                 Text("FEATURES", fontWeight = FontWeight.ExtraBold, fontSize = 12.sp, color = colors.textSecondary, letterSpacing = 1.sp)
             }
@@ -430,7 +656,7 @@ fun DashboardScreen(
             item { Spacer(modifier = Modifier.height(70.dp)) }
         }
 
-        // 8. MODAL BOTTOM SHEET
+        // 7. MODAL BOTTOM SHEET
         if (showAddNewBottomSheet) {
             ModalBottomSheet(
                 onDismissRequest = { showAddNewBottomSheet = false },
@@ -536,6 +762,35 @@ fun DashboardScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AttendanceCountTile(
+    label: String,
+    count: String,
+    isSelected: Boolean,
+    activeColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val colors = LocalSchoolColors.current
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) activeColor.copy(alpha = 0.15f) else colors.bgCardHover,
+        border = BorderStroke(1.5.dp, if (isSelected) activeColor else colors.borderCard),
+        modifier = modifier.height(64.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(6.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(count, fontWeight = FontWeight.Black, fontSize = 16.sp, color = if (isSelected) activeColor else colors.textPrimary)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (isSelected) activeColor else colors.textSecondary)
         }
     }
 }
