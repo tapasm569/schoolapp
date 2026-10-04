@@ -16,6 +16,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    // 1. School Admin Sync
     suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
         return try {
             withTimeout(10000L) {
@@ -63,6 +64,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 2. Real-Time Observers for All Tables
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
 
@@ -74,7 +76,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 1. Batches / Classes
+        // Batches / Classes
         scope.launch {
             database.batchDao().getBatchesBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -85,10 +87,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                 mapOf(
                                     "id" to item.id.toString(),
                                     "schoolCode" to item.schoolCode,
-                                    "name" to item.name,
-                                    "gradeClass" to item.gradeClass,
-                                    "section" to item.section,
-                                    "stream" to item.stream
+                                    "batchName" to item.batchName,
+                                    "subjects" to item.subjects,
+                                    "sections" to item.sections
                                 )
                             )
                     } catch (e: Exception) {
@@ -98,7 +99,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 2. Students
+        // Students
         scope.launch {
             database.studentDao().getStudentsBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -123,7 +124,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 3. Staff / Teachers
+        // Staff
         scope.launch {
             database.staffDao().getStaffBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -148,7 +149,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 4. Fees (using verified getFeeRecordsBySchool)
+        // Fees
         scope.launch {
             database.feeDao().getFeeRecordsBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -172,7 +173,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 5. Expenses
+        // Expenses
         scope.launch {
             database.expenseDao().getExpensesBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -196,7 +197,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 6. Attendance
+        // Attendance
         scope.launch {
             database.attendanceDao().getAttendanceBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -219,7 +220,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 7. Exams
+        // Exams
         scope.launch {
             database.examDao().getExamsBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -243,7 +244,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 8. Homework
+        // Homework
         scope.launch {
             database.homeworkDao().getHomeworkBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
@@ -268,7 +269,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 9. Classwork
+        // Classwork
         scope.launch {
             database.classworkDao().getClassworkBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
