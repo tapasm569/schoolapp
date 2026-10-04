@@ -1,6 +1,6 @@
 package com.school.manage.presentation.screens
-import com.school.manage.core.firebase.FirestoreSyncService
 
+import com.school.manage.core.firebase.FirestoreSyncService
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -125,7 +125,7 @@ fun LoginScreen(
     onStudentLoginSuccess: (Long) -> Unit,
     onNavigateRegister: () -> Unit
 ) {
-    var activeLoginRole by remember { mutableStateOf<String?>(null) }
+    var activeLoginRole by remember { mutableStateOf(null) }
     var selectedLanguage by remember { mutableStateOf("English") }
     var showLangMenu by remember { mutableStateOf(false) }
 
@@ -146,14 +146,12 @@ fun LoginScreen(
         ) {
             item { Spacer(modifier = Modifier.height(20.dp)) }
 
-            // 1. App Icon Logo Badge
             item {
                 AppIconLogoBadge()
             }
 
             item { Spacer(modifier = Modifier.height(20.dp)) }
 
-            // 2. Headline
             item {
                 Text(
                     text = "Simplify your life and boost\nyour productivity 🚀",
@@ -167,7 +165,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(18.dp)) }
 
-            // 3. Language Selector Pill
             item {
                 Box {
                     Surface(
@@ -207,7 +204,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(28.dp)) }
 
-            // 4. Role Selection Header
             item {
                 Text(
                     text = "Select role",
@@ -228,7 +224,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
 
-            // 5. Admin Role Card
             item {
                 RoleSelectionCard(
                     title = "Login as Admin",
@@ -246,7 +241,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(14.dp)) }
 
-            // 6. Staff Role Card
             item {
                 RoleSelectionCard(
                     title = "Login as Staff",
@@ -264,7 +258,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(14.dp)) }
 
-            // 7. Student Role Card
             item {
                 RoleSelectionCard(
                     title = "Login as Student",
@@ -282,7 +275,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(26.dp)) }
 
-            // 8. Divider
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
@@ -309,7 +301,6 @@ fun LoginScreen(
 
             item { Spacer(modifier = Modifier.height(26.dp)) }
 
-            // 9. Create Admin Account Card
             item {
                 RoleSelectionCard(
                     title = "Create Admin Account",
@@ -323,7 +314,6 @@ fun LoginScreen(
             item { Spacer(modifier = Modifier.height(36.dp)) }
         }
 
-        // Login Dialog Modal
         if (activeLoginRole != null) {
             val role = activeLoginRole!!
             val isStudent = role == "Student"
@@ -550,19 +540,18 @@ fun RegisterSchoolScreen(
                         if (existing != null) {
                             errorMsg = "School Code '$schoolCode' is already taken. Pick another code."
                         } else {
-                            database.schoolDao().registerSchool(
-                try {
-                    FirestoreSyncService(database).saveSchoolToCloud(school)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                                SchoolEntity(
-                                    schoolCode = schoolCode.trim(),
-                                    schoolName = schoolName.trim(),
-                                    password = password,
-                                    phone = phone
-                                )
+                            val newSchool = SchoolEntity(
+                                schoolCode = schoolCode.trim(),
+                                schoolName = schoolName.trim(),
+                                password = password,
+                                phone = phone
                             )
+                            database.schoolDao().registerSchool(newSchool)
+                            try {
+                                FirestoreSyncService(database).saveSchoolToCloud(newSchool)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                             onRegisterSuccess()
                         }
                     }
