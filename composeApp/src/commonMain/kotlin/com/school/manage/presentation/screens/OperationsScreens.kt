@@ -628,12 +628,7 @@ fun MessagesScreen(
 
                         Button(
                             onClick = {
-                                val currentStudent = selectedStudent
-                                val rawPhone = if (currentStudent != null) {
-                                    if (currentStudent.whatsapp.isNotBlank()) currentStudent.whatsapp else currentStudent.phone
-                                } else ""
-
-                                val cleanPhone = rawPhone.replace("+", "").replace(" ", "").trim()
+                                val cleanPhone = (selectedStudent?.phone ?: "").replace("+", "").replace(" ", "").trim()
                                 val encoded = customMessage
                                     .replace(" ", "%20")
                                     .replace("\n", "%0A")
