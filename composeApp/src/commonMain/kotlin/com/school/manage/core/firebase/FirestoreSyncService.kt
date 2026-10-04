@@ -16,7 +16,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // Cloud school credentials backup and restore
     suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
         return try {
             withTimeout(10000L) {
@@ -64,7 +63,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // Continuous Real-Time Observers for All Database Entities
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
 
@@ -150,7 +148,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 4. Fees
+        // 4. Fees (using verified getFeeRecordsBySchool)
         scope.launch {
             database.feeDao().getFeeRecordsBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
