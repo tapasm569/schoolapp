@@ -16,7 +16,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // 1. School Admin Sync
+    // 1. School Master Record
     suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
         return try {
             withTimeout(10000L) {
@@ -64,7 +64,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 2. Class / Batch Sync
+    // 2. Classes / Batches
     fun syncBatch(schoolCode: String, batch: BatchEntity) {
         scope.launch {
             try {
@@ -86,7 +86,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 3. Other Entity Cloud Uploads
+    // 3. Students
     fun syncStudent(schoolCode: String, student: StudentEntity) {
         scope.launch {
             try {
@@ -109,6 +109,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 4. Staff / Teachers
     fun syncStaff(schoolCode: String, staff: StaffEntity) {
         scope.launch {
             try {
@@ -131,6 +132,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 5. Fees Collection
     fun syncFee(schoolCode: String, fee: FeeRecordEntity) {
         scope.launch {
             try {
@@ -152,6 +154,29 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 6. Expenses Sync
+    fun syncExpense(schoolCode: String, expense: ExpenseEntity) {
+        scope.launch {
+            try {
+                firestore.collection("schools").document(schoolCode)
+                    .collection("expenses").document(expense.id.toString())
+                    .set(
+                        mapOf(
+                            "id" to expense.id.toString(),
+                            "schoolCode" to expense.schoolCode,
+                            "title" to expense.title,
+                            "category" to expense.category,
+                            "amount" to expense.amount.toString(),
+                            "date" to expense.date
+                        )
+                    )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // 7. Attendance
     fun syncAttendance(schoolCode: String, att: AttendanceEntity) {
         scope.launch {
             try {
@@ -172,6 +197,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 8. Exams
     fun syncExam(schoolCode: String, exam: ExamEntity) {
         scope.launch {
             try {
@@ -193,6 +219,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 9. Homework
     fun syncHomework(schoolCode: String, hw: HomeworkEntity) {
         scope.launch {
             try {
@@ -215,6 +242,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 10. Classwork
     fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
         scope.launch {
             try {
@@ -237,14 +265,14 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 4. MASTER FULL SYNC
+    // 11. MASTER START SYNC: Scans and uploads all local tables
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         scope.launch {
             try {
                 database.schoolDao().getSchoolByCode(schoolCode)?.let { saveSchoolToCloud(it) }
 
-                // Classes / Batches
+                // Batches / Classes
                 val batches: List<BatchEntity> = database.batchDao().getBatchesBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (b in batches) { syncBatch(schoolCode, b) }
 
@@ -259,6 +287,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 // Fees
                 val fees: List<FeeRecordEntity> = database.feeDao().getFeeRecordsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (f in fees) { syncFee(schoolCode, f) }
+
+                // Expenses
+                val expenses: List<ExpenseEntity> = database.expenseDao().getExpensesBySchool(schoolCode).firstOrNull() ?: emptyList()
+                for (exp in expenses) { syncExpense(schoolCode, exp) }
 
                 // Attendance
                 val attList: List<AttendanceEntity> = database.attendanceDao().getAttendanceBySchool(schoolCode).firstOrNull() ?: emptyList()

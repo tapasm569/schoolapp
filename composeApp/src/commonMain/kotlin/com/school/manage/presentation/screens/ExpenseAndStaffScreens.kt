@@ -334,8 +334,7 @@ fun ExpenseScreen(
                     onClick = {
                         if (title.isNotBlank() && amount.isNotBlank()) {
                             scope.launch {
-                                database.expenseDao().insertExpense(
-                                    ExpenseEntity(
+                                val expToSave = ExpenseEntity(
                                         schoolCode = schoolCode,
                                         title = title,
                                         category = category,
@@ -343,7 +342,12 @@ fun ExpenseScreen(
                                         date = "02/10/2026",
                                         notes = ""
                                     )
-                                )
+                    val newExpId = database.expenseDao().insertExpense(expToSave)
+                    try {
+                        FirestoreSyncService(database).syncExpense(schoolCode, expToSave.copy(id = newExpId))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                                 title = ""
                                 category = ""
                                 amount = ""
