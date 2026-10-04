@@ -106,8 +106,8 @@ fun AddBatchScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     var batchName by remember { mutableStateOf("") }
-    val subjects = remember { mutableStateListOf<String>() }
-    val sections = remember { mutableStateListOf<String>() }
+    val subjects = remember { mutableStateListOf() }
+    val sections = remember { mutableStateListOf() }
 
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     var newSubject by remember { mutableStateOf("") }

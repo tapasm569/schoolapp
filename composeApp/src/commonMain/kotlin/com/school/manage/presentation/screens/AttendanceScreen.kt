@@ -28,7 +28,7 @@ fun AttendanceScreen(
 ) {
     val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val attendanceMap = remember { mutableStateMapOf<Long, String>() }
+    val attendanceMap = remember { mutableStateMapOf() }
     val scope = rememberCoroutineScope()
     var date by remember { mutableStateOf("03/10/2026") }
     var showDatePicker by remember { mutableStateOf(false) }
