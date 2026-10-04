@@ -631,10 +631,10 @@ fun DashboardScreen(
                         FeatureIconItem("Class works", "📊", Color(0xFFF0FDF4), onClick = { onNavigate("classwork") })
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        FeatureIconItem("Enquiry", "👤", Color(0xFFFFF7ED), onClick = { onNavigate("add_student") })
-                        FeatureIconItem("Staff Logs", "🔢", Color(0xFFE0F2FE), onClick = { onNavigate("staff_list") })
-                        FeatureIconItem("Announcements", "🔔", Color(0xFFFFF7ED), onClick = { onNavigate("student_list") })
-                        FeatureIconItem("Messages", "💬", Color(0xFFECFDF5), onClick = { onNavigate("student_list") })
+                        FeatureIconItem("Enquiry", "👤", Color(0xFFFFF7ED), onClick = { onNavigate("enquiry") })
+                        FeatureIconItem("Staff Logs", "🔢", Color(0xFFE0F2FE), onClick = { onNavigate("staff_logs") })
+                        FeatureIconItem("Announcements", "🔔", Color(0xFFFFF7ED), onClick = { onNavigate("announcements") })
+                        FeatureIconItem("Messages", "💬", Color(0xFFECFDF5), onClick = { onNavigate("messages") })
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         FeatureIconItem("Leave\nManagement", "➖", Color(0xFFF0FDF4), onClick = { onNavigate("attendance") })

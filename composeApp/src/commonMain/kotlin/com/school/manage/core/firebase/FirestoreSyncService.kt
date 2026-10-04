@@ -1,3 +1,6 @@
+import com.school.manage.core.database.entity.AnnouncementEntity
+import com.school.manage.core.database.entity.StaffLogEntity
+import com.school.manage.core.database.entity.EnquiryEntity
 package com.school.manage.core.firebase
 
 import com.school.manage.core.database.AppDatabase
@@ -295,6 +298,92 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+
+                // Enquiries
+                try {
+                    val enqDocs = schoolRef.collection("enquiries").get().documents
+                    for (doc in enqDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val studentName = getSafeStr(doc, "studentName")
+                        val parentName = getSafeStr(doc, "parentName")
+                        val phone = getSafeStr(doc, "phone")
+                        val gradeClass = getSafeStr(doc, "gradeClass")
+                        val date = getSafeStr(doc, "date")
+                        val status = getSafeStr(doc, "status")
+                        val notes = getSafeStr(doc, "notes")
+                        database.enquiryDao().insertEnquiry(
+                            EnquiryEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                studentName = studentName,
+                                parentName = parentName,
+                                phone = phone,
+                                gradeClass = gradeClass,
+                                date = date,
+                                status = if (status.isNotBlank()) status else "NEW",
+                                notes = notes
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                // Staff Logs
+                try {
+                    val logDocs = schoolRef.collection("staff_logs").get().documents
+                    for (doc in logDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val staffId = getSafeStr(doc, "staffId").toLongOrNull() ?: 0L
+                        val staffName = getSafeStr(doc, "staffName")
+                        val date = getSafeStr(doc, "date")
+                        val checkIn = getSafeStr(doc, "checkIn")
+                        val checkOut = getSafeStr(doc, "checkOut")
+                        val activityNote = getSafeStr(doc, "activityNote")
+                        val status = getSafeStr(doc, "status")
+                        database.staffLogDao().insertStaffLog(
+                            StaffLogEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                staffId = staffId,
+                                staffName = staffName,
+                                date = date,
+                                checkIn = if (checkIn.isNotBlank()) checkIn else "09:00 AM",
+                                checkOut = if (checkOut.isNotBlank()) checkOut else "03:30 PM",
+                                activityNote = activityNote,
+                                status = if (status.isNotBlank()) status else "ON_TIME"
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                // Announcements
+                try {
+                    val annDocs = schoolRef.collection("announcements").get().documents
+                    for (doc in annDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val title = getSafeStr(doc, "title")
+                        val message = getSafeStr(doc, "message")
+                        val targetAudience = getSafeStr(doc, "targetAudience")
+                        val priority = getSafeStr(doc, "priority")
+                        val date = getSafeStr(doc, "date")
+                        database.announcementDao().insertAnnouncement(
+                            AnnouncementEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                title = title,
+                                message = message,
+                                targetAudience = if (targetAudience.isNotBlank()) targetAudience else "ALL",
+                                priority = if (priority.isNotBlank()) priority else "NORMAL",
+                                date = date
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -525,6 +614,85 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "subject" to item.subject,
                                     "topicTitle" to item.topicTitle,
                                     "summary" to item.summary,
+                                    "date" to item.date
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Enquiries
+        scope.launch {
+            database.enquiryDao().getEnquiriesBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("enquiries").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "studentName" to item.studentName,
+                                    "parentName" to item.parentName,
+                                    "phone" to item.phone,
+                                    "gradeClass" to item.gradeClass,
+                                    "date" to item.date,
+                                    "status" to item.status,
+                                    "notes" to item.notes
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Staff Logs
+        scope.launch {
+            database.staffLogDao().getStaffLogsBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("staff_logs").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "staffId" to item.staffId.toString(),
+                                    "staffName" to item.staffName,
+                                    "date" to item.date,
+                                    "checkIn" to item.checkIn,
+                                    "checkOut" to item.checkOut,
+                                    "activityNote" to item.activityNote,
+                                    "status" to item.status
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Announcements
+        scope.launch {
+            database.announcementDao().getAnnouncementsBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("announcements").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "title" to item.title,
+                                    "message" to item.message,
+                                    "targetAudience" to item.targetAudience,
+                                    "priority" to item.priority,
                                     "date" to item.date
                                 )
                             )
