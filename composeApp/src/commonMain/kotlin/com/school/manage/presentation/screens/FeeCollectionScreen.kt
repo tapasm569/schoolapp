@@ -77,7 +77,7 @@ fun FeeCollectionScreen(
                             ) {
                                 for (s in students) {
                                     DropdownMenuItem(
-                                        text = { Text(s.name + " - " + s.gradeClass) },
+                                        text = { Text(s.name + " - Class " + s.gradeClass) },
                                         onClick = {
                                             selectedStudentId = s.id
                                             selectedStudentName = s.name
