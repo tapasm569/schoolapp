@@ -18,24 +18,23 @@ class FirestoreSyncService(private val database: AppDatabase) {
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
 
-        // 1. Upload local students to Cloud Firestore (Backup)
+        // 1. Upload local Room students to Cloud Firestore (Backup)
         scope.launch {
             database.studentDao().getStudentsBySchool(schoolCode).collectLatest { studentList ->
-                val studentsCollection = firestore
+                val col = firestore
                     .collection("schools")
                     .document(schoolCode)
                     .collection("students")
 
                 for (student in studentList) {
-                    studentsCollection.document(student.id.toString()).set(
+                    col.document(student.id.toString()).set(
                         mapOf(
-                            "id" to student.id,
+                            "id" to student.id.toString(),
                             "schoolCode" to student.schoolCode,
                             "name" to student.name,
                             "gradeClass" to student.gradeClass,
                             "phone" to student.phone,
-                            "monthlyFee" to student.monthlyFee,
-                            "admissionDate" to student.admissionDate
+                            "monthlyFee" to student.monthlyFee.toString()
                         )
                     )
                 }
@@ -50,24 +49,30 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 .snapshots
                 .collectLatest { snapshot ->
                     for (docChange in snapshot.documentChanges) {
-                        val data = docChange.document.data(Map::class) as? Map<*, *> ?: continue
-                        val studentId = (data["id"] as? Number)?.toLong() ?: 0L
-                        val name = data["name"] as? String ?: ""
-                        val gradeClass = data["gradeClass"] as? String ?: ""
-                        val phone = data["phone"] as? String ?: ""
-                        val fee = (data["monthlyFee"] as? Number)?.toDouble() ?: 0.0
+                        val doc = docChange.document
+                        try {
+                            val idStr: String = if (doc.contains("id")) doc.get("id") else ""
+                            val studentId = idStr.toLongOrNull() ?: 0L
+                            val name: String = if (doc.contains("name")) doc.get("name") else ""
+                            val gradeClass: String = if (doc.contains("gradeClass")) doc.get("gradeClass") else ""
+                            val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
+                            val feeStr: String = if (doc.contains("monthlyFee")) doc.get("monthlyFee") else "0"
+                            val fee = feeStr.toDoubleOrNull() ?: 0.0
 
-                        if (studentId != 0L && name.isNotBlank()) {
-                            database.studentDao().insertStudent(
-                                StudentEntity(
-                                    id = studentId,
-                                    schoolCode = schoolCode,
-                                    name = name,
-                                    gradeClass = gradeClass,
-                                    phone = phone,
-                                    monthlyFee = fee
+                            if (studentId != 0L && name.isNotBlank()) {
+                                database.studentDao().insertStudent(
+                                    StudentEntity(
+                                        id = studentId,
+                                        schoolCode = schoolCode,
+                                        name = name,
+                                        gradeClass = gradeClass,
+                                        phone = phone,
+                                        monthlyFee = fee
+                                    )
                                 )
-                            )
+                            }
+                        } catch (e: Exception) {
+                            // ignore missing or malformed records
                         }
                     }
                 }
