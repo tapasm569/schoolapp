@@ -8,6 +8,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.presentation.screens.*
+import com.school.manage.presentation.screens.QuestionBankScreen
+import com.school.manage.presentation.screens.OnlineClassesScreen
+import com.school.manage.presentation.screens.TimetableScreen
+import com.school.manage.presentation.screens.LeaveManagementScreen
 import com.school.manage.presentation.theme.SchoolAppTheme
 
 @Composable
@@ -204,6 +208,34 @@ fun AppNavHost(database: AppDatabase) {
             }
             composable("messages") {
                 MessagesScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("leave_management") {
+                LeaveManagementScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("timetable") {
+                TimetableScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("online_classes") {
+                OnlineClassesScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("question_bank") {
+                QuestionBankScreen(
                     database = database,
                     schoolCode = currentSchoolCode,
                     onNavigateBack = { navController.popBackStack() }

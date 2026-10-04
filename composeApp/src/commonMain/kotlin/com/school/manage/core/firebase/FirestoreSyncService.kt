@@ -4,7 +4,11 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
 import com.school.manage.core.database.entity.AnnouncementEntity
 import com.school.manage.core.database.entity.EnquiryEntity
+import com.school.manage.core.database.entity.LeaveRequestEntity
+import com.school.manage.core.database.entity.OnlineClassEntity
+import com.school.manage.core.database.entity.QuestionBankEntity
 import com.school.manage.core.database.entity.StaffLogEntity
+import com.school.manage.core.database.entity.TimetableEntity
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +17,12 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+
+
+
+
+
+
 
 
 
@@ -386,6 +396,118 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+
+                // Leave Requests
+                try {
+                    val leaveDocs = schoolRef.collection("leave_requests").get().documents
+                    for (doc in leaveDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val applicantName = getSafeStr(doc, "applicantName")
+                        val applicantType = getSafeStr(doc, "applicantType")
+                        val startDate = getSafeStr(doc, "startDate")
+                        val endDate = getSafeStr(doc, "endDate")
+                        val reason = getSafeStr(doc, "reason")
+                        val status = getSafeStr(doc, "status")
+                        database.leaveDao().insertLeave(
+                            LeaveRequestEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                applicantName = applicantName,
+                                applicantType = if (applicantType.isNotBlank()) applicantType else "STUDENT",
+                                startDate = startDate,
+                                endDate = endDate,
+                                reason = reason,
+                                status = if (status.isNotBlank()) status else "PENDING"
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                // Timetables
+                try {
+                    val ttDocs = schoolRef.collection("timetables").get().documents
+                    for (doc in ttDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val gradeClass = getSafeStr(doc, "gradeClass")
+                        val dayOfWeek = getSafeStr(doc, "dayOfWeek")
+                        val periodNo = getSafeStr(doc, "periodNo").toIntOrNull() ?: 1
+                        val timeSlot = getSafeStr(doc, "timeSlot")
+                        val subject = getSafeStr(doc, "subject")
+                        val teacherName = getSafeStr(doc, "teacherName")
+                        database.timetableDao().insertTimetable(
+                            TimetableEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                gradeClass = gradeClass,
+                                dayOfWeek = dayOfWeek,
+                                periodNo = periodNo,
+                                timeSlot = timeSlot,
+                                subject = subject,
+                                teacherName = teacherName
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                // Online Classes
+                try {
+                    val ocDocs = schoolRef.collection("online_classes").get().documents
+                    for (doc in ocDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val gradeClass = getSafeStr(doc, "gradeClass")
+                        val subject = getSafeStr(doc, "subject")
+                        val title = getSafeStr(doc, "title")
+                        val meetingUrl = getSafeStr(doc, "meetingUrl")
+                        val classDate = getSafeStr(doc, "classDate")
+                        val classTime = getSafeStr(doc, "classTime")
+                        database.onlineClassDao().insertOnlineClass(
+                            OnlineClassEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                gradeClass = gradeClass,
+                                subject = subject,
+                                title = title,
+                                meetingUrl = meetingUrl,
+                                classDate = classDate,
+                                classTime = classTime
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+                // Question Bank
+                try {
+                    val qbDocs = schoolRef.collection("question_bank").get().documents
+                    for (doc in qbDocs) {
+                        val id = doc.id.toLongOrNull() ?: 0L
+                        val gradeClass = getSafeStr(doc, "gradeClass")
+                        val subject = getSafeStr(doc, "subject")
+                        val chapterTopic = getSafeStr(doc, "chapterTopic")
+                        val questionText = getSafeStr(doc, "questionText")
+                        val answerKey = getSafeStr(doc, "answerKey")
+                        val questionType = getSafeStr(doc, "questionType")
+                        database.questionBankDao().insertQuestion(
+                            QuestionBankEntity(
+                                id = id,
+                                schoolCode = schoolCode,
+                                gradeClass = gradeClass,
+                                subject = subject,
+                                chapterTopic = chapterTopic,
+                                questionText = questionText,
+                                answerKey = answerKey,
+                                questionType = if (questionType.isNotBlank()) questionType else "SHORT"
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -696,6 +818,110 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "targetAudience" to item.targetAudience,
                                     "priority" to item.priority,
                                     "date" to item.date
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Leave Requests
+        scope.launch {
+            database.leaveDao().getLeavesBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("leave_requests").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "applicantName" to item.applicantName,
+                                    "applicantType" to item.applicantType,
+                                    "startDate" to item.startDate,
+                                    "endDate" to item.endDate,
+                                    "reason" to item.reason,
+                                    "status" to item.status
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Timetables
+        scope.launch {
+            database.timetableDao().getTimetableBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("timetables").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "gradeClass" to item.gradeClass,
+                                    "dayOfWeek" to item.dayOfWeek,
+                                    "periodNo" to item.periodNo.toString(),
+                                    "timeSlot" to item.timeSlot,
+                                    "subject" to item.subject,
+                                    "teacherName" to item.teacherName
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Online Classes
+        scope.launch {
+            database.onlineClassDao().getOnlineClassesBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("online_classes").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "gradeClass" to item.gradeClass,
+                                    "subject" to item.subject,
+                                    "title" to item.title,
+                                    "meetingUrl" to item.meetingUrl,
+                                    "classDate" to item.classDate,
+                                    "classTime" to item.classTime
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // Question Bank
+        scope.launch {
+            database.questionBankDao().getQuestionsBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("question_bank").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "gradeClass" to item.gradeClass,
+                                    "subject" to item.subject,
+                                    "chapterTopic" to item.chapterTopic,
+                                    "questionText" to item.questionText,
+                                    "answerKey" to item.answerKey,
+                                    "questionType" to item.questionType
                                 )
                             )
                     } catch (e: Exception) {

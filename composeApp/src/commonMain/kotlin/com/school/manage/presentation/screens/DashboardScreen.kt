@@ -637,10 +637,10 @@ fun DashboardScreen(
                         FeatureIconItem("Messages", "💬", Color(0xFFECFDF5), onClick = { onNavigate("messages") })
                     }
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        FeatureIconItem("Leave\nManagement", "➖", Color(0xFFF0FDF4), onClick = { onNavigate("attendance") })
-                        FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("batch_list") })
-                        FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("batch_list") })
-                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("batch_list") })
+                        FeatureIconItem("Leave\nManagement", "➖", Color(0xFFF0FDF4), onClick = { onNavigate("leave_management") })
+                        FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("timetable") })
+                        FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("online_classes") })
+                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("question_bank") })
                     }
                 }
             }
