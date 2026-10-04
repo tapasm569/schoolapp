@@ -181,8 +181,7 @@ fun AddStudentScreen(
                             return@Button
                         }
                         scope.launch {
-                            val newId = database.studentDao().insertStudent(
-                                StudentEntity(
+                            val newId = val studentToSave = StudentEntity(
                                     schoolCode = schoolCode,
                                     name = name.trim(),
                                     phone = phone.trim(),
@@ -197,7 +196,12 @@ fun AddStudentScreen(
                                     guardianName = fatherName.ifBlank { motherName },
                                     admissionDate = "02/10/2026"
                                 )
-                            )
+                    val newStudentId = database.studentDao().insertStudent(studentToSave)
+                    try {
+                        FirestoreSyncService(database).syncStudent(schoolCode, studentToSave.copy(id = newStudentId))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                             onStudentSaved(newId, name.trim())
                         }
                     },
