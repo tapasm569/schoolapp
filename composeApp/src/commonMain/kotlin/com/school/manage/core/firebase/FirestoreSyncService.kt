@@ -15,6 +15,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    // 1. School Admin Sync
     suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
         return try {
             withTimeout(10000L) {
@@ -22,11 +23,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .document(school.schoolCode)
                     .set(
                         mapOf(
-                            "id" to school.id,
                             "schoolCode" to school.schoolCode,
                             "schoolName" to school.schoolName,
-                            "password" to school.password,
-                            "phone" to school.phone
+                            "phone" to school.phone,
+                            "password" to school.password
                         )
                     )
                 true
@@ -63,6 +63,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 2. Student Cloud Sync
     fun syncStudent(schoolCode: String, student: StudentEntity) {
         scope.launch {
             try {
@@ -71,24 +72,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to student.id.toString(),
-                            "schoolCode" to student.schoolCode.toString(),
-                            "rollNo" to student.rollNo.toString(),
-                            "name" to student.name.toString(),
-                            "gradeClass" to student.gradeClass.toString(),
-                            "section" to student.section.toString(),
-                            "guardianName" to student.guardianName.toString(),
-                            "phone" to student.phone.toString(),
+                            "schoolCode" to student.schoolCode,
+                            "name" to student.name,
+                            "gradeClass" to student.gradeClass,
+                            "phone" to student.phone,
                             "monthlyFee" to student.monthlyFee.toString(),
-                            "admissionDate" to student.admissionDate.toString(),
-                            "fatherName" to student.fatherName.toString(),
-                            "motherName" to student.motherName.toString(),
-                            "dob" to student.dob.toString(),
-                            "aadharNumber" to student.aadharNumber.toString(),
-                            "caste" to student.caste.toString(),
-                            "gender" to student.gender.toString(),
-                            "whatsapp" to student.whatsapp.toString(),
-                            "address" to student.address.toString(),
-                            "admissionFee" to student.admissionFee.toString()
+                            "admissionDate" to student.admissionDate
                         )
                     )
             } catch (e: Exception) {
@@ -97,6 +86,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 3. Staff / Teacher Cloud Sync
     fun syncStaff(schoolCode: String, staff: StaffEntity) {
         scope.launch {
             try {
@@ -105,18 +95,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to staff.id.toString(),
-                            "schoolCode" to staff.schoolCode.toString(),
-                            "name" to staff.name.toString(),
-                            "role" to staff.role.toString(),
-                            "phone" to staff.phone.toString(),
+                            "schoolCode" to staff.schoolCode,
+                            "name" to staff.name,
+                            "role" to staff.role,
+                            "phone" to staff.phone,
                             "salary" to staff.salary.toString(),
-                            "joinDate" to staff.joinDate.toString(),
-                            "gender" to staff.gender.toString(),
-                            "whatsapp" to staff.whatsapp.toString(),
-                            "address" to staff.address.toString(),
-                            "qualification" to staff.qualification.toString(),
-                            "salaryType" to staff.salaryType.toString(),
-                            "password" to staff.password.toString()
+                            "joinDate" to staff.joinDate
                         )
                     )
             } catch (e: Exception) {
@@ -125,7 +109,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    fun syncFeeRecord(schoolCode: String, fee: FeeRecordEntity) {
+    // 4. Fee Record Cloud Sync
+    fun syncFee(schoolCode: String, fee: FeeRecordEntity) {
         scope.launch {
             try {
                 firestore.collection("schools").document(schoolCode)
@@ -133,15 +118,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to fee.id.toString(),
-                            "schoolCode" to fee.schoolCode.toString(),
                             "studentId" to fee.studentId.toString(),
-                            "studentName" to fee.studentName.toString(),
-                            "gradeClass" to fee.gradeClass.toString(),
+                            "schoolCode" to fee.schoolCode,
                             "amountPaid" to fee.amountPaid.toString(),
-                            "paymentDate" to fee.paymentDate.toString(),
-                            "feeMonth" to fee.feeMonth.toString(),
-                            "paymentMode" to fee.paymentMode.toString(),
-                            "remarks" to fee.remarks.toString()
+                            "paymentDate" to fee.paymentDate,
+                            "remarks" to fee.remarks
                         )
                     )
             } catch (e: Exception) {
@@ -150,6 +131,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 5. Attendance Cloud Sync
     fun syncAttendance(schoolCode: String, att: AttendanceEntity) {
         scope.launch {
             try {
@@ -158,14 +140,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to att.id.toString(),
-                            "schoolCode" to att.schoolCode.toString(),
                             "studentId" to att.studentId.toString(),
-                            "studentName" to att.studentName.toString(),
-                            "gradeClass" to att.gradeClass.toString(),
-                            "staffId" to att.staffId.toString(),
-                            "userType" to att.userType.toString(),
-                            "date" to att.date.toString(),
-                            "status" to att.status.toString()
+                            "schoolCode" to att.schoolCode,
+                            "date" to att.date,
+                            "status" to att.status
                         )
                     )
             } catch (e: Exception) {
@@ -174,6 +152,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 6. Exam Cloud Sync
     fun syncExam(schoolCode: String, exam: ExamEntity) {
         scope.launch {
             try {
@@ -182,17 +161,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to exam.id.toString(),
-                            "schoolCode" to exam.schoolCode.toString(),
-                            "title" to exam.title.toString(),
-                            "gradeClass" to exam.gradeClass.toString(),
-                            "subject" to exam.subject.toString(),
-                            "examDate" to exam.examDate.toString(),
-                            "maxMarks" to exam.maxMarks.toString(),
-                            "examId" to exam.examId.toString(),
-                            "studentId" to exam.studentId.toString(),
-                            "studentName" to exam.studentName.toString(),
-                            "marksObtained" to exam.marksObtained.toString(),
-                            "grade" to exam.grade.toString()
+                            "schoolCode" to exam.schoolCode,
+                            "title" to exam.title,
+                            "gradeClass" to exam.gradeClass,
+                            "examDate" to exam.examDate,
+                            "maxMarks" to exam.maxMarks.toString()
                         )
                     )
             } catch (e: Exception) {
@@ -201,6 +174,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 7. Homework Cloud Sync
     fun syncHomework(schoolCode: String, hw: HomeworkEntity) {
         scope.launch {
             try {
@@ -209,13 +183,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to hw.id.toString(),
-                            "schoolCode" to hw.schoolCode.toString(),
-                            "gradeClass" to hw.gradeClass.toString(),
-                            "subject" to hw.subject.toString(),
-                            "title" to hw.title.toString(),
-                            "description" to hw.description.toString(),
-                            "assignedDate" to hw.assignedDate.toString(),
-                            "dueDate" to hw.dueDate.toString()
+                            "schoolCode" to hw.schoolCode,
+                            "gradeClass" to hw.gradeClass,
+                            "subject" to hw.subject,
+                            "title" to hw.title,
+                            "description" to hw.description,
+                            "dueDate" to hw.dueDate
                         )
                     )
             } catch (e: Exception) {
@@ -224,6 +197,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 8. Classwork Cloud Sync
     fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
         scope.launch {
             try {
@@ -232,12 +206,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     .set(
                         mapOf(
                             "id" to cw.id.toString(),
-                            "schoolCode" to cw.schoolCode.toString(),
-                            "gradeClass" to cw.gradeClass.toString(),
-                            "subject" to cw.subject.toString(),
-                            "topicTitle" to cw.topicTitle.toString(),
-                            "summary" to cw.summary.toString(),
-                            "date" to cw.date.toString()
+                            "schoolCode" to cw.schoolCode,
+                            "gradeClass" to cw.gradeClass,
+                            "subject" to cw.subject,
+                            "task" to cw.task,
+                            "date" to cw.date
                         )
                     )
             } catch (e: Exception) {
