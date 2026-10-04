@@ -196,7 +196,8 @@ fun AddStudentScreen(
                                     guardianName = fatherName.ifBlank { motherName },
                                     admissionDate = "02/10/2026"
                                 )
-                    val newStudentId = database.studentDao().insertStudent(studentToSave)
+                    val newStudentId = val newId = database.studentDao().insertStudent(studentToSave)
+                                FirestoreSyncService(database).syncStudent(schoolCode, studentToSave.copy(id = newId))
                     try {
                         FirestoreSyncService(database).syncStudent(schoolCode, studentToSave.copy(id = newStudentId))
                     } catch (e: Exception) {
