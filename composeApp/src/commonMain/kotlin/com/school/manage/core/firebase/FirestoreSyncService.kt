@@ -16,7 +16,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // 1. Upload School to Firestore during registration or profile change
     suspend fun saveSchoolToCloud(school: SchoolEntity) {
         try {
             firestore.collection("schools")
@@ -30,11 +29,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     )
                 )
         } catch (e: Exception) {
-            // Safe fallback if offline
+            // Offline fallback
         }
     }
 
-    // 2. Fetch and restore school from Firestore when local Room DB is wiped (Clear Data)
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
         return try {
             val doc = firestore.collection("schools").document(schoolCode).get()
@@ -60,12 +58,15 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 3. Bi-directional student sync
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
 
         scope.launch {
-            // Backup local students to Cloud
+            val localSchool = database.schoolDao().getSchoolByCode(schoolCode)
+            if (localSchool != null) {
+                saveSchoolToCloud(localSchool)
+            }
+
             val students = database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList()
             val col = firestore.collection("schools").document(schoolCode).collection("students")
             for (st in students) {
@@ -82,7 +83,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 )
             }
 
-            // Listen for Cloud student records and save into Room
             col.snapshots.collect { snapshot ->
                 for (docChange in snapshot.documentChanges) {
                     val doc = docChange.document
