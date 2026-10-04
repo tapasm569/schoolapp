@@ -125,7 +125,7 @@ fun LoginScreen(
     onStudentLoginSuccess: (Long) -> Unit,
     onNavigateRegister: () -> Unit
 ) {
-    var activeLoginRole by remember { mutableStateOf(null) }
+    var activeLoginRole by remember { mutableStateOf<String?>(null) }
     var selectedLanguage by remember { mutableStateOf("English") }
     var showLangMenu by remember { mutableStateOf(false) }
 
@@ -333,7 +333,7 @@ fun LoginScreen(
                             text = when {
                                 isStudent -> "Enter your School Code and registered mobile number."
                                 isStaff -> "Enter your School Code and faculty registered mobile number."
-                                else -> "Enter your School Code and administrator password."
+                            else -> "Enter your School Code and administrator password."
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF64748B)
@@ -407,7 +407,7 @@ fun LoginScreen(
                         Text("Sign In")
                     }
                 },
-                dismissButton = {
+dismissButton = {
                     TextButton(onClick = { activeLoginRole = null }) {
                         Text("Cancel")
                     }
