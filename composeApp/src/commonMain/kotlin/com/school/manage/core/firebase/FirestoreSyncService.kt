@@ -8,7 +8,7 @@ import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 class FirestoreSyncService(private val database: AppDatabase) {
@@ -16,7 +16,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // Save School Credentials to Cloud Firestore on Registration
+    // 1. Upload School to Firestore during registration or profile change
     suspend fun saveSchoolToCloud(school: SchoolEntity) {
         try {
             firestore.collection("schools")
@@ -30,11 +30,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     )
                 )
         } catch (e: Exception) {
-            // Offline fallback
+            // Safe fallback if offline
         }
     }
 
-    // Verify and restore School from Cloud when Local Room DB is wiped (e.g. after Clear Data)
+    // 2. Fetch and restore school from Firestore when local Room DB is wiped (Clear Data)
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
         return try {
             val doc = firestore.collection("schools").document(schoolCode).get()
@@ -50,7 +50,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     phone = phone,
                     password = pass
                 )
-                database.schoolDao().registerSchool(restored)
+                database.schoolDao().insertSchool(restored)
                 restored
             } else {
                 null
@@ -60,76 +60,58 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 3. Bi-directional student sync
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
 
-        // 1. Sync Local School Profile -> Cloud
         scope.launch {
-            val localSchool = database.schoolDao().getSchoolByCode(schoolCode)
-            if (localSchool != null) {
-                saveSchoolToCloud(localSchool)
-            }
-        }
-
-        // 2. Upload local Room students to Cloud Firestore (Backup)
-        scope.launch {
-            database.studentDao().getStudentsBySchool(schoolCode).collectLatest { studentList ->
-                val col = firestore
-                    .collection("schools")
-                    .document(schoolCode)
-                    .collection("students")
-
-                for (student in studentList) {
-                    col.document(student.id.toString()).set(
-                        mapOf(
-                            "id" to student.id.toString(),
-                            "schoolCode" to student.schoolCode,
-                            "name" to student.name,
-                            "gradeClass" to student.gradeClass,
-                            "phone" to student.phone,
-                            "monthlyFee" to student.monthlyFee.toString(),
-                            "admissionDate" to student.admissionDate
-                        )
+            // Backup local students to Cloud
+            val students = database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList()
+            val col = firestore.collection("schools").document(schoolCode).collection("students")
+            for (st in students) {
+                col.document(st.id.toString()).set(
+                    mapOf(
+                        "id" to st.id.toString(),
+                        "schoolCode" to st.schoolCode,
+                        "name" to st.name,
+                        "gradeClass" to st.gradeClass,
+                        "phone" to st.phone,
+                        "monthlyFee" to st.monthlyFee.toString(),
+                        "admissionDate" to st.admissionDate
                     )
+                )
+            }
+
+            // Listen for Cloud student records and save into Room
+            col.snapshots.collect { snapshot ->
+                for (docChange in snapshot.documentChanges) {
+                    val doc = docChange.document
+                    try {
+                        val idStr: String = if (doc.contains("id")) doc.get("id") else ""
+                        val studentId = idStr.toLongOrNull() ?: 0L
+                        val name: String = if (doc.contains("name")) doc.get("name") else ""
+                        val gradeClass: String = if (doc.contains("gradeClass")) doc.get("gradeClass") else ""
+                        val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
+                        val feeStr: String = if (doc.contains("monthlyFee")) doc.get("monthlyFee") else "0"
+                        val fee = feeStr.toDoubleOrNull() ?: 0.0
+                        val admissionDate = if (doc.contains("admissionDate")) doc.get("admissionDate") else "03/10/2026"
+
+                        if (studentId != 0L && name.isNotBlank()) {
+                            database.studentDao().insertStudent(
+                                StudentEntity(
+                                    id = studentId,
+                                    schoolCode = schoolCode,
+                                    name = name,
+                                    gradeClass = gradeClass,
+                                    phone = phone,
+                                    monthlyFee = fee,
+                                    admissionDate = admissionDate
+                                )
+                            )
+                        }
+                    } catch (e: Exception) {}
                 }
             }
-        }
-
-        // 3. Download cloud updates into local Room Database
-        scope.launch {
-            firestore.collection("schools")
-                .document(schoolCode)
-                .collection("students")
-                .snapshots
-                .collectLatest { snapshot ->
-                    for (docChange in snapshot.documentChanges) {
-                        val doc = docChange.document
-                        try {
-                            val idStr: String = if (doc.contains("id")) doc.get("id") else ""
-                            val studentId = idStr.toLongOrNull() ?: 0L
-                            val name: String = if (doc.contains("name")) doc.get("name") else ""
-                            val gradeClass: String = if (doc.contains("gradeClass")) doc.get("gradeClass") else ""
-                            val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
-                            val feeStr: String = if (doc.contains("monthlyFee")) doc.get("monthlyFee") else "0"
-                            val fee = feeStr.toDoubleOrNull() ?: 0.0
-                            val admissionDate = if (doc.contains("admissionDate")) doc.get("admissionDate") else "03/10/2026"
-
-                            if (studentId != 0L && name.isNotBlank()) {
-                                database.studentDao().insertStudent(
-                                    StudentEntity(
-                                        id = studentId,
-                                        schoolCode = schoolCode,
-                                        name = name,
-                                        gradeClass = gradeClass,
-                                        phone = phone,
-                                        monthlyFee = fee,
-                                        admissionDate = admissionDate
-                                    )
-                                )
-                            }
-                        } catch (e: Exception) {}
-                    }
-                }
         }
     }
 }
