@@ -30,6 +30,7 @@ kotlin {
             implementation(libs.navigation.compose)
         }
         androidMain.dependencies {
+            implementation("com.google.firebase:firebase-messaging:24.0.0")
             implementation(libs.androidx.activity.compose)
         }
     }
