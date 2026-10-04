@@ -181,8 +181,7 @@ fun ExamsScreen(
                         onClick = {
                             if (examTitle.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    database.examDao().insertExam(
-                                        ExamEntity(
+                                    val examToSave = ExamEntity(
                                             schoolCode = schoolCode,
                                             title = examTitle.trim(),
                                             gradeClass = selectedClass,
@@ -190,7 +189,12 @@ fun ExamsScreen(
                                             examDate = examDate,
                                             maxMarks = maxMarks.toDoubleOrNull() ?: 100.0
                                         )
-                                    )
+                    val newExamId = database.examDao().insertExam(examToSave)
+                    try {
+                        FirestoreSyncService(database).syncExam(schoolCode, examToSave.copy(id = newExamId))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                                     examTitle = ""
                                     subject = ""
                                     showAddExamModal = false
