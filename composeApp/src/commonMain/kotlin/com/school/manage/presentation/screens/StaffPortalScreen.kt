@@ -11,7 +11,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +26,6 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.database.entity.StudentEntity
-import com.school.manage.presentation.theme.LocalSchoolColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +36,7 @@ fun StaffPortalScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
-    val colors = LocalSchoolColors.current
+    val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
 
     var staff by remember { mutableStateOf<StaffEntity?>(null) }
@@ -82,7 +80,7 @@ fun StaffPortalScreen(
                         Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color(0xFFFFCDD2))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.primary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = primaryColor)
             )
         },
         containerColor = Color(0xFFF8FAFC)
@@ -109,7 +107,7 @@ fun StaffPortalScreen(
                             .fillMaxWidth()
                             .background(
                                 Brush.horizontalGradient(
-                                    listOf(colors.primary, colors.primary.copy(alpha = 0.85f))
+                                    listOf(primaryColor, primaryColor.copy(alpha = 0.85f))
                                 )
                             )
                             .padding(20.dp)
@@ -209,11 +207,7 @@ fun StaffPortalScreen(
                                     maxLines = 1
                                 )
                             }
-                            Icon(
-                                Icons.Default.ChevronRight,
-                                contentDescription = null,
-                                tint = Color(0xFF92400E)
-                            )
+                            Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
                         }
                     }
                 }
@@ -383,7 +377,7 @@ fun StaffPortalScreen(
                                                 Text(s.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
                                                 Text("Class: ${s.gradeClass}  •  📞 ${s.phone}", fontSize = 12.sp, color = Color.Gray)
                                             }
-                                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.Gray)
+                                            Text("›", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
                                         }
                                     }
                                 }
@@ -420,16 +414,7 @@ fun StaffPortalScreen(
                                     FilterChip(
                                         selected = false,
                                         onClick = {
-                                            customMessage = "Dear Parent, please ensure that ${student.name} completes today's assigned homework. - $teacherName"
-                                        },
-                                        label = { Text("Homework Alert") }
-                                    )
-                                }
-                                item {
-                                    FilterChip(
-                                        selected = false,
-                                        onClick = {
-                                            customMessage = "Dear Parent, proud to inform you that ${student.name} performed exceptionally well in class today! - $teacherName"
+                                            customMessage = "Dear Parent, proud to inform you that ${student.name} performed exceptionally well in class class today! - $teacherName"
                                         },
                                         label = { Text("Appreciation") }
                                     )
