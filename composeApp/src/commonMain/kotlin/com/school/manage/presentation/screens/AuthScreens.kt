@@ -45,7 +45,6 @@ fun AppIconLogoBadge(modifier: Modifier = Modifier) {
             val w = size.width
             val h = size.height
 
-            // 1. Mortarboard Diamond Top
             val capDiamond = Path().apply {
                 moveTo(w * 0.50f, h * 0.16f)
                 lineTo(w * 0.88f, h * 0.33f)
@@ -55,7 +54,6 @@ fun AppIconLogoBadge(modifier: Modifier = Modifier) {
             }
             drawPath(capDiamond, color = Color.White)
 
-            // 2. Cap Skullcap Base
             val capBase = Path().apply {
                 moveTo(w * 0.32f, h * 0.40f)
                 lineTo(w * 0.32f, h * 0.52f)
@@ -65,14 +63,12 @@ fun AppIconLogoBadge(modifier: Modifier = Modifier) {
             }
             drawPath(capBase, color = Color(0xFFE2E8F0))
 
-            // 3. Gold Button on Cap Top
             drawCircle(
                 color = Color(0xFFF59E0B),
                 radius = w * 0.045f,
                 center = Offset(w * 0.50f, h * 0.33f)
             )
 
-            // 4. Gold Tassel Cord & Hanging Ribbon
             drawLine(
                 color = Color(0xFFF59E0B),
                 start = Offset(w * 0.50f, h * 0.33f),
@@ -85,7 +81,6 @@ fun AppIconLogoBadge(modifier: Modifier = Modifier) {
                 center = Offset(w * 0.80f, h * 0.52f)
             )
 
-            // 5. Open Knowledge Book - Left Page
             val leftPage = Path().apply {
                 moveTo(w * 0.48f, h * 0.65f)
                 lineTo(w * 0.18f, h * 0.62f)
@@ -95,7 +90,6 @@ fun AppIconLogoBadge(modifier: Modifier = Modifier) {
             }
             drawPath(leftPage, color = Color.White)
 
-            // 6. Open Knowledge Book - Right Page
             val rightPage = Path().apply {
                 moveTo(w * 0.52f, h * 0.65f)
                 lineTo(w * 0.82f, h * 0.62f)
@@ -105,7 +99,6 @@ fun AppIconLogoBadge(modifier: Modifier = Modifier) {
             }
             drawPath(rightPage, color = Color(0xFFF8FAFC))
 
-            // 7. Gold Book Spine
             drawLine(
                 color = Color(0xFFF59E0B),
                 start = Offset(w * 0.50f, h * 0.64f),
@@ -146,9 +139,7 @@ fun LoginScreen(
         ) {
             item { Spacer(modifier = Modifier.height(20.dp)) }
 
-            item {
-                AppIconLogoBadge()
-            }
+            item { AppIconLogoBadge() }
 
             item { Spacer(modifier = Modifier.height(20.dp)) }
 
@@ -273,7 +264,7 @@ fun LoginScreen(
                 )
             }
 
-            item { Spacer(modifier = Modifier.height(26.dp)) }
+item { Spacer(modifier = Modifier.height(26.dp)) }
 
             item {
                 Row(
@@ -333,7 +324,7 @@ fun LoginScreen(
                             text = when {
                                 isStudent -> "Enter your School Code and registered mobile number."
                                 isStaff -> "Enter your School Code and faculty registered mobile number."
-                            else -> "Enter your School Code and administrator password."
+                                else -> "Enter your School Code and administrator password."
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Color(0xFF64748B)
@@ -369,9 +360,8 @@ fun LoginScreen(
                                     isStudent -> {
                                         val student = database.studentDao().loginStudent(schoolCode.trim(), passwordOrPhone.trim())
                                         if (student != null) {
-                                            val id = student.id
                                             activeLoginRole = null
-                                            onStudentLoginSuccess(id)
+                                            onStudentLoginSuccess(student.id)
                                         } else {
                                             errorMessage = "Invalid School Code or Mobile Number"
                                         }
@@ -379,23 +369,28 @@ fun LoginScreen(
                                     isStaff -> {
                                         val staff = database.staffDao().loginStaff(schoolCode.trim(), passwordOrPhone.trim())
                                         if (staff != null) {
-                                            val sId = staff.id
-                                            val sCode = staff.schoolCode
-                                            val sName = staff.name
-                                            val sRole = staff.role
                                             activeLoginRole = null
-                                            onStaffLoginSuccess(sId, sCode, sName, sRole)
+                                            onStaffLoginSuccess(staff.id, staff.schoolCode, staff.name, staff.role)
                                         } else {
                                             errorMessage = "Invalid School Code or Staff Mobile Number"
                                         }
                                     }
                                     else -> {
-                                        val school = database.schoolDao().loginSchool(schoolCode.trim(), passwordOrPhone)
+                                        // 1. Try local SQLite login first
+                                        var school = database.schoolDao().loginSchool(schoolCode.trim(), passwordOrPhone)
+
+                                        // 2. If not found locally, fetch directly from Cloud Firestore
+                                        if (school == null) {
+                                            val restored = FirestoreSyncService(database).restoreSchoolFromCloud(schoolCode.trim())
+                                            if (restored != null && restored.password == passwordOrPhone) {
+                                                school = restored
+                                            }
+                                        }
+
                                         if (school != null) {
-                                            val code = school.schoolCode
-                                            val name = school.schoolName
+                                            FirestoreSyncService(database).startSync(school.schoolCode)
                                             activeLoginRole = null
-                                            onSchoolLoginSuccess(code, name)
+                                            onSchoolLoginSuccess(school.schoolCode, school.schoolName)
                                         } else {
                                             errorMessage = "Invalid School Code or Password"
                                         }
@@ -407,7 +402,7 @@ fun LoginScreen(
                         Text("Sign In")
                     }
                 },
-dismissButton = {
+                dismissButton = {
                     TextButton(onClick = { activeLoginRole = null }) {
                         Text("Cancel")
                     }
