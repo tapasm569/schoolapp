@@ -388,7 +388,9 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                                         }
 
                                         if (school != null) {
-                                            FirestoreSyncService(database).startSync(school.schoolCode)
+                                            val syncService = FirestoreSyncService(database)
+                                            syncService.restoreAllFromCloud(school.schoolCode)
+                                            syncService.startSync(school.schoolCode)
                                             activeLoginRole = null
                                             onSchoolLoginSuccess(school.schoolCode, school.schoolName)
                                         } else {
