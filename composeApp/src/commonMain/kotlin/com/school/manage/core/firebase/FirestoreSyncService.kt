@@ -1,10 +1,10 @@
-import com.school.manage.core.database.entity.AnnouncementEntity
-import com.school.manage.core.database.entity.StaffLogEntity
-import com.school.manage.core.database.entity.EnquiryEntity
 package com.school.manage.core.firebase
 
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
+import com.school.manage.core.database.entity.AnnouncementEntity
+import com.school.manage.core.database.entity.EnquiryEntity
+import com.school.manage.core.database.entity.StaffLogEntity
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
@@ -13,6 +13,8 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+
+
 
 class FirestoreSyncService(private val database: AppDatabase) {
 
