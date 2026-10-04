@@ -100,7 +100,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "role" to staff.role,
                             "phone" to staff.phone,
                             "salary" to staff.salary.toString(),
-                            "joiningDate" to staff.joiningDate
+                            "joinedDate" to staff.joinedDate
                         )
                     )
             } catch (e: Exception) {
@@ -121,8 +121,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "studentId" to fee.studentId.toString(),
                             "schoolCode" to fee.schoolCode,
                             "amountPaid" to fee.amountPaid.toString(),
-                            "month" to fee.month,
-                            "date" to fee.date,
+                            "paymentDate" to fee.paymentDate,
                             "remarks" to fee.remarks
                         )
                     )
@@ -144,7 +143,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "studentId" to att.studentId.toString(),
                             "schoolCode" to att.schoolCode,
                             "date" to att.date,
-                            "isPresent" to att.isPresent
+                            "status" to att.status
                         )
                     )
             } catch (e: Exception) {
@@ -165,8 +164,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "schoolCode" to exam.schoolCode,
                             "title" to exam.title,
                             "gradeClass" to exam.gradeClass,
-                            "date" to exam.date,
-                            "totalMarks" to exam.totalMarks.toString()
+                            "examDate" to exam.examDate,
+                            "maxMarks" to exam.maxMarks.toString()
                         )
                     )
             } catch (e: Exception) {
@@ -175,7 +174,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 7. Homework & Classwork Cloud Sync
+    // 7. Homework Cloud Sync
     fun syncHomework(schoolCode: String, hw: HomeworkEntity) {
         scope.launch {
             try {
@@ -198,6 +197,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 8. Classwork Cloud Sync
     fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
         scope.launch {
             try {
@@ -209,8 +209,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "schoolCode" to cw.schoolCode,
                             "gradeClass" to cw.gradeClass,
                             "subject" to cw.subject,
-                            "topic" to cw.topic,
-                            "notes" to cw.notes,
+                            "title" to cw.title,
+                            "description" to cw.description,
                             "date" to cw.date
                         )
                     )
@@ -220,12 +220,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // Master Initial Full Sync
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         scope.launch {
             try {
-                // Sync school details
                 database.schoolDao().getSchoolByCode(schoolCode)?.let { saveSchoolToCloud(it) }
             } catch (e: Exception) {
                 e.printStackTrace()
