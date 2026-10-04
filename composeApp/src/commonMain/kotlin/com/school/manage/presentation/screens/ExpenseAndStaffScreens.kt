@@ -75,8 +75,7 @@ fun AddStaffScreen(
                             return@Button
                         }
                         scope.launch {
-                            database.staffDao().insertStaff(
-                                StaffEntity(
+                            val staffToSave = StaffEntity(
                                     schoolCode = schoolCode,
                                     name = name.trim(),
                                     phone = phone.trim(),
@@ -89,7 +88,12 @@ fun AddStaffScreen(
                                     salary = salary.toDoubleOrNull() ?: 0.0,
                                     salaryType = salaryType,
                                     password = phone.trim()
-                                )
+                    val newStaffId = database.staffDao().insertStaff(staffToSave)
+                    try {
+                        FirestoreSyncService(database).syncStaff(schoolCode, staffToSave.copy(id = newStaffId))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                             )
                             onNavigateBack()
                         }
