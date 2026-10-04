@@ -10,48 +10,56 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 
 class FirestoreSyncService(private val database: AppDatabase) {
 
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    suspend fun saveSchoolToCloud(school: SchoolEntity) {
-        try {
-            firestore.collection("schools")
-                .document(school.schoolCode)
-                .set(
-                    mapOf(
-                        "schoolCode" to school.schoolCode,
-                        "schoolName" to school.schoolName,
-                        "phone" to school.phone,
-                        "password" to school.password
+    // Save School Credentials to Cloud Firestore (Fails if no internet)
+    suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
+        return try {
+            withTimeout(7000L) {
+                firestore.collection("schools")
+                    .document(school.schoolCode)
+                    .set(
+                        mapOf(
+                            "schoolCode" to school.schoolCode,
+                            "schoolName" to school.schoolName,
+                            "phone" to school.phone,
+                            "password" to school.password
+                        )
                     )
-                )
+                true
+            }
         } catch (e: Exception) {
-            // Offline fallback
+            false
         }
     }
 
+    // Verify and restore School from Cloud when logging in
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
         return try {
-            val doc = firestore.collection("schools").document(schoolCode).get()
-            if (doc.exists) {
-                val code: String = if (doc.contains("schoolCode")) doc.get("schoolCode") else schoolCode
-                val name: String = if (doc.contains("schoolName")) doc.get("schoolName") else ""
-                val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
-                val pass: String = if (doc.contains("password")) doc.get("password") else ""
+            withTimeout(7000L) {
+                val doc = firestore.collection("schools").document(schoolCode).get()
+                if (doc.exists) {
+                    val code: String = if (doc.contains("schoolCode")) doc.get("schoolCode") else schoolCode
+                    val name: String = if (doc.contains("schoolName")) doc.get("schoolName") else ""
+                    val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
+                    val pass: String = if (doc.contains("password")) doc.get("password") else ""
 
-                val restored = SchoolEntity(
-                    schoolCode = code,
-                    schoolName = name,
-                    phone = phone,
-                    password = pass
-                )
-                database.schoolDao().insertSchool(restored)
-                restored
-            } else {
-                null
+                    val restored = SchoolEntity(
+                        schoolCode = code,
+                        schoolName = name,
+                        phone = phone,
+                        password = pass
+                    )
+                    database.schoolDao().insertSchool(restored)
+                    restored
+                } else {
+                    null
+                }
             }
         } catch (e: Exception) {
             null
@@ -94,7 +102,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
                         val feeStr: String = if (doc.contains("monthlyFee")) doc.get("monthlyFee") else "0"
                         val fee = feeStr.toDoubleOrNull() ?: 0.0
-                        val admissionDate = if (doc.contains("admissionDate")) doc.get("admissionDate") else "03/10/2026"
+                        val admissionDate = if (doc.contains("admissionDate")) doc.get("admissionDate") else "04/10/2026"
 
                         if (studentId != 0L && name.isNotBlank()) {
                             database.studentDao().insertStudent(
