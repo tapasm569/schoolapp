@@ -1,4 +1,5 @@
 plugins {
+    id("com.google.gms.google-services")
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
@@ -17,6 +18,7 @@ kotlin {
     }
     sourceSets {
         commonMain.dependencies {
+            implementation("dev.gitlive:firebase-firestore:2.1.0")
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
