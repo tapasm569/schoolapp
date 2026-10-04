@@ -197,7 +197,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 8. Classwork Cloud Sync
+    // 8. Classwork Cloud Sync (topicTitle, summary, date)
     fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
         scope.launch {
             try {
@@ -209,7 +209,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "schoolCode" to cw.schoolCode,
                             "gradeClass" to cw.gradeClass,
                             "subject" to cw.subject,
-                            "task" to cw.task,
+                            "topicTitle" to cw.topicTitle,
+                            "summary" to cw.summary,
                             "date" to cw.date
                         )
                     )
