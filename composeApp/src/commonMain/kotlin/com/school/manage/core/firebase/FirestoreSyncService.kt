@@ -64,7 +64,29 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 2. Individual Upload Helpers
+    // 2. Class / Batch Sync
+    fun syncBatch(schoolCode: String, batch: BatchEntity) {
+        scope.launch {
+            try {
+                firestore.collection("schools").document(schoolCode)
+                    .collection("classes").document(batch.id.toString())
+                    .set(
+                        mapOf(
+                            "id" to batch.id.toString(),
+                            "schoolCode" to batch.schoolCode,
+                            "name" to batch.name,
+                            "gradeClass" to batch.gradeClass,
+                            "section" to batch.section,
+                            "stream" to batch.stream
+                        )
+                    )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    // 3. Other Entity Cloud Uploads
     fun syncStudent(schoolCode: String, student: StudentEntity) {
         scope.launch {
             try {
@@ -215,31 +237,42 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 3. MASTER START SYNC: Using verified DAO signatures
+    // 4. MASTER FULL SYNC
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         scope.launch {
             try {
                 database.schoolDao().getSchoolByCode(schoolCode)?.let { saveSchoolToCloud(it) }
 
+                // Classes / Batches
+                val batches: List<BatchEntity> = database.batchDao().getBatchesBySchool(schoolCode).firstOrNull() ?: emptyList()
+                for (b in batches) { syncBatch(schoolCode, b) }
+
+                // Students
                 val students: List<StudentEntity> = database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (s in students) { syncStudent(schoolCode, s) }
 
+                // Staff
                 val staffList: List<StaffEntity> = database.staffDao().getStaffBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (st in staffList) { syncStaff(schoolCode, st) }
 
+                // Fees
                 val fees: List<FeeRecordEntity> = database.feeDao().getFeeRecordsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (f in fees) { syncFee(schoolCode, f) }
 
+                // Attendance
                 val attList: List<AttendanceEntity> = database.attendanceDao().getAttendanceBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (a in attList) { syncAttendance(schoolCode, a) }
 
+                // Exams
                 val exams: List<ExamEntity> = database.examDao().getExamsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (ex in exams) { syncExam(schoolCode, ex) }
 
+                // Homework
                 val homeworks: List<HomeworkEntity> = database.homeworkDao().getHomeworkBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (hw in homeworks) { syncHomework(schoolCode, hw) }
 
+                // Classwork
                 val classworks: List<ClassworkEntity> = database.classworkDao().getClassworkBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (cw in classworks) { syncClasswork(schoolCode, cw) }
             } catch (e: Exception) {
