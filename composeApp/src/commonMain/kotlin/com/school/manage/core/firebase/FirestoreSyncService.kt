@@ -215,32 +215,32 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 3. MASTER START SYNC: Iterates through all local tables and syncs everything
+    // 3. MASTER START SYNC: Using verified DAO signatures
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         scope.launch {
             try {
                 database.schoolDao().getSchoolByCode(schoolCode)?.let { saveSchoolToCloud(it) }
 
-                val students = database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val students: List<StudentEntity> = database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (s in students) { syncStudent(schoolCode, s) }
 
-                val staffList = database.staffDao().getStaffBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val staffList: List<StaffEntity> = database.staffDao().getStaffBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (st in staffList) { syncStaff(schoolCode, st) }
 
-                val fees = database.feeDao().getFeesBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val fees: List<FeeRecordEntity> = database.feeDao().getFeeRecordsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (f in fees) { syncFee(schoolCode, f) }
 
-                val attList = database.attendanceDao().getAttendanceBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val attList: List<AttendanceEntity> = database.attendanceDao().getAttendanceBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (a in attList) { syncAttendance(schoolCode, a) }
 
-                val exams = database.examDao().getExamsBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val exams: List<ExamEntity> = database.examDao().getExamsBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (ex in exams) { syncExam(schoolCode, ex) }
 
-                val homeworks = database.homeworkDao().getHomeworkBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val homeworks: List<HomeworkEntity> = database.homeworkDao().getHomeworkBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (hw in homeworks) { syncHomework(schoolCode, hw) }
 
-                val classworks = database.classworkDao().getClassworkBySchool(schoolCode).firstOrNull() ?: emptyList()
+                val classworks: List<ClassworkEntity> = database.classworkDao().getClassworkBySchool(schoolCode).firstOrNull() ?: emptyList()
                 for (cw in classworks) { syncClasswork(schoolCode, cw) }
             } catch (e: Exception) {
                 e.printStackTrace()
