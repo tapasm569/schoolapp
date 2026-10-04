@@ -29,7 +29,7 @@ fun FeeCollectionScreen(
     val feeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
 
-    var selectedStudentId by remember { mutableStateOf(null) }
+    var selectedStudentId by remember { mutableStateOf({O}Long?){C}(null) }
     var selectedStudentName by remember { mutableStateOf("") }
     var selectedStudentClass by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }

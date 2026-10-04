@@ -523,7 +523,7 @@ fun MessagesScreen(
     val uriHandler = LocalUriHandler.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
 
-    var selectedStudent by remember { mutableStateOf(null) }
+    var selectedStudent by remember { mutableStateOf({O}StudentEntity?){C}(null) }
     var showStudentDropdown by remember { mutableStateOf(false) }
     var customMessage by remember { mutableStateOf("") }
     var selectedTemplateIndex by remember { mutableStateOf(0) }
