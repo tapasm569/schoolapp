@@ -254,6 +254,7 @@ fun AppNavHost(database: AppDatabase) {
                 StudentPortalScreen(
                     database = database,
                     studentId = currentStudentId,
+                    onNavigate = { route -> navController.navigate(route) },
                     onLogout = { navController.navigate("login") { popUpTo(0) } }
                 )
             }

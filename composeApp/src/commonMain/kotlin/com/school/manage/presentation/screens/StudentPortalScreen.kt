@@ -1,36 +1,50 @@
 package com.school.manage.presentation.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.core.database.entity.LeaveRequestEntity
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StudentEntity
-import com.school.manage.presentation.theme.LocalSchoolColors
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StudentPortalScreen(
     database: AppDatabase,
     studentId: Long,
+    onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
-    val colors = LocalSchoolColors.current
-    var student by remember { mutableStateOf(null as StudentEntity?) }
-    var school by remember { mutableStateOf(null as SchoolEntity?) }
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
+
+    var student by remember { mutableStateOf<StudentEntity?>(null) }
+    var school by remember { mutableStateOf<SchoolEntity?>(null) }
+
     val attendanceList by database.attendanceDao().getAttendanceByStudent(studentId).collectAsState(initial = emptyList())
     val feeRecords by database.feeDao().getFeeRecordsByStudent(studentId).collectAsState(initial = emptyList())
 
@@ -42,13 +56,73 @@ fun StudentPortalScreen(
         }
     }
 
+    val schoolCode = student?.schoolCode ?: ""
+    val studentClass = student?.gradeClass ?: ""
+    val studentName = student?.name ?: "Student"
+
+    // Dynamic data flows for student's class
+    val homeworkList by database.homeworkDao().getHomeworkBySchool(schoolCode).collectAsState(initial = emptyList())
+    val classworkList by database.classworkDao().getClassworkBySchool(schoolCode).collectAsState(initial = emptyList())
+    val examList by database.examDao().getExamsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val onlineClasses by database.onlineClassDao().getOnlineClassesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val leaves by database.leaveDao().getLeavesBySchool(schoolCode).collectAsState(initial = emptyList())
+
+    // Filter by student class
+    val studentHomework = homeworkList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
+    val studentClasswork = classworkList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
+    val studentExams = examList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
+    val studentOnlineClasses = onlineClasses.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
+    val myLeaves = leaves.filter { it.applicantName.equals(studentName, ignoreCase = true) }
+
+    // Active bottom-sheet / modal state: null, "FEES", "EXAMS", "CLASSWORK", "HOMEWORK", "LIVE", "LEAVE"
+    var activeModal by remember { mutableStateOf<String?>(null) }
+
+    // Leave form state
+    var leaveStartDate by remember { mutableStateOf("05/10/2026") }
+    var leaveEndDate by remember { mutableStateOf("06/10/2026") }
+    var leaveReason by remember { mutableStateOf("") }
+    var leaveSubmittedMsg by remember { mutableStateOf("") }
+
     val totalPaid = feeRecords.sumOf { it.amountPaid }.toInt()
-    val presentDays = attendanceList.count { it.status == "PRESENT" }
-    val absentDays = attendanceList.count { it.status == "ABSENT" }
-    val leaveDays = attendanceList.count { it.status == "LEAVE" }
+    val totalFee = (student?.monthlyFee ?: 0.0).toInt()
+    val dueAmount = maxOf(0, totalFee - totalPaid)
+
+    val presentDays = attendanceList.count { it.status.equals("PRESENT", ignoreCase = true) }
+    val absentDays = attendanceList.count { it.status.equals("ABSENT", ignoreCase = true) }
+    val leaveDays = attendanceList.count { it.status.equals("LEAVE", ignoreCase = true) }
 
     Scaffold(
-        containerColor = colors.bgApp
+        topBar = {
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            studentName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color.White
+                        )
+                        Text(
+                            "Class: $studentClass  •  ID: #$studentId",
+                            fontSize = 12.sp,
+                            color = Color.White.copy(alpha = 0.82f)
+                        )
+                    }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color(0xFFFFCDD2))
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = primaryColor)
+            )
+        },
+        containerColor = Color(0xFFF8FAFC)
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -57,290 +131,668 @@ fun StudentPortalScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item { Spacer(modifier = Modifier.height(10.dp)) }
+            item { Spacer(modifier = Modifier.height(4.dp)) }
 
+            // 1. Profile Banner Card
             item {
-                Row(
+                Card(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    shape = RoundedCornerShape(22.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column {
-                        Text(
-                            text = student?.name ?: "Student",
-                            fontWeight = FontWeight.ExtraBold,
-                            fontSize = 17.sp,
-                            color = colors.textPrimary
-                        )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { onLogout() }
-                        ) {
-                            Text(
-                                text = "Change Account",
-                                fontSize = 12.sp,
-                                color = colors.textSecondary
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(primaryColor, primaryColor.copy(alpha = 0.82f))
+                                )
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text("▾", fontSize = 11.sp, color = colors.textSecondary)
+                            .padding(18.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.White.copy(alpha = 0.22f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text("🎓", fontSize = 26.sp)
+                                }
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        studentName,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 18.sp,
+                                        color = Color.White
+                                    )
+                                    Text(
+                                        school?.schoolName ?: schoolCode,
+                                        fontSize = 12.sp,
+                                        color = Color.White.copy(alpha = 0.85f)
+                                    )
+                                }
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF22C55E).copy(alpha = 0.9f)
+                            ) {
+                                Text(
+                                    "Active",
+                                    color = Color.White,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                )
+                            }
                         }
                     }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(14.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("🔲", fontSize = 18.sp, color = colors.brandPrimary)
-                        Text("💬", fontSize = 18.sp, color = colors.brandPrimary)
-                        Text("🔔", fontSize = 18.sp, color = colors.brandPrimary)
-                        Text(
-                            text = "⎋",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Black,
-                            color = colors.error,
-                            modifier = Modifier.clickable { onLogout() }
-                        )
-                    }
                 }
             }
 
+            // 2. Action Grid (6 Fully Functional Options)
             item {
-                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        StudentActionTile("Fees", "💰", Color(0xFFDCFCE7))
-                        StudentActionTile("Exams", "📝", Color(0xFFE0F2FE))
-                        StudentActionTile("Classwork", "🖥️", Color(0xFFFEF3C7))
-                        StudentActionTile("Homework", "📖", Color(0xFFFFE4E6))
-                    }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(22.dp)
-                    ) {
-                        StudentActionTile("Live Class", "⏱️", Color(0xFFFFEDD5))
-                        StudentActionTile("Leave", "➖", Color(0xFFFEF9C3))
-                    }
-                }
+                Text(
+                    "STUDENT DASHBOARD",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF64748B),
+                    letterSpacing = 0.8.sp
+                )
             }
 
+            // Row 1: Fees, Exams, Classwork, Homework
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = "BATCH INFORMATION",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        color = colors.textSecondary,
-                        letterSpacing = 0.5.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    HorizontalDivider(color = colors.borderCard, modifier = Modifier.weight(1f))
+                    StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeModal = "FEES" })
+                    StudentModernActionTile("Exams", "📝", Color(0xFFE0F2FE), onClick = { activeModal = "EXAMS" })
+                    StudentModernActionTile("Classwork", "🖥️", Color(0xFFFEF3C7), onClick = { activeModal = "CLASSWORK" })
+                    StudentModernActionTile("Homework", "📖", Color(0xFFFFE4E6), onClick = { activeModal = "HOMEWORK" })
                 }
             }
 
+            // Row 2: Live Class & Leave
             item {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    StudentModernActionTile("Live Class", "⏱️", Color(0xFFFFEDD5), onClick = { activeModal = "LIVE" })
+                    StudentModernActionTile("Leave", "➖", Color(0xFFFEF9C3), onClick = { activeModal = "LEAVE" })
+                }
+            }
+
+            // 3. Batch Information Card
+            item {
+                Text(
+                    "BATCH INFORMATION",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF64748B),
+                    letterSpacing = 0.8.sp
+                )
+            }
+
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
                                     .size(46.dp)
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(colors.brandPrimary.copy(alpha = 0.15f)),
+                                    .background(primaryColor.copy(alpha = 0.12f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("👥", fontSize = 22.sp)
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
-                                Text(
-                                    text = student?.gradeClass?.ifEmpty { "General" } ?: "General",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    color = colors.textPrimary
-                                )
-                                Text("Monthly Tuition", fontSize = 12.sp, color = colors.textSecondary)
+                                Text("Class: $studentClass", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF1E293B))
+                                Text("Monthly Tuition & Academic Batch", fontSize = 12.sp, color = Color(0xFF64748B))
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-                        HorizontalDivider(color = colors.borderCard.copy(alpha = 0.5f))
-                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(color = Color(0xFFF1F5F9))
 
-                        Row(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Joined", fontSize = 11.sp, color = colors.textSecondary)
-                                Text(
-                                    text = student?.admissionDate ?: "03/10/2026",
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                    color = colors.textPrimary
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Text("Paid", fontSize = 11.sp, color = colors.textSecondary)
-                                Text(
-                                    text = totalPaid.toString(),
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp,
-                                    color = colors.success
-                                )
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Column {
+                                Text("Joined", fontSize = 11.sp, color = Color(0xFF94A3B8))
+                                Text(student?.admissionDate ?: "Active", fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = Color(0xFF334155))
                             }
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Status", fontSize = 11.sp, color = colors.textSecondary)
-                                Text("Active", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
-                                Spacer(modifier = Modifier.height(10.dp))
-                                Text("Due", fontSize = 11.sp, color = colors.textSecondary)
-                                Text("0", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.success)
+                            Column {
+                                Text("Status", fontSize = 11.sp, color = Color(0xFF94A3B8))
+                                Text("Active", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF16A34A))
+                            }
+                            Column {
+                                Text("Paid", fontSize = 11.sp, color = Color(0xFF94A3B8))
+                                Text("₹$totalPaid", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF16A34A))
+                            }
+                            Column {
+                                Text("Due", fontSize = 11.sp, color = Color(0xFF94A3B8))
+                                Text("₹$dueAmount", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = if (dueAmount > 0) Color(0xFFDC2626) else Color(0xFF16A34A))
                             }
                         }
                     }
                 }
             }
 
+            // 4. Attendance Summary Card
             item {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                    Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
-                                Text("Attendance Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.brandPrimary)
-                                Text(student?.gradeClass?.ifEmpty { "General" } ?: "General", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
-                            }
-                            Text("Oct-2026", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                            Text("Attendance Summary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = primaryColor)
+                            Text("Current Session", fontSize = 12.sp, color = Color(0xFF64748B))
                         }
-
-                        Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            StatusCountPill("✓", presentDays.toString(), Color(0xFF86EFAC), Color(0xFF15803D))
-                            StatusCountPill("✕", absentDays.toString(), Color(0xFFFCA5A5), Color(0xFFB91C1C))
-                            StatusCountPill("−", leaveDays.toString(), Color(0xFFFDE68A), Color(0xFFB45309))
-                            StatusCountPill("🏃", "0", Color(0xFF93C5FD), Color(0xFF1D4ED8))
+                            AttendancePill(label = "Present", count = presentDays, color = Color(0xFF86EFAC), textColor = Color(0xFF166534), modifier = Modifier.weight(1f))
+                            AttendancePill(label = "Absent", count = absentDays, color = Color(0xFFFCA5A5), textColor = Color(0xFF991B1B), modifier = Modifier.weight(1f))
+                            AttendancePill(label = "Leave", count = leaveDays, color = Color(0xFFFDE047), textColor = Color(0xFF854D0E), modifier = Modifier.weight(1f))
                         }
                     }
                 }
             }
 
+            // 5. School Profile Info Card
             item {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(46.dp)
-                                .clip(CircleShape)
-                                .background(colors.borderCard),
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFFE0E7FF)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text("🏫", fontSize = 22.sp)
                         }
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(
-                                text = school?.schoolName?.ifEmpty { "SCHOOL APP" } ?: "SCHOOL APP",
-                                fontWeight = FontWeight.Black,
-                                fontSize = 14.sp,
-                                color = colors.textPrimary
-                            )
-                            Text(
-                                text = "Institute Code: " + (school?.schoolCode ?: "SCHOOL"),
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = colors.brandPrimary
-                            )
-                            Text(
-                                text = school?.phone?.ifEmpty { "N/A" } ?: "N/A",
-                                fontSize = 12.sp,
-                                color = colors.textSecondary
-                            )
+                            Text(school?.schoolName ?: "SCHOOL PORTAL", fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E293B))
+                            Text("Institute Code: $schoolCode", fontSize = 12.sp, color = primaryColor, fontWeight = FontWeight.SemiBold)
                         }
                     }
                 }
             }
 
-            item { Spacer(modifier = Modifier.height(20.dp)) }
+            item { Spacer(modifier = Modifier.height(30.dp)) }
+        }
+
+        // ================= POPUP MODALS FOR THE 6 ACTIONS =================
+
+        // 1. FEES MODAL
+        if (activeModal == "FEES") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Fee Ledger & Status", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        StatBox("Total Fee", "₹$totalFee", Color(0xFFF1F5F9), Color(0xFF334155))
+                        StatBox("Paid", "₹$totalPaid", Color(0xFFDCFCE7), Color(0xFF166534))
+                        StatBox("Due", "₹$dueAmount", Color(0xFFFEE2E2), if (dueAmount > 0) Color(0xFFDC2626) else Color(0xFF166534))
+                    }
+                    Text("PAYMENT RECORDS", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color.Gray)
+                    if (feeRecords.isEmpty()) {
+                        Text("No payment transactions recorded yet.", color = Color.Gray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 200.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(feeRecords) { fee ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+           verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column {
+                                            Text(fee.monthYear, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+                                            Text("Paid on: ${fee.paymentDate}", fontSize = 11.sp, color = Color.Gray)
+                                        }
+                                        Text("₹${fee.amountPaid.toInt()}", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Button(
+                        onClick = { activeModal = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
+        // 2. EXAMS MODAL
+        if (activeModal == "EXAMS") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Scheduled Examinations", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    if (studentExams.isEmpty()) {
+                        Text("No examinations currently scheduled for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(studentExams) { exam ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC))
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(exam.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text("Subject: ${exam.subject}  •  Max Marks: ${exam.totalMarks}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                        Text("Date: ${exam.examDate}", fontSize = 12.sp, color = primaryColor, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Button(
+                        onClick = { activeModal = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
+        // 3. CLASSWORK MODAL
+        if (activeModal == "CLASSWORK") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Daily Classwork & Notes", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    if (studentClasswork.isEmpty()) {
+                        Text("No classwork topics posted yet for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(studentClasswork) { cw ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC))
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(cw.topic, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text("Subject: ${cw.subject}  •  ${cw.date}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                        if (cw.notes.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(cw.notes, fontSize = 13.sp, color = Color(0xFF334155))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Button(
+                        onClick = { activeModal = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
+        // 4. HOMEWORK MODAL
+        if (activeModal == "HOMEWORK") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Assigned Homework", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    if (studentHomework.isEmpty()) {
+                        Text("No homework assignments active for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(studentHomework) { hw ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC))
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(hw.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                        Text("Subject: ${hw.subject}  •  Due: ${hw.dueDate}", fontSize = 12.sp, color = Color(0xFFE11D48), fontWeight = FontWeight.SemiBold)
+                                        if (hw.description.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text(hw.description, fontSize = 13.sp, color = Color(0xFF334155))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+Button(
+                        onClick = { activeModal = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
+        // 5. LIVE CLASS MODAL
+        if (activeModal == "LIVE") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text("Live Online Sessions", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    if (studentOnlineClasses.isEmpty()) {
+                        Text("No live classes scheduled for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            items(studentOnlineClasses) { live ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC))
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Text(live.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                        Text("Subject: ${live.subject}  •  ${live.classDate} at ${live.classTime}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Button(
+                                            onClick = {
+                                                if (live.meetingUrl.isNotBlank()) {
+                                                    try {
+                                                        uriHandler.openUri(live.meetingUrl)
+                                                    } catch (e: Exception) {
+                                                        e.printStackTrace()
+                                                    }
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(8.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2563EB))
+                                        ) {
+                                            Text("Join Live Meeting 🔗", fontSize = 12.sp, color = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Button(
+                        onClick = { activeModal = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
+        // 6. LEAVE REQUEST MODAL
+        if (activeModal == "LEAVE") {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    activeModal = null
+                    leaveSubmittedMsg = ""
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text("Apply for Leave", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+
+                    OutlinedTextField(
+                        value = leaveStartDate,
+                        onValueChange = { leaveStartDate = it },
+                        label = { Text("From Date (DD/MM/YYYY)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = leaveEndDate,
+                        onValueChange = { leaveEndDate = it },
+                        label = { Text("To Date (DD/MM/YYYY)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    OutlinedTextField(
+                        value = leaveReason,
+                        onValueChange = { leaveReason = it },
+                        label = { Text("Reason for Leave") },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    if (leaveSubmittedMsg.isNotBlank()) {
+                        Text(leaveSubmittedMsg, color = Color(0xFF16A34A), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+
+                    Button(
+                        onClick = {
+                            if (leaveReason.isNotBlank()) {
+                                scope.launch {
+                                    database.leaveDao().insertLeave(
+                                        LeaveRequestEntity(
+                                            schoolCode = schoolCode,
+                                            applicantName = studentName,
+                                            applicantType = "STUDENT",
+                                            startDate = leaveStartDate,
+                                            endDate = leaveEndDate,
+                                            reason = leaveReason,
+                                            status = "PENDING"
+                                        )
+                                    )
+                                    leaveSubmittedMsg = "✓ Leave application submitted successfully!"
+                                    leaveReason = ""
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Submit Application")
+                    }
+
+                    if (myLeaves.isNotEmpty()) {
+                        Text("MY RECENT APPLICATIONS", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                        LazyColumn(modifier = Modifier.heightIn(max = 140.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            items(myLeaves) { l ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column {
+                                            Text("${l.startDate} to ${l.endDate}", fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                                            Text(l.reason, fontSize = 11.sp, color = Color.Gray, maxLines = 1)
+                                        }
+                                        Text(
+                                            l.status,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (l.status == "APPROVED") Color(0xFF16A34A) else Color(0xFFEAB308)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-fun StudentActionTile(
-    label: String,
-    emoji: String,
-    bgColor: Color
+fun StudentModernActionTile(
+    title: String,
+    icon: String,
+    badgeColor: Color,
+    onClick: () -> Unit
 ) {
-    val colors = LocalSchoolColors.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(72.dp)
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(4.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(bgColor.copy(alpha = if (colors.isDark) 0.3f else 0.85f)),
+                .size(62.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(badgeColor),
             contentAlignment = Alignment.Center
         ) {
-            Text(emoji, fontSize = 22.sp)
+            Text(icon, fontSize = 28.sp)
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = label,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = colors.textPrimary,
+            title,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 12.sp,
+            color = Color(0xFF334155),
             textAlign = TextAlign.Center
         )
     }
 }
 
 @Composable
-fun StatusCountPill(
-    symbol: String,
-    count: String,
-    bgColor: Color,
-    textColor: Color
+fun AttendancePill(
+    label: String,
+    count: Int,
+    color: Color,
+    textColor: Color,
+    modifier: Modifier = Modifier
 ) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = bgColor,
-        modifier = Modifier.width(68.dp).height(30.dp)
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(color)
+            .padding(vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(symbol, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor)
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(count, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = textColor)
+        Text(
+            "$label $count",
+            color = textColor,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
+fun StatBox(label: String, value: String, bgColor: Color, textColor: Color) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(bgColor)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(label, fontSize = 11.sp, color = Color.Gray)
+            Text(value, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = textColor)
         }
     }
 }
