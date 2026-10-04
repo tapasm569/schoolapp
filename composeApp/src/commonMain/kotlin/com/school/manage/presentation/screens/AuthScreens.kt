@@ -367,7 +367,17 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                                         }
                                     }
                                     isStaff -> {
-                                        val staff = database.staffDao().loginStaff(schoolCode.trim(), passwordOrPhone.trim())
+                                        var staff = database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
+                                        if (staff == null) {
+                                            // Fallback: restore staff from Firestore if logging in on a new device
+                                            try {
+                                                val syncService = FirestoreSyncService(database)
+                                                syncService.restoreAllFromCloud(schoolCode.trim())
+                                                staff = database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
+                                            } catch (e: Exception) {
+                                                e.printStackTrace()
+                                            }
+                                        }
                                         if (staff != null) {
                                             activeLoginRole = null
                                             onStaffLoginSuccess(staff.id, staff.schoolCode, staff.name, staff.role)
