@@ -16,7 +16,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // 1. School Master Record
+    // 1. School Admin Sync
     suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
         return try {
             withTimeout(10000L) {
@@ -64,7 +64,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 2. Classes / Batches
+    // 2. Individual Upload Helpers
     fun syncBatch(schoolCode: String, batch: BatchEntity) {
         scope.launch {
             try {
@@ -86,7 +86,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 3. Students
     fun syncStudent(schoolCode: String, student: StudentEntity) {
         scope.launch {
             try {
@@ -109,7 +108,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 4. Staff / Teachers
     fun syncStaff(schoolCode: String, staff: StaffEntity) {
         scope.launch {
             try {
@@ -132,7 +130,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 5. Fees Collection
     fun syncFee(schoolCode: String, fee: FeeRecordEntity) {
         scope.launch {
             try {
@@ -154,7 +151,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 6. Expenses Sync
     fun syncExpense(schoolCode: String, expense: ExpenseEntity) {
         scope.launch {
             try {
@@ -176,7 +172,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 7. Attendance
     fun syncAttendance(schoolCode: String, att: AttendanceEntity) {
         scope.launch {
             try {
@@ -197,7 +192,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 8. Exams
     fun syncExam(schoolCode: String, exam: ExamEntity) {
         scope.launch {
             try {
@@ -219,7 +213,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 9. Homework
     fun syncHomework(schoolCode: String, hw: HomeworkEntity) {
         scope.launch {
             try {
@@ -242,7 +235,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 10. Classwork
     fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
         scope.launch {
             try {
@@ -265,7 +257,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 11. MASTER START SYNC: Scans and uploads all local tables
+    // 3. MASTER START SYNC: Scans and uploads all local tables
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         scope.launch {
