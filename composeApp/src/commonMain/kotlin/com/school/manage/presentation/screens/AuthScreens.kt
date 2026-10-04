@@ -1,5 +1,5 @@
-import com.school.manage.core.firebase.FirestoreSyncService
 package com.school.manage.presentation.screens
+import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
