@@ -551,6 +551,11 @@ fun RegisterSchoolScreen(
                             errorMsg = "School Code '$schoolCode' is already taken. Pick another code."
                         } else {
                             database.schoolDao().registerSchool(
+                try {
+                    FirestoreSyncService(database).saveSchoolToCloud(school)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
                                 SchoolEntity(
                                     schoolCode = schoolCode.trim(),
                                     schoolName = schoolName.trim(),
