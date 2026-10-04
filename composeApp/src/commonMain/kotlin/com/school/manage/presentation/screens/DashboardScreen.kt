@@ -1,4 +1,5 @@
 package com.school.manage.presentation.screens
+import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -33,6 +34,10 @@ fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
+    LaunchedEffect(schoolCode) {
+        FirestoreSyncService(database).startSync(schoolCode)
+    }
+
     val colors = LocalSchoolColors.current
     val toggleTheme = LocalThemeToggle.current
 

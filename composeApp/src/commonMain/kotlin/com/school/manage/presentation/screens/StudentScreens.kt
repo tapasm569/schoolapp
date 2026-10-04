@@ -1,4 +1,5 @@
 package com.school.manage.presentation.screens
+import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
