@@ -7,7 +7,7 @@ import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
@@ -16,7 +16,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    // 1. School Admin Sync
+    // Cloud school credentials backup and restore
     suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
         return try {
             withTimeout(10000L) {
@@ -64,243 +64,234 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 2. Individual Upload Helpers
-    fun syncBatch(schoolCode: String, batch: BatchEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("classes").document(batch.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to batch.id.toString(),
-                            "schoolCode" to batch.schoolCode,
-                            "name" to batch.name,
-                            "gradeClass" to batch.gradeClass,
-                            "section" to batch.section,
-                            "stream" to batch.stream
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncStudent(schoolCode: String, student: StudentEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("students").document(student.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to student.id.toString(),
-                            "schoolCode" to student.schoolCode,
-                            "name" to student.name,
-                            "gradeClass" to student.gradeClass,
-                            "phone" to student.phone,
-                            "monthlyFee" to student.monthlyFee.toString(),
-                            "admissionDate" to student.admissionDate
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncStaff(schoolCode: String, staff: StaffEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("staff").document(staff.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to staff.id.toString(),
-                            "schoolCode" to staff.schoolCode,
-                            "name" to staff.name,
-                            "role" to staff.role,
-                            "phone" to staff.phone,
-                            "salary" to staff.salary.toString(),
-                            "joinDate" to staff.joinDate
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncFee(schoolCode: String, fee: FeeRecordEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("fees").document(fee.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to fee.id.toString(),
-                            "studentId" to fee.studentId.toString(),
-                            "schoolCode" to fee.schoolCode,
-                            "amountPaid" to fee.amountPaid.toString(),
-                            "paymentDate" to fee.paymentDate,
-                            "remarks" to fee.remarks
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncExpense(schoolCode: String, expense: ExpenseEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("expenses").document(expense.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to expense.id.toString(),
-                            "schoolCode" to expense.schoolCode,
-                            "title" to expense.title,
-                            "category" to expense.category,
-                            "amount" to expense.amount.toString(),
-                            "date" to expense.date
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncAttendance(schoolCode: String, att: AttendanceEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("attendance").document(att.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to att.id.toString(),
-                            "studentId" to att.studentId.toString(),
-                            "schoolCode" to att.schoolCode,
-                            "date" to att.date,
-                            "status" to att.status
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncExam(schoolCode: String, exam: ExamEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("exams").document(exam.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to exam.id.toString(),
-                            "schoolCode" to exam.schoolCode,
-                            "title" to exam.title,
-                            "gradeClass" to exam.gradeClass,
-                            "examDate" to exam.examDate,
-                            "maxMarks" to exam.maxMarks.toString()
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncHomework(schoolCode: String, hw: HomeworkEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("homework").document(hw.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to hw.id.toString(),
-                            "schoolCode" to hw.schoolCode,
-                            "gradeClass" to hw.gradeClass,
-                            "subject" to hw.subject,
-                            "title" to hw.title,
-                            "description" to hw.description,
-                            "dueDate" to hw.dueDate
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
-        scope.launch {
-            try {
-                firestore.collection("schools").document(schoolCode)
-                    .collection("classwork").document(cw.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to cw.id.toString(),
-                            "schoolCode" to cw.schoolCode,
-                            "gradeClass" to cw.gradeClass,
-                            "subject" to cw.subject,
-                            "topicTitle" to cw.topicTitle,
-                            "summary" to cw.summary,
-                            "date" to cw.date
-                        )
-                    )
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    // 3. MASTER START SYNC: Scans and uploads all local tables
+    // Continuous Real-Time Observers for All Database Entities
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
+
         scope.launch {
             try {
                 database.schoolDao().getSchoolByCode(schoolCode)?.let { saveSchoolToCloud(it) }
-
-                // Batches / Classes
-                val batches: List<BatchEntity> = database.batchDao().getBatchesBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (b in batches) { syncBatch(schoolCode, b) }
-
-                // Students
-                val students: List<StudentEntity> = database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (s in students) { syncStudent(schoolCode, s) }
-
-                // Staff
-                val staffList: List<StaffEntity> = database.staffDao().getStaffBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (st in staffList) { syncStaff(schoolCode, st) }
-
-                // Fees
-                val fees: List<FeeRecordEntity> = database.feeDao().getFeeRecordsBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (f in fees) { syncFee(schoolCode, f) }
-
-                // Expenses
-                val expenses: List<ExpenseEntity> = database.expenseDao().getExpensesBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (exp in expenses) { syncExpense(schoolCode, exp) }
-
-                // Attendance
-                val attList: List<AttendanceEntity> = database.attendanceDao().getAttendanceBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (a in attList) { syncAttendance(schoolCode, a) }
-
-                // Exams
-                val exams: List<ExamEntity> = database.examDao().getExamsBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (ex in exams) { syncExam(schoolCode, ex) }
-
-                // Homework
-                val homeworks: List<HomeworkEntity> = database.homeworkDao().getHomeworkBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (hw in homeworks) { syncHomework(schoolCode, hw) }
-
-                // Classwork
-                val classworks: List<ClassworkEntity> = database.classworkDao().getClassworkBySchool(schoolCode).firstOrNull() ?: emptyList()
-                for (cw in classworks) { syncClasswork(schoolCode, cw) }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+        }
+
+        // 1. Batches / Classes
+        scope.launch {
+            database.batchDao().getBatchesBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("classes").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "name" to item.name,
+                                    "gradeClass" to item.gradeClass,
+                                    "section" to item.section,
+                                    "stream" to item.stream
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 2. Students
+        scope.launch {
+            database.studentDao().getStudentsBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("students").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "name" to item.name,
+                                    "gradeClass" to item.gradeClass,
+                                    "phone" to item.phone,
+                                    "monthlyFee" to item.monthlyFee.toString(),
+                                    "admissionDate" to item.admissionDate
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 3. Staff / Teachers
+        scope.launch {
+            database.staffDao().getStaffBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("staff").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "name" to item.name,
+                                    "role" to item.role,
+                                    "phone" to item.phone,
+                                    "salary" to item.salary.toString(),
+                                    "joinDate" to item.joinDate
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 4. Fees
+        scope.launch {
+            database.feeDao().getFeeRecordsBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("fees").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "studentId" to item.studentId.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "amountPaid" to item.amountPaid.toString(),
+                                    "paymentDate" to item.paymentDate,
+                                    "remarks" to item.remarks
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 5. Expenses
+        scope.launch {
+            database.expenseDao().getExpensesBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("expenses").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "title" to item.title,
+                                    "category" to item.category,
+                                    "amount" to item.amount.toString(),
+                                    "date" to item.date
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 6. Attendance
+        scope.launch {
+            database.attendanceDao().getAttendanceBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("attendance").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "studentId" to item.studentId.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "date" to item.date,
+                                    "status" to item.status
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 7. Exams
+        scope.launch {
+            database.examDao().getExamsBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("exams").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "title" to item.title,
+                                    "gradeClass" to item.gradeClass,
+                                    "examDate" to item.examDate,
+                                    "maxMarks" to item.maxMarks.toString()
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 8. Homework
+        scope.launch {
+            database.homeworkDao().getHomeworkBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("homework").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "gradeClass" to item.gradeClass,
+                                    "subject" to item.subject,
+                                    "title" to item.title,
+                                    "description" to item.description,
+                                    "dueDate" to item.dueDate
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+
+        // 9. Classwork
+        scope.launch {
+            database.classworkDao().getClassworkBySchool(schoolCode).collectLatest { list ->
+                for (item in list) {
+                    try {
+                        firestore.collection("schools").document(schoolCode)
+                            .collection("classwork").document(item.id.toString())
+                            .set(
+                                mapOf(
+                                    "id" to item.id.toString(),
+                                    "schoolCode" to item.schoolCode,
+                                    "gradeClass" to item.gradeClass,
+                                    "subject" to item.subject,
+                                    "topicTitle" to item.topicTitle,
+                                    "summary" to item.summary,
+                                    "date" to item.date
+                                )
+                            )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
             }
         }
     }

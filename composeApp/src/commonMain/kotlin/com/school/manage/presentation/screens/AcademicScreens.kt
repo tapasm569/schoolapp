@@ -181,7 +181,8 @@ fun ExamsScreen(
                         onClick = {
                             if (examTitle.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    val examToSave = ExamEntity(
+                                    database.examDao().insertExam(
+                                        ExamEntity(
                                             schoolCode = schoolCode,
                                             title = examTitle.trim(),
                                             gradeClass = selectedClass,
@@ -189,12 +190,7 @@ fun ExamsScreen(
                                             examDate = examDate,
                                             maxMarks = maxMarks.toDoubleOrNull() ?: 100.0
                                         )
-                    val newExamId = database.examDao().insertExam(examToSave)
-                    try {
-                        FirestoreSyncService(database).syncExam(schoolCode, examToSave.copy(id = newExamId))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                                    )
                                     examTitle = ""
                                     subject = ""
                                     showAddExamModal = false
@@ -630,7 +626,8 @@ fun HomeworkScreen(
                         onClick = {
                             if (title.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    val hwToSave = HomeworkEntity(
+                                    database.homeworkDao().insertHomework(
+                                        HomeworkEntity(
                                             schoolCode = schoolCode,
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
@@ -639,12 +636,7 @@ fun HomeworkScreen(
                                             assignedDate = "03/10/2026",
                                             dueDate = dueDate
                                         )
-                    val newHwId = database.homeworkDao().insertHomework(hwToSave)
-                    try {
-                        FirestoreSyncService(database).syncHomework(schoolCode, hwToSave.copy(id = newHwId))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                                    )
                                     title = ""
                                     description = ""
                                     subject = ""
@@ -832,7 +824,8 @@ fun ClassworkScreen(
                         onClick = {
                             if (topicTitle.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    val cwToSave = ClassworkEntity(
+                                    database.classworkDao().insertClasswork(
+                                        ClassworkEntity(
                                             schoolCode = schoolCode,
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
@@ -840,12 +833,7 @@ fun ClassworkScreen(
                                             summary = summary.trim(),
                                             date = logDate
                                         )
-                    val newCwId = database.classworkDao().insertClasswork(cwToSave)
-                    try {
-                        FirestoreSyncService(database).syncClasswork(schoolCode, cwToSave.copy(id = newCwId))
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                                    )
                                     topicTitle = ""
                                     summary = ""
                                     subject = ""
