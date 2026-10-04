@@ -1,16 +1,20 @@
 package com.school.manage.core.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.school.manage.core.database.entity.SchoolEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SchoolDao {
-    @Query("SELECT * FROM schools WHERE schoolCode = :code AND password = :password LIMIT 1")
-    suspend fun loginSchool(code: String, password: String): SchoolEntity?
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSchool(school: SchoolEntity)
 
-    @Query("SELECT * FROM schools WHERE schoolCode = :code LIMIT 1")
-    suspend fun getSchoolByCode(code: String): SchoolEntity?
+    @Query("SELECT * FROM schools WHERE schoolCode = :schoolCode LIMIT 1")
+    suspend fun getSchoolByCode(schoolCode: String): SchoolEntity?
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun registerSchool(school: SchoolEntity): Long
+    @Query("SELECT * FROM schools")
+    fun getAllSchools(): Flow<List<SchoolEntity>>
 }
