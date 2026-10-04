@@ -206,7 +206,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         val studentId = getSafeStr(doc, "studentId").toLongOrNull() ?: 0L
                         val date = getSafeStr(doc, "date")
                         val status = getSafeStr(doc, "status").ifBlank { "Present" }
-                        database.attendanceDao().insertAttendance(
+                        database.attendanceDao().markAttendance(
                             AttendanceEntity(
                                 id = id,
                                 studentId = studentId,
