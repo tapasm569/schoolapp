@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +29,7 @@ fun AttendanceScreen(
 ) {
     val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val attendanceMap = remember { mapOf(0L to "").toMutableStateMap().apply { clear() } }
+    val attendanceMap = remember { listOf(Pair(0L, "")).toMutableStateMap().apply { clear() } }
     val scope = rememberCoroutineScope()
     var date by remember { mutableStateOf("03/10/2026") }
     var showDatePicker by remember { mutableStateOf(false) }
