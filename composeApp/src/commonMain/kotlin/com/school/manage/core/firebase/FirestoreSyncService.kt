@@ -26,8 +26,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         "schoolCode" to school.schoolCode,
                         "schoolName" to school.schoolName,
                         "phone" to school.phone,
-                        "email" to school.email,
-                        "address" to school.address
+                        "password" to school.password
                     )
                 )
         } catch (e: Exception) {
@@ -35,7 +34,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // Verify School Credentials from Cloud when Local Room DB is empty (after Clear Data)
+    // Verify and restore School from Cloud when Local Room DB is wiped (e.g. after Clear Data)
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
         return try {
             val doc = firestore.collection("schools").document(schoolCode).get()
@@ -43,17 +42,15 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 val code: String = if (doc.contains("schoolCode")) doc.get("schoolCode") else schoolCode
                 val name: String = if (doc.contains("schoolName")) doc.get("schoolName") else ""
                 val phone: String = if (doc.contains("phone")) doc.get("phone") else ""
-                val email: String = if (doc.contains("email")) doc.get("email") else ""
-                val address: String = if (doc.contains("address")) doc.get("address") else ""
+                val pass: String = if (doc.contains("password")) doc.get("password") else ""
 
                 val restored = SchoolEntity(
                     schoolCode = code,
                     schoolName = name,
                     phone = phone,
-                    email = email,
-                    address = address
+                    password = pass
                 )
-                database.schoolDao().insertSchool(restored)
+                database.schoolDao().registerSchool(restored)
                 restored
             } else {
                 null
@@ -74,7 +71,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
 
-        // 2. Upload local Room students to Cloud Firestore
+        // 2. Upload local Room students to Cloud Firestore (Backup)
         scope.launch {
             database.studentDao().getStudentsBySchool(schoolCode).collectLatest { studentList ->
                 val col = firestore
