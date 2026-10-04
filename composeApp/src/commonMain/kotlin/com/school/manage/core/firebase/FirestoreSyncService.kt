@@ -114,8 +114,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                 gradeClass = gradeClass,
                                 phone = phone,
                                 monthlyFee = feeStr.toDoubleOrNull() ?: 0.0,
-                                admissionDate = admissionDate,
-                                password = phone
+                                admissionDate = admissionDate
                             )
                         )
                     }
@@ -212,7 +211,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                 studentId = studentId,
                                 schoolCode = schoolCode,
                                 date = date,
-                                status = status
+                                status = status,
+                                notes = ""
                             )
                         )
                     }
