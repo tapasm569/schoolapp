@@ -10,8 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -74,7 +72,7 @@ fun StudentPortalScreen(
     val studentOnlineClasses = onlineClasses.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
     val myLeaves = leaves.filter { it.applicantName.equals(studentName, ignoreCase = true) }
 
-    // Active bottom-sheet / modal state: null, "FEES", "EXAMS", "CLASSWORK", "HOMEWORK", "LIVE", "LEAVE"
+    // Active bottom-sheet / modal state
     var activeModal by remember { mutableStateOf<String?>(null) }
 
     // Leave form state
@@ -391,10 +389,10 @@ fun StudentPortalScreen(
                                     Row(
                                         modifier = Modifier.padding(12.dp),
                                         horizontalArrangement = Arrangement.SpaceBetween,
-           verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Column {
-                                            Text(fee.monthYear, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
+        Text(fee.feeMonth, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                                             Text("Paid on: ${fee.paymentDate}", fontSize = 11.sp, color = Color.Gray)
                                         }
                                         Text("₹${fee.amountPaid.toInt()}", fontWeight = FontWeight.Bold, color = Color(0xFF16A34A))
@@ -441,7 +439,7 @@ fun StudentPortalScreen(
                                     Column(modifier = Modifier.padding(14.dp)) {
                                         Text(exam.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
                                         Spacer(modifier = Modifier.height(4.dp))
-                                        Text("Subject: ${exam.subject}  •  Max Marks: ${exam.totalMarks}", fontSize = 12.sp, color = Color(0xFF64748B))
+                                        Text("Subject: ${exam.subject}  •  Max Marks: ${exam.maxMarks.toInt()}", fontSize = 12.sp, color = Color(0xFF64748B))
                                         Text("Date: ${exam.examDate}", fontSize = 12.sp, color = primaryColor, fontWeight = FontWeight.SemiBold)
                                     }
                                 }
@@ -484,12 +482,12 @@ fun StudentPortalScreen(
                                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC))
                                 ) {
                                     Column(modifier = Modifier.padding(14.dp)) {
-                                        Text(cw.topic, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                        Text(cw.topicTitle, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text("Subject: ${cw.subject}  •  ${cw.date}", fontSize = 12.sp, color = Color(0xFF64748B))
-                                        if (cw.notes.isNotBlank()) {
+                                        if (cw.summary.isNotBlank()) {
                                             Spacer(modifier = Modifier.height(6.dp))
-                                            Text(cw.notes, fontSize = 13.sp, color = Color(0xFF334155))
+                                            Text(cw.summary, fontSize = 13.sp, color = Color(0xFF334155))
                                         }
                                     }
                                 }
@@ -543,7 +541,7 @@ fun StudentPortalScreen(
                             }
                         }
                     }
-Button(
+                    Button(
                         onClick = { activeModal = null },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
