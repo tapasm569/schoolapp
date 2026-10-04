@@ -630,8 +630,7 @@ fun HomeworkScreen(
                         onClick = {
                             if (title.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    database.homeworkDao().insertHomework(
-                                        HomeworkEntity(
+                                    val hwToSave = HomeworkEntity(
                                             schoolCode = schoolCode,
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
@@ -640,7 +639,12 @@ fun HomeworkScreen(
                                             assignedDate = "03/10/2026",
                                             dueDate = dueDate
                                         )
-                                    )
+                    val newHwId = database.homeworkDao().insertHomework(hwToSave)
+                    try {
+                        FirestoreSyncService(database).syncHomework(schoolCode, hwToSave.copy(id = newHwId))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                                     title = ""
                                     description = ""
                                     subject = ""
@@ -828,8 +832,7 @@ fun ClassworkScreen(
                         onClick = {
                             if (topicTitle.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    database.classworkDao().insertClasswork(
-                                        ClassworkEntity(
+                                    val cwToSave = ClassworkEntity(
                                             schoolCode = schoolCode,
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
@@ -837,7 +840,12 @@ fun ClassworkScreen(
                                             summary = summary.trim(),
                                             date = logDate
                                         )
-                                    )
+                    val newCwId = database.classworkDao().insertClasswork(cwToSave)
+                    try {
+                        FirestoreSyncService(database).syncClasswork(schoolCode, cwToSave.copy(id = newCwId))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                                     topicTitle = ""
                                     summary = ""
                                     subject = ""
