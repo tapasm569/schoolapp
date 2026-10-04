@@ -50,7 +50,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     phone = phone,
                     password = pass
                 )
-                database.schoolDao().insertSchool(restored)
+                database.schoolDao().insert(restored)
                 restored
             } else {
                 null
