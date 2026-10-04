@@ -7,6 +7,7 @@ import dev.gitlive.firebase.firestore.firestore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
@@ -63,7 +64,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 2. Student Cloud Sync
+    // 2. Individual Entity Cloud Uploads
     fun syncStudent(schoolCode: String, student: StudentEntity) {
         scope.launch {
             try {
@@ -86,7 +87,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 3. Staff / Teacher Cloud Sync
     fun syncStaff(schoolCode: String, staff: StaffEntity) {
         scope.launch {
             try {
@@ -109,7 +109,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 4. Fee Record Cloud Sync
     fun syncFee(schoolCode: String, fee: FeeRecordEntity) {
         scope.launch {
             try {
@@ -131,7 +130,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 5. Attendance Cloud Sync
     fun syncAttendance(schoolCode: String, att: AttendanceEntity) {
         scope.launch {
             try {
@@ -152,7 +150,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 6. Exam Cloud Sync
     fun syncExam(schoolCode: String, exam: ExamEntity) {
         scope.launch {
             try {
@@ -174,7 +171,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 7. Homework Cloud Sync
     fun syncHomework(schoolCode: String, hw: HomeworkEntity) {
         scope.launch {
             try {
@@ -197,7 +193,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    // 8. Classwork Cloud Sync (topicTitle, summary, date)
     fun syncClasswork(schoolCode: String, cw: ClassworkEntity) {
         scope.launch {
             try {
@@ -220,11 +215,30 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    // 3. FULL SYNC
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         scope.launch {
             try {
                 database.schoolDao().getSchoolByCode(schoolCode)?.let { saveSchoolToCloud(it) }
+
+                val students = (database.studentDao().getStudentsBySchool(schoolCode).firstOrNull() ?: emptyList())
+                for (s in students) { syncStudent(schoolCode, s) }
+
+                val staffList = (database.staffDao().getStaffBySchool(schoolCode).firstOrNull() ?: emptyList())
+                for (st in staffList) { syncStaff(schoolCode, st) }
+
+                val fees = (database.feeDao().getFeeRecordsBySchool(schoolCode).firstOrNull() ?: emptyList())
+                for (f in fees) { syncFee(schoolCode, f) }
+
+                val exams = (database.examDao().getExamsBySchool(schoolCode).firstOrNull() ?: emptyList())
+                for (ex in exams) { syncExam(schoolCode, ex) }
+
+                val homeworks = (database.homeworkDao().getHomeworkBySchool(schoolCode).firstOrNull() ?: emptyList())
+                for (hw in homeworks) { syncHomework(schoolCode, hw) }
+
+                val classworks = (database.classworkDao().getClassworkBySchool(schoolCode).firstOrNull() ?: emptyList())
+                for (cw in classworks) { syncClasswork(schoolCode, cw) }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
