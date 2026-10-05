@@ -942,7 +942,6 @@ fun DashboardScreen(
                         label = "Contact Number",
                         value = schoolRecord?.phone?.ifEmpty { "Not registered" } ?: "Not registered",
                         icon = "📞",
-                        colors = colors
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
