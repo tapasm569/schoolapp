@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 import com.school.manage.core.firebase.FirestoreSyncService
+import kotlinx.coroutines.launch
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -817,7 +818,6 @@ fun DashboardScreen(
                         icon = "📅",
                         title = "Set Batch Session",
                         subtitle = "Current: $currentBatchSession",
-                        colors = colors,
                         onClick = {
                             showHamburgerMenu = false
                             showBatchSessionDialog = true
@@ -829,7 +829,6 @@ fun DashboardScreen(
                         icon = "🔑",
                         title = "Reset Password",
                         subtitle = "Update Admin security credentials",
-                        colors = colors,
                         onClick = {
                             showHamburgerMenu = false
                             showResetPasswordDialog = true
@@ -841,7 +840,6 @@ fun DashboardScreen(
                         icon = if (colors.isDark) "☀️" else "🌙",
                         title = if (colors.isDark) "Switch to Light Mode" else "Switch to Dark Mode",
                         subtitle = if (colors.isDark) "Currently Dark theme active" else "Currently Light theme active",
-                        colors = colors,
                         onClick = {
                             toggleTheme()
                         }
@@ -852,7 +850,6 @@ fun DashboardScreen(
                         icon = "💬",
                         title = "Help & Support",
                         subtitle = "Guides, FAQs, and assistance",
-                        colors = colors,
                         onClick = {
                             showHamburgerMenu = false
                             showHelpDialog = true
@@ -937,10 +934,10 @@ fun DashboardScreen(
                     HorizontalDivider(color = colors.borderCard)
 
                     // Profile Details Cards
-                    ProfileDetailRow(label = "School Name", value = schoolName.ifEmpty { "N/A" }, icon = "🏛️", colors = colors)
-                    ProfileDetailRow(label = "Staff Count", value = "${staffList.size} Active Members", icon = "👨‍🏫", colors = colors)
-                    ProfileDetailRow(label = "Students Count", value = "${students.size} Enrolled", icon = "🎒", colors = colors)
-                    ProfileDetailRow(label = "Batch Season", value = currentBatchSession, icon = "📅", colors = colors)
+                    ProfileDetailRow(label = "School Name", value = schoolName.ifEmpty { "N/A" }, icon = "🏛️")
+                    ProfileDetailRow(label = "Staff Count", value = "${staffList.size} Active Members", icon = "👨‍🏫")
+                    ProfileDetailRow(label = "Students Count", value = "${students.size} Enrolled", icon = "🎒")
+                    ProfileDetailRow(label = "Batch Season", value = currentBatchSession, icon = "📅")
                     ProfileDetailRow(
                         label = "Contact Number",
                         value = schoolRecord?.phone?.ifEmpty { "Not registered" } ?: "Not registered",
@@ -1107,9 +1104,9 @@ fun HamburgerOptionItem(
     icon: String,
     title: String,
     subtitle: String,
-    colors: com.school.manage.presentation.theme.SchoolColors,
     onClick: () -> Unit
 ) {
+    val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(14.dp),
@@ -1153,9 +1150,9 @@ fun HamburgerOptionItem(
 fun ProfileDetailRow(
     label: String,
     value: String,
-    icon: String,
-    colors: com.school.manage.presentation.theme.SchoolColors
+    icon: String
 ) {
+    val colors = LocalSchoolColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
