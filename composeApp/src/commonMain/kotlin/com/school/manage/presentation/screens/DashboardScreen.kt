@@ -760,37 +760,8 @@ fun DashboardScreen(
                 }
             }
         }
-    }
-}
 
-@Composable
-fun AttendanceCountTile(
-    label: String,
-    count: String,
-    isSelected: Boolean,
-    activeColor: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    val colors = LocalSchoolColors.current
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) activeColor.copy(alpha = 0.15f) else colors.bgCardHover,
-        border = BorderStroke(1.5.dp, if (isSelected) activeColor else colors.borderCard),
-        modifier = modifier.height(64.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(6.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(count, fontWeight = FontWeight.Black, fontSize = 16.sp, color = if (isSelected) activeColor else colors.textPrimary)
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (isSelected) activeColor else colors.textSecondary)
-        }
-
-        // ================= 1. HAMBURGER SLIDE MENU =================
+// ================= 1. HAMBURGER SLIDE MENU =================
         if (showHamburgerMenu) {
             ModalBottomSheet(
                 onDismissRequest = { showHamburgerMenu = false },
@@ -1098,6 +1069,35 @@ fun AttendanceCountTile(
                     }
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun AttendanceCountTile(
+    label: String,
+    count: String,
+    isSelected: Boolean,
+    activeColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val colors = LocalSchoolColors.current
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) activeColor.copy(alpha = 0.15f) else colors.bgCardHover,
+        border = BorderStroke(1.5.dp, if (isSelected) activeColor else colors.borderCard),
+        modifier = modifier.height(64.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(6.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(count, fontWeight = FontWeight.Black, fontSize = 16.sp, color = if (isSelected) activeColor else colors.textPrimary)
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (isSelected) activeColor else colors.textSecondary)
         }
     }
 }
