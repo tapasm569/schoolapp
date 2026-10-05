@@ -40,6 +40,9 @@ fun DashboardScreen(
     }
 
     val colors = LocalSchoolColors.current
+    val clipboardManager = LocalClipboardManager.current
+    var fcmTokenText by remember { mutableStateOf<String?>(null) }
+    var showTokenDialog by remember { mutableStateOf(false) }
     val toggleTheme = LocalThemeToggle.current
 
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
