@@ -50,6 +50,24 @@ class MainActivity : ComponentActivity() {
         }
 
         com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("all_schools")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    android.util.Log.d("FCM_TEST", "Successfully subscribed to all_schools")
+                } else {
+                    android.util.Log.e("FCM_TEST", "Topic subscription failed", task.exception)
+                }
+            }
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (!task.isSuccessful) {
+                android.util.Log.w("FCM_TEST", "Fetching FCM registration token failed", task.exception)
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            android.util.Log.d("FCM_TEST", "==================================================")
+            android.util.Log.d("FCM_TEST", "FCM REGISTRATION TOKEN: $token")
+            android.util.Log.d("FCM_TEST", "==================================================")
+        }
         } catch (e: Exception) {
             e.printStackTrace()
         }

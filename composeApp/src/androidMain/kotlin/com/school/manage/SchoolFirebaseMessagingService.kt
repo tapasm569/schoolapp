@@ -14,10 +14,12 @@ class SchoolFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
+        android.util.Log.d("FCM_TEST", "NEW TOKEN RECEIVED: $token")
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
+        android.util.Log.d("FCM_TEST", "PUSH RECEIVED! from: ${remoteMessage.from}, data: ${remoteMessage.data}")
 
         val title = remoteMessage.notification?.title 
             ?: remoteMessage.data["title"] 
@@ -58,7 +60,7 @@ class SchoolFirebaseMessagingService : FirebaseMessagingService() {
         )
 
         val builder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
