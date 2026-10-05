@@ -102,6 +102,23 @@ fun DashboardScreen(
 
     var showAddNewBottomSheet by remember { mutableStateOf(false) }
 
+    // Navigation Drawer / Hamburger Menu State
+    var showHamburgerMenu by remember { mutableStateOf(false) }
+    var showSchoolProfileSheet by remember { mutableStateOf(false) }
+    var showBatchSessionDialog by remember { mutableStateOf(false) }
+    var showResetPasswordDialog by remember { mutableStateOf(false) }
+    var showHelpDialog by remember { mutableStateOf(false) }
+
+    var currentBatchSession by remember { mutableStateOf("2026 - 2027") }
+    var newAdminPassword by remember { mutableStateOf("") }
+    var passwordChangeSuccessMsg by remember { mutableStateOf("") }
+
+    var schoolRecord by remember { mutableStateOf<com.school.manage.core.database.entity.SchoolEntity?>(null) }
+    LaunchedEffect(schoolCode) {
+        schoolRecord = database.schoolDao().getSchoolByCode(schoolCode)
+    }
+    val scope = rememberCoroutineScope()
+
     Scaffold(
         containerColor = colors.bgApp,
         floatingActionButton = {
@@ -125,72 +142,60 @@ fun DashboardScreen(
         ) {
             item { Spacer(modifier = Modifier.height(6.dp)) }
 
-            // 1. Header Profile & Theme Switcher
+            // 1. Modern Header: School Profile & Hamburger Menu
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // School Name Card - Clicking opens School Profile
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { onLogout() }
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .clickable { showSchoolProfileSheet = true }
+                            .padding(vertical = 4.dp, horizontal = 4.dp)
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(44.dp)
-                                .clip(CircleShape)
-                                .background(colors.brandPrimary.copy(alpha = 0.2f)),
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(colors.brandPrimary.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("👤", fontSize = 20.sp)
+                            Text("🏫", fontSize = 22.sp)
                         }
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
-                            Text(
-                                text = schoolName.ifEmpty { "TAPAS MONDAL" }.uppercase(),
-                                fontWeight = FontWeight.Black,
-                                fontSize = 16.sp,
-                                color = colors.textPrimary
-                            )
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = "Change Account",
-                                    fontSize = 12.sp,
-                                    color = colors.textSecondary
+                                    text = schoolName.ifEmpty { "SCHOOL PORTAL" }.uppercase(),
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp,
+                                    color = colors.textPrimary
                                 )
-                                Spacer(modifier = Modifier.width(2.dp))
-                                Text("▾", fontSize = 10.sp, color = colors.textSecondary)
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("ⓘ", fontSize = 12.sp, color = colors.brandPrimary, fontWeight = FontWeight.Bold)
                             }
+                            Text(
+                                text = "Code: $schoolCode • Tap for profile",
+                                fontSize = 11.sp,
+                                color = colors.textSecondary
+                            )
                         }
                     }
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    // Hamburger Menu Button (☰)
+                    Surface(
+                        onClick = { showHamburgerMenu = true },
+                        shape = RoundedCornerShape(12.dp),
+                        color = colors.bgCard,
+                        border = BorderStroke(1.dp, colors.borderCard),
+                        modifier = Modifier.size(42.dp)
                     ) {
-                        Surface(
-                            onClick = toggleTheme,
-                            shape = CircleShape,
-                            color = colors.bgCard,
-                            border = BorderStroke(1.dp, colors.borderCard),
-                            modifier = Modifier.size(38.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text(if (colors.isDark) "☀️" else "🌙", fontSize = 16.sp)
-                            }
-                        }
-
-                        Surface(
-                            onClick = { onLogout() },
-                            shape = CircleShape,
-                            color = colors.bgCard,
-                            border = BorderStroke(1.dp, colors.borderCard),
-                            modifier = Modifier.size(38.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text("⚙", fontSize = 16.sp, color = colors.textPrimary)
-                            }
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("☰", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                         }
                     }
                 }
@@ -784,5 +789,398 @@ fun AttendanceCountTile(
             Spacer(modifier = Modifier.height(2.dp))
             Text(label, fontSize = 10.sp, fontWeight = FontWeight.Bold, color = if (isSelected) activeColor else colors.textSecondary)
         }
+
+        // ================= 1. HAMBURGER SLIDE MENU =================
+        if (showHamburgerMenu) {
+            ModalBottomSheet(
+                onDismissRequest = { showHamburgerMenu = false },
+                containerColor = colors.bgCard,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Header Card
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = colors.brandPrimary.copy(alpha = 0.12f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(46.dp)
+                                    .clip(CircleShape)
+                                    .background(colors.brandPrimary),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("🎓", fontSize = 22.sp)
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = "Welcome to",
+                                    fontSize = 12.sp,
+                                    color = colors.textSecondary
+                                )
+                                Text(
+                                    text = schoolName.ifEmpty { "School Portal" },
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.textPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Option 1: Set Batch Season
+                    HamburgerOptionItem(
+                        icon = "📅",
+                        title = "Set Batch Session",
+                        subtitle = "Current: $currentBatchSession",
+                        colors = colors,
+                        onClick = {
+                            showHamburgerMenu = false
+                            showBatchSessionDialog = true
+                        }
+                    )
+
+                    // Option 2: Reset Password
+                    HamburgerOptionItem(
+                        icon = "🔑",
+                        title = "Reset Password",
+                        subtitle = "Update Admin security credentials",
+                        colors = colors,
+                        onClick = {
+                            showHamburgerMenu = false
+                            showResetPasswordDialog = true
+                        }
+                    )
+
+                    // Option 3: Theme Toggle (Dark / Light Mode)
+                    HamburgerOptionItem(
+                        icon = if (colors.isDark) "☀️" else "🌙",
+                        title = if (colors.isDark) "Switch to Light Mode" else "Switch to Dark Mode",
+                        subtitle = if (colors.isDark) "Currently Dark theme active" else "Currently Light theme active",
+                        colors = colors,
+                        onClick = {
+                            toggleTheme()
+                        }
+                    )
+
+                    // Option 4: Help & Support
+                    HamburgerOptionItem(
+                        icon = "💬",
+                        title = "Help & Support",
+                        subtitle = "Guides, FAQs, and assistance",
+                        colors = colors,
+                        onClick = {
+                            showHamburgerMenu = false
+                            showHelpDialog = true
+                        }
+                    )
+
+                    HorizontalDivider(color = colors.borderCard, modifier = Modifier.padding(vertical = 4.dp))
+
+                    // Option 5: Log Out
+                    Surface(
+                        onClick = {
+                            showHamburgerMenu = false
+                            onLogout()
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFFFEE2E2).copy(alpha = 0.7f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("🚪", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Text(
+                                text = "Log Out",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = Color(0xFFDC2626)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+            }
+        }
+
+        // ================= 2. SCHOOL PROFILE BOTTOM SHEET =================
+        if (showSchoolProfileSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showSchoolProfileSheet = false },
+                containerColor = colors.bgCard,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(colors.brandPrimary.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🏫", fontSize = 28.sp)
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = schoolName.ifEmpty { "School Portal" },
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colors.textPrimary
+                            )
+                            Text(
+                                text = "Institute Code: $schoolCode",
+                                fontSize = 12.sp,
+                                color = colors.brandPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(color = colors.borderCard)
+
+                    // Profile Details Cards
+                    ProfileDetailRow(label = "School Name", value = schoolName.ifEmpty { "N/A" }, icon = "🏛️", colors = colors)
+                    ProfileDetailRow(label = "Staff Count", value = "${staffList.size} Active Members", icon = "👨‍🏫", colors = colors)
+                    ProfileDetailRow(label = "Students Count", value = "${students.size} Enrolled", icon = "🎒", colors = colors)
+                    ProfileDetailRow(label = "Batch Season", value = currentBatchSession, icon = "📅", colors = colors)
+                    ProfileDetailRow(
+                        label = "Contact Number",
+                        value = schoolRecord?.phone?.ifEmpty { "Not registered" } ?: "Not registered",
+                        icon = "📞",
+                        colors = colors
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = { showSchoolProfileSheet = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Close Profile", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                }
+            }
+        }
+
+        // ================= 3. SET BATCH SESSION DIALOG =================
+        if (showBatchSessionDialog) {
+            var tempSession by remember { mutableStateOf(currentBatchSession) }
+            AlertDialog(
+                onDismissRequest = { showBatchSessionDialog = false },
+                title = { Text("Set Academic Batch Season", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Define the active academic year for student attendance, fees, and grading.", fontSize = 13.sp, color = colors.textSecondary)
+                        OutlinedTextField(
+                            value = tempSession,
+                            onValueChange = { tempSession = it },
+                            label = { Text("Academic Session (e.g. 2026 - 2027)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        if (tempSession.isNotBlank()) {
+                            currentBatchSession = tempSession.trim()
+                        }
+                        showBatchSessionDialog = false
+                    }) {
+                        Text("Save Session")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBatchSessionDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        // ================= 4. RESET PASSWORD DIALOG =================
+        if (showResetPasswordDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showResetPasswordDialog = false
+                    newAdminPassword = ""
+                    passwordChangeSuccessMsg = ""
+                },
+                title = { Text("Reset Admin Password", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Enter a new administrator password for School Code $schoolCode:", fontSize = 13.sp, color = colors.textSecondary)
+                        OutlinedTextField(
+                            value = newAdminPassword,
+                            onValueChange = { newAdminPassword = it },
+                            label = { Text("New Password") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (passwordChangeSuccessMsg.isNotEmpty()) {
+                            Text(passwordChangeSuccessMsg, color = Color(0xFF16A34A), fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        if (newAdminPassword.length >= 4 && schoolRecord != null) {
+                            scope.launch {
+                                val updated = schoolRecord!!.copy(password = newAdminPassword.trim())
+                                database.schoolDao().insertSchool(updated)
+                                passwordChangeSuccessMsg = "✓ Password updated successfully!"
+                            }
+                        }
+                    }) {
+                        Text("Update Password")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showResetPasswordDialog = false
+                        newAdminPassword = ""
+                        passwordChangeSuccessMsg = ""
+                    }) {
+                        Text("Close")
+                    }
+                }
+            )
+        }
+
+        // ================= 5. HELP & SUPPORT DIALOG =================
+        if (showHelpDialog) {
+            AlertDialog(
+                onDismissRequest = { showHelpDialog = false },
+                title = { Text("Help & Support", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("• Manage Students & Staff via bottom navigation.", fontSize = 13.sp)
+                        Text("• Tapping school name reveals institutional statistics and directory counts.", fontSize = 13.sp)
+                        Text("• All changes synchronize directly to local offline cache and cloud database.", fontSize = 13.sp)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("For technical support contact: support@schoolapp.io", fontSize = 12.sp, color = colors.brandPrimary, fontWeight = FontWeight.SemiBold)
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { showHelpDialog = false }) {
+                        Text("Got it")
+                    }
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun HamburgerOptionItem(
+    icon: String,
+    title: String,
+    subtitle: String,
+    colors: com.school.manage.presentation.theme.SchoolColors,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(14.dp),
+        color = colors.bgApp,
+        border = BorderStroke(1.dp, colors.borderCard),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(colors.brandPrimary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(icon, fontSize = 20.sp)
+            }
+            Spacer(modifier = Modifier.width(14.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = colors.textPrimary
+                )
+                Text(
+                    text = subtitle,
+                    fontSize = 11.sp,
+                    color = colors.textSecondary
+                )
+            }
+            Text("›", fontSize = 20.sp, color = colors.textSecondary, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun ProfileDetailRow(
+    label: String,
+    value: String,
+    icon: String,
+    colors: com.school.manage.presentation.theme.SchoolColors
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.bgApp),
+        border = BorderStroke(1.dp, colors.borderCard)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(colors.brandPrimary.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(icon, fontSize = 16.sp)
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(label, fontSize = 11.sp, color = colors.textSecondary)
+                Text(value, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+            }
+        }
+    }
+}
 }
