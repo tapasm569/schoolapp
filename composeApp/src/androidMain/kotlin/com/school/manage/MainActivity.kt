@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.app.ActivityCompat
@@ -33,7 +36,20 @@ class MainActivity : ComponentActivity() {
         }
 
         try {
-            com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("all_schools")
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "school_announcements_channel",
+                "School Announcements",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = "Notices, holiday alerts, and fee reminders"
+                enableVibration(true)
+            }
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("all_schools")
         } catch (e: Exception) {
             e.printStackTrace()
         }
