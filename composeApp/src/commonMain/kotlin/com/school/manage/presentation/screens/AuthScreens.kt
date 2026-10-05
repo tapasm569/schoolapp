@@ -310,49 +310,164 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
             val isStudent = role == "Student"
             val isStaff = role == "Staff"
 
-            AlertDialog(
-                onDismissRequest = { activeLoginRole = null },
-                title = {
-                    Text(
-                        text = if (isStudent) "Student Login" else if (isStaff) "Staff Portal Login" else "Admin Login",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = Color.White
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    // 1. Header Navigation: Back
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable {
+                                activeLoginRole = null
+                                errorMessage = ""
+                            }
+                            .padding(vertical = 8.dp)
+                    ) {
                         Text(
-                            text = when {
-                                isStudent -> "Enter your School Code and registered mobile number."
-                                isStaff -> "Enter your School Code and faculty registered mobile number."
-                                else -> "Enter your School Code and administrator password."
-                            },
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF64748B)
+                            text = "←",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1E293B)
                         )
-
-                        OutlinedTextField(
-                            value = schoolCode,
-                            onValueChange = { schoolCode = it.uppercase() },
-                            label = { Text("School Code") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Back",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1E293B)
                         )
+                    }
 
-                        OutlinedTextField(
-                            value = passwordOrPhone,
-                            onValueChange = { passwordOrPhone = it },
-                            label = { Text(if (isStudent || isStaff) "Registered Mobile Number" else "Password") },
-                            visualTransformation = if (isStudent || isStaff) VisualTransformation.None else PasswordVisualTransformation(),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    Spacer(modifier = Modifier.height(28.dp))
 
-                        if (errorMessage.isNotEmpty()) {
-                            Text(text = errorMessage, color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    // 2. Centered Illustration Card
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(20.dp),
+                            color = Color(0xFFF1F5F9),
+                            modifier = Modifier
+                                .width(220.dp)
+                                .fillMaxHeight()
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = if (isStudent) "🎒" else if (isStaff) "👨‍🏫" else "🏫",
+                                    fontSize = 48.sp
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = Color(0xFF2563EB).copy(alpha = 0.12f)
+                                ) {
+                                    Text(
+                                        text = "PORTAL ACCESS",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF2563EB),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
                         }
                     }
-                },
-                confirmButton = {
+
+                    Spacer(modifier = Modifier.height(30.dp))
+
+                    // 3. Headings
+                    Text(
+                        text = if (isStudent) "Login as Student" else if (isStaff) "Login as Staff" else "Login as Admin",
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF0F172A)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = when {
+                            isStudent -> "View your classes, fees, homework and more."
+                            isStaff -> "Manage class registers, homework, and parent updates."
+                            else -> "Access administrative controls and school analytics."
+                        },
+                        fontSize = 13.sp,
+                        color = Color(0xFF64748B)
+                    )
+
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    // 4. Input Fields
+                    OutlinedTextField(
+                        value = schoolCode,
+                        onValueChange = { schoolCode = it.uppercase() },
+                        placeholder = { Text("Institute Code", color = Color(0xFF94A3B8)) },
+                        leadingIcon = {
+                            Text("🏛️", fontSize = 16.sp, modifier = Modifier.padding(start = 12.dp, end = 4.dp))
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFCBD5E1),
+                            focusedBorderColor = Color(0xFF0284C7)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = passwordOrPhone,
+                        onValueChange = { passwordOrPhone = it },
+                        placeholder = {
+                            Text(
+                                text = if (isStudent || isStaff) "Registered Mobile Number" else "Password",
+                                color = Color(0xFF94A3B8)
+                            )
+                        },
+                        leadingIcon = {
+                            Text(
+                                text = if (isStudent || isStaff) "📱" else "🔑",
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(start = 12.dp, end = 4.dp)
+                            )
+                        },
+                        visualTransformation = if (isStudent || isStaff) VisualTransformation.None else PasswordVisualTransformation(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedBorderColor = Color(0xFFCBD5E1),
+                            focusedBorderColor = Color(0xFF0284C7)
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (errorMessage.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Text(
+                            text = errorMessage,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // 5. Full-Width Sign In Button
                     Button(
                         onClick = {
                             scope.launch {
@@ -369,7 +484,6 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                                     isStaff -> {
                                         var staff = database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
                                         if (staff == null) {
-                                            // Fallback: restore staff from Firestore if logging in on a new device
                                             try {
                                                 val syncService = FirestoreSyncService(database)
                                                 syncService.restoreAllFromCloud(schoolCode.trim())
@@ -386,17 +500,13 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                                         }
                                     }
                                     else -> {
-                                        // 1. Try local SQLite login first
                                         var school = database.schoolDao().loginSchool(schoolCode.trim(), passwordOrPhone)
-
-                                        // 2. If not found locally, fetch directly from Cloud Firestore
                                         if (school == null) {
                                             val restored = FirestoreSyncService(database).restoreSchoolFromCloud(schoolCode.trim())
                                             if (restored != null && restored.password == passwordOrPhone) {
                                                 school = restored
                                             }
                                         }
-
                                         if (school != null) {
                                             val syncService = FirestoreSyncService(database)
                                             syncService.restoreAllFromCloud(school.schoolCode)
@@ -409,17 +519,51 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                                     }
                                 }
                             }
-                        }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0066CC)),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
                     ) {
-                        Text("Sign In")
+                        Text(
+                            text = "Login",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { activeLoginRole = null }) {
-                        Text("Cancel")
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // 6. Bottom Footer
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Terms & conditions",
+                            fontSize = 12.sp,
+                            color = Color(0xFF0284C7),
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "  •  ",
+                            fontSize = 12.sp,
+                            color = Color(0xFF94A3B8)
+                        )
+                        Text(
+                            text = "Privacy Policy",
+                            fontSize = 12.sp,
+                            color = Color(0xFF0284C7),
+                            fontWeight = FontWeight.Medium
+                        )
                     }
                 }
-            )
+            }
         }
     }
 }
