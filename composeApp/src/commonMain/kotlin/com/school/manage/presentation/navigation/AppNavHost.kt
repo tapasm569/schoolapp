@@ -7,6 +7,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.core.database.entity.SessionEntity
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.school.manage.presentation.screens.*
 import com.school.manage.presentation.screens.QuestionBankScreen
 import com.school.manage.presentation.screens.OnlineClassesScreen
@@ -17,33 +24,89 @@ import com.school.manage.presentation.theme.SchoolAppTheme
 @Composable
 fun AppNavHost(database: AppDatabase) {
     val navController = rememberNavController()
+    val scope = rememberCoroutineScope()
     var isDarkTheme by remember { mutableStateOf(false) }
 
     var currentSchoolCode by remember { mutableStateOf("") }
     var currentSchoolName by remember { mutableStateOf("") }
     var currentStudentId by remember { mutableStateOf(0L) }
     var currentStaffId by remember { mutableStateOf(0L) }
+    var initialRoute by remember { mutableStateOf<String?>(null) }
+
+    // Restore saved session from Room (persistent until cleared app data)
+    LaunchedEffect(Unit) {
+        val session = database.sessionDao().getActiveSession()
+        if (session != null) {
+            currentSchoolCode = session.schoolCode
+            currentSchoolName = session.schoolName
+            currentStaffId = session.staffId
+            currentStudentId = session.studentId
+            when (session.role) {
+                "ADMIN" -> initialRoute = "dashboard"
+                "STAFF" -> initialRoute = "staff_portal"
+                "STUDENT" -> initialRoute = "student_portal"
+                else -> initialRoute = "login"
+            }
+        } else {
+            initialRoute = "login"
+        }
+    }
+
+    if (initialRoute == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
 
     SchoolAppTheme(
         isDark = isDarkTheme,
         onToggleTheme = { isDarkTheme = !isDarkTheme }
     ) {
-        NavHost(navController = navController, startDestination = "login") {
+        NavHost(navController = navController, startDestination = initialRoute!!) {
             composable("login") {
                 LoginScreen(
                     database = database,
                     onSchoolLoginSuccess = { code, name ->
                         currentSchoolCode = code
                         currentSchoolName = name
+                        scope.launch {
+                            database.sessionDao().saveSession(
+                                SessionEntity(
+                                    role = "ADMIN",
+                                    schoolCode = code,
+                                    schoolName = name
+                                )
+                            )
+                        }
                         navController.navigate("dashboard") { popUpTo("login") { inclusive = true } }
                     },
-                    onStaffLoginSuccess = { staffId, code, _, _ ->
+                    onStaffLoginSuccess = { staffId, code, name, _ ->
                         currentStaffId = staffId
                         currentSchoolCode = code
+                        currentSchoolName = name
+                        scope.launch {
+                            database.sessionDao().saveSession(
+                                SessionEntity(
+                                    role = "STAFF",
+                                    schoolCode = code,
+                                    schoolName = name,
+                                    staffId = staffId
+                                )
+                            )
+                        }
                         navController.navigate("staff_portal") { popUpTo("login") { inclusive = true } }
                     },
                     onStudentLoginSuccess = { studentId ->
                         currentStudentId = studentId
+                        scope.launch {
+                            database.sessionDao().saveSession(
+                                SessionEntity(
+                                    role = "STUDENT",
+                                    studentId = studentId
+                                )
+                            )
+                        }
                         navController.navigate("student_portal") { popUpTo("login") { inclusive = true } }
                     },
                     onNavigateRegister = { navController.navigate("register_school") }
@@ -62,7 +125,10 @@ fun AppNavHost(database: AppDatabase) {
                     schoolCode = currentSchoolCode,
                     schoolName = currentSchoolName,
                     onNavigate = { route -> navController.navigate(route) },
-                    onLogout = { navController.navigate("login") { popUpTo(0) } }
+                    onLogout = {
+                        scope.launch { database.sessionDao().clearSession() }
+                        navController.navigate("login") { popUpTo(0) }
+                    }
                 )
             }
             composable("batch_list") {
@@ -247,7 +313,10 @@ fun AppNavHost(database: AppDatabase) {
                     staffId = currentStaffId,
                     schoolCode = currentSchoolCode,
                     onNavigate = { route -> navController.navigate(route) },
-                    onLogout = { navController.navigate("login") { popUpTo(0) } }
+                    onLogout = {
+                        scope.launch { database.sessionDao().clearSession() }
+                        navController.navigate("login") { popUpTo(0) }
+                    }
                 )
             }
             composable("student_portal") {
@@ -255,7 +324,10 @@ fun AppNavHost(database: AppDatabase) {
                     database = database,
                     studentId = currentStudentId,
                     onNavigate = { route -> navController.navigate(route) },
-                    onLogout = { navController.navigate("login") { popUpTo(0) } }
+                    onLogout = {
+                        scope.launch { database.sessionDao().clearSession() }
+                        navController.navigate("login") { popUpTo(0) }
+                    }
                 )
             }
         }

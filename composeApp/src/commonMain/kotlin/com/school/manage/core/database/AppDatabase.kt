@@ -7,6 +7,7 @@ import com.school.manage.core.database.entity.*
 
 @Database(
     entities = [
+        SessionEntity::class,
         SchoolEntity::class,
         StudentEntity::class,
         AttendanceEntity::class,
@@ -47,4 +48,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun timetableDao(): TimetableDao
     abstract fun onlineClassDao(): OnlineClassDao
     abstract fun questionBankDao(): QuestionBankDao
+    abstract fun sessionDao(): SessionDao
 }
