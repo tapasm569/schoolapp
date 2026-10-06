@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -40,7 +41,6 @@ fun DashboardScreen(
     }
 
     val colors = LocalSchoolColors.current
-    val clipboardManager = LocalClipboardManager.current
     var fcmTokenText by remember { mutableStateOf<String?>(null) }
     var showTokenDialog by remember { mutableStateOf(false) }
     val toggleTheme = LocalThemeToggle.current
