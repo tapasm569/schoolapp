@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -63,10 +66,20 @@ class MainActivity : ComponentActivity() {
                 android.util.Log.w("FCM_TEST", "Fetching FCM registration token failed", task.exception)
                 return@addOnCompleteListener
             }
-            val token = task.result
-            android.util.Log.d("FCM_TEST", "==================================================")
+            val token = task.result ?: return@addOnCompleteListener
             android.util.Log.d("FCM_TEST", "FCM REGISTRATION TOKEN: $token")
-            android.util.Log.d("FCM_TEST", "==================================================")
+
+            // Automatically copy token to clipboard
+            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            val clip = ClipData.newPlainText("FCM Token", token)
+            clipboard?.setPrimaryClip(clip)
+
+            // Show dialog with token
+            AlertDialog.Builder(this)
+                .setTitle("FCM Token Copied! 🔔")
+                .setMessage("Your FCM registration token has been copied to your clipboard.\n\nPaste this into Firebase Console > 'Send test message' to test notifications instantly.")
+                .setPositiveButton("OK", null)
+                .show()
         }
         } catch (e: Exception) {
             e.printStackTrace()
