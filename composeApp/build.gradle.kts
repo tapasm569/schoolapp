@@ -46,6 +46,16 @@ android {
         }
     }
 
+    buildTypes {
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+        getByName("release") {
+            isMinifyEnabled = false
+        }
+    }
+
+
     namespace = "com.school.manage"
     compileSdk = 34
     defaultConfig {
