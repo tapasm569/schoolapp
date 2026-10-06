@@ -37,6 +37,15 @@ kotlin {
 }
 
 android {
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     namespace = "com.school.manage"
     compileSdk = 34
     defaultConfig {
