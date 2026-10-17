@@ -91,7 +91,7 @@ fun DashboardScreen(
     }
 
     // Precomputed daily cash-flow map for instant O(1) day-chip lookup
-    val dailyNetMap = remember(feeRecords, expenses, monthNumberStr, selectedYear, daysInMonth) {
+    val dailyCashFlowMap = remember(feeRecords, expenses, monthNumberStr, selectedYear, daysInMonth) {
         (1..daysInMonth).associateWith { day ->
             val dStr = if (day < 10) "0$day" else day.toString()
             val dayDateStr = "$dStr/$monthNumberStr/$selectedYear"
@@ -100,7 +100,7 @@ fun DashboardScreen(
                 it.paymentDate == dayDateStr || it.paymentDate == altDateStr || (it.feeMonth == "$monthNumberStr/$selectedYear" && it.paymentDate.startsWith("$dStr/"))
             }.sumOf { it.amountPaid }
             val expense = expenses.filter { it.date == dayDateStr || it.date == altDateStr }.sumOf { it.amount }
-            income - expense
+            Triple(income, expense, income - expense)
         }
     }
 
@@ -342,7 +342,7 @@ fun DashboardScreen(
                                 }
                             }
 
-                            items(items = (1..daysInMonth).toList(), key = { day -> "day_$day" }, contentType = { "day_chip" }) { day ->
+                            items((1..daysInMonth).toList()) { day ->
                                 val isSelected = (selectedAttendanceDay == day)
                                 val dStr = if (day < 10) "0" + day else day.toString()
                                 val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
@@ -549,12 +549,17 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(items = (1..daysInMonth).toList(), key = { day -> "day_$day" }, contentType = { "day_chip" }) { day ->
+                            items((1..daysInMonth).toList()) { day ->
                                 val dStr = if (day < 10) "0" + day else day.toString()
                                 val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
                                 val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
 
-                                val dayNet = dailyNetMap[day] ?: 0L
+                                val flow = dailyCashFlowMap[day] ?: Triple(0L, 0L, 0L)
+                                val dayIncome = flow.first
+                                val dayExpense = flow.second
+                                val dayNet = flow.third
+                                val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
+                                val absNet = if (dayNet < 0L) -dayNet else dayNet
                                 val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
 
                                 Surface(
@@ -589,7 +594,7 @@ fun DashboardScreen(
                                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                             Text("Net:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
                                             Text(
-                                                text = netPrefix + abs(dayNet).toInt(),
+                                                text = netPrefix + absNet.toInt(),
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Black,
                                                 color = if (dayNet > 0) colors.success else if (dayNet < 0) colors.error else colors.textSecondary

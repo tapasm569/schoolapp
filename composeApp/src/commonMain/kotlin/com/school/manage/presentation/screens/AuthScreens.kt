@@ -128,6 +128,7 @@ fun LoginScreen(
 
     var schoolCode by remember { mutableStateOf("") }
     var passwordOrPhone by remember { mutableStateOf("") }
+    var isLoggingIn by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
 
@@ -477,7 +478,7 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                         onClick = {
                             if (isLoggingIn) return@Button
                             isLoggingIn = true
-                            errorMessage = null
+                            errorMessage = ""
                             scope.launch {
                                 try {
                                     when {
