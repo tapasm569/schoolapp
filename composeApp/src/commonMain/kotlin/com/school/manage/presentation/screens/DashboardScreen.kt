@@ -450,14 +450,20 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    AttendanceProgressBarCard(
-                        title = "Student",
-                        subtitle = "Marking Attendance",
-                        pct = studentPct.toString() + "%",
-                        ratio = presentCount.toString() + "/" + studentTotalMarked.toString(),
-                        progress = studentPct / 100f,
-                        modifier = Modifier.weight(1f)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { navController.navigate("student_dues") }
+                    ) {
+                        AttendanceProgressBarCard(
+                            title = "Student",
+                            subtitle = "Marking Attendance",
+                            pct = studentPct.toString() + "%",
+                            ratio = presentCount.toString() + "/" + studentTotalMarked.toString(),
+                            progress = studentPct / 100f,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     AttendanceProgressBarCard(
                         title = "Teacher",
                         subtitle = "Marking Attendance",
