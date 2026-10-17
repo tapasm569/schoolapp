@@ -344,11 +344,16 @@ fun DashboardScreen(
                             }
 
                             items((1..daysInMonth).toList()) { day ->
-                                val isSelected = (selectedAttendanceDay == day)
                                 val dStr = if (day < 10) "0" + day else day.toString()
                                 val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
                                 val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
-                                val hasRecords = studentMonthAttendance.any { it.date == dayDateStr || it.date == altDateStr }
+
+                                val flow = dailyCashFlowMap[day] ?: Triple(0L, 0L, 0L)
+                                val dayIncome = flow.first
+                                val dayExpense = flow.second
+                                val dayNet = flow.third
+                                val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
+                                val absNet = if (dayNet < 0L) -dayNet else dayNet
 
                                 Surface(
                                     onClick = { selectedAttendanceDay = day },
