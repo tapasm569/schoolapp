@@ -196,7 +196,8 @@ fun LoginScreen(
                         ) {
                             Text("文A", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF475569))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("${strings.languageLabel}: ${if (selectedLanguage == \"Bengali\") \"বাংলা\" else if (selectedLanguage == \"Hindi\") \"हिन्दी\" else \"English\"}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E293B))
+                            val langDisplay = if (selectedLanguage == "Bengali") "বাংলা" else if (selectedLanguage == "Hindi") "हिन्दी" else "English"
+                            Text("${strings.languageLabel}: $langDisplay", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E293B))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("▾", fontSize = 12.sp, color = Color(0xFF64748B))
                         }
