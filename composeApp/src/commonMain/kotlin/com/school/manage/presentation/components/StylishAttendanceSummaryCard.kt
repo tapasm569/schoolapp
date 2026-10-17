@@ -76,7 +76,7 @@ fun StylishAttendanceSummaryCard(
             ) {
                 Box(
                     modifier = Modifier
-                        .size(105.dp)
+                        .size(82.dp)
                         .clip(CircleShape)
                         .clickable { onFilterSelected("ALL") },
                     contentAlignment = Alignment.Center
@@ -102,7 +102,7 @@ fun StylishAttendanceSummaryCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.width(14.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
                 Column(
                     modifier = Modifier.weight(1f),
@@ -199,7 +199,9 @@ private fun AttendanceBentoTile(
                     text = title,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFF334155)
+                    color = Color(0xFF334155),
+                    maxLines = 1,
+                    softWrap = false
                 )
             }
             Spacer(modifier = Modifier.height(3.dp))

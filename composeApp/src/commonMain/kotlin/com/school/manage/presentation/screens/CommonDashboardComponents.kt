@@ -1,5 +1,7 @@
 package com.school.manage.presentation.screens
 
+import com.school.manage.core.utils.getSystemCurrentDate
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -463,15 +465,38 @@ fun ModernActionTile(
 
 @Composable
 fun ModernDatePickerDialog(
-    currentDate: String = "02/10/2026",
+    currentDate: String = "",
     onDateSelected: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     val colors = LocalSchoolColors.current
     val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    var selectedYear by remember { mutableStateOf(2026) }
-    var selectedMonthIndex by remember { mutableStateOf(9) }
-    var selectedDay by remember { mutableStateOf(2) }
+    val sysToday = remember { getSystemCurrentDate() }
+
+    val initialDate = remember(currentDate) {
+        val parts = currentDate.split("/")
+        if (parts.size == 3) {
+            val d = parts[0].toIntOrNull() ?: sysToday.day
+            val m = ((parts[1].toIntOrNull() ?: (sysToday.monthIndex + 1)) - 1).coerceIn(0, 11)
+            val y = parts[2].toIntOrNull() ?: sysToday.year
+            Triple(d, m, y)
+        } else {
+            Triple(sysToday.day, sysToday.monthIndex, sysToday.year)
+        }
+    }
+
+    var selectedYear by remember { mutableStateOf(initialDate.third) }
+    var selectedMonthIndex by remember { mutableStateOf(initialDate.second) }
+    var selectedDay by remember { mutableStateOf(initialDate.first) }
+    var isSelectingYear by remember { mutableStateOf(false) }
+
+    val daysInSelectedMonth = remember(selectedMonthIndex, selectedYear) {
+        when (selectedMonthIndex) {
+            1 -> if (selectedYear % 4 == 0 && (selectedYear % 100 != 0 || selectedYear % 400 == 0)) 29 else 28
+            3, 5, 8, 10 -> 30
+            else -> 31
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -481,74 +506,156 @@ fun ModernDatePickerDialog(
             modifier = Modifier.fillMaxWidth().padding(8.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "Select Date",
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 18.sp,
-                    color = colors.textPrimary
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = {
-                        if (selectedMonthIndex > 0) {
-                            selectedMonthIndex -= 1
-                        } else {
-                            selectedMonthIndex = 11
-                            selectedYear -= 1
-                        }
-                    }) {
-                        Text("‹", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                    }
-
                     Text(
-                        text = months[selectedMonthIndex] + " " + selectedYear,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp,
+                        text = if (isSelectingYear) "Select Year" else "Select Date",
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 18.sp,
                         color = colors.textPrimary
                     )
-
-                    IconButton(onClick = {
-                        if (selectedMonthIndex < 11) {
-                            selectedMonthIndex += 1
-                        } else {
-                            selectedMonthIndex = 0
-                            selectedYear += 1
+                    TextButton(
+                        onClick = {
+                            selectedDay = sysToday.day
+                            selectedMonthIndex = sysToday.monthIndex
+                            selectedYear = sysToday.year
+                            isSelectingYear = false
                         }
-                    }) {
-                        Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                    ) {
+                        Text("Today", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(7),
-                    modifier = Modifier.height(210.dp)
+                // Month / Year Selector Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(31) { idx ->
-                        val day = idx + 1
-                        val isSelected = (day == selectedDay)
-                        Box(
-                            modifier = Modifier
-                                .padding(3.dp)
-                                .size(34.dp)
-                                .clip(CircleShape)
-                                .background(if (isSelected) colors.brandPrimary else Color.Transparent)
-                                .clickable { selectedDay = day },
-                            contentAlignment = Alignment.Center
+                    if (!isSelectingYear) {
+                        IconButton(onClick = {
+                            if (selectedMonthIndex > 0) {
+                                selectedMonthIndex -= 1
+                            } else {
+                                selectedMonthIndex = 11
+                                selectedYear -= 1
+                            }
+                        }) {
+                            Text("‹", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.width(44.dp))
+                    }
+
+                    // Tappable Month-Year chip with Dropdown arrow
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = if (isSelectingYear) colors.brandPrimary.copy(alpha = 0.12f) else colors.bgCardHover,
+                        border = BorderStroke(1.dp, if (isSelectingYear) colors.brandPrimary else colors.borderCard),
+                        modifier = Modifier.clickable { isSelectingYear = !isSelectingYear }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = day.toString(),
-                                fontSize = 12.sp,
-                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
-                                color = if (isSelected) Color.White else colors.textPrimary
+                                text = "${months[selectedMonthIndex]} $selectedYear",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = if (isSelectingYear) colors.brandPrimary else colors.textPrimary
                             )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (isSelectingYear) "▲" else "▼",
+                                fontSize = 10.sp,
+                                color = if (isSelectingYear) colors.brandPrimary else colors.textSecondary
+                            )
+                        }
+                    }
+
+                    if (!isSelectingYear) {
+                        IconButton(onClick = {
+                            if (selectedMonthIndex < 11) {
+                                selectedMonthIndex += 1
+                            } else {
+                                selectedMonthIndex = 0
+                                selectedYear += 1
+                            }
+                        }) {
+                            Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.width(44.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                if (isSelectingYear) {
+                    // Fast Year Grid (1980 to 2035)
+                    val years = remember { (1980..2035).toList().reversed() }
+                    val gridState = rememberLazyGridState(
+                        initialFirstVisibleItemIndex = (years.indexOf(selectedYear) - 4).coerceAtLeast(0)
+                    )
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(3),
+                        state = gridState,
+                        modifier = Modifier.height(210.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(years) { yr ->
+                            val isSelectedYr = (yr == selectedYear)
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(if (isSelectedYr) colors.brandPrimary else colors.bgCardHover)
+                                    .clickable {
+                                        selectedYear = yr
+                                        isSelectingYear = false
+                                    }
+                                    .padding(vertical = 10.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = yr.toString(),
+                                    fontSize = 14.sp,
+                                    fontWeight = if (isSelectedYr) FontWeight.ExtraBold else FontWeight.Medium,
+                                    color = if (isSelectedYr) Color.White else colors.textPrimary
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Day Selector Grid
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(7),
+                        modifier = Modifier.height(210.dp)
+                    ) {
+                        items(daysInSelectedMonth) { idx ->
+                            val day = idx + 1
+                            val isSelected = (day == selectedDay)
+                            Box(
+                                modifier = Modifier
+                                    .padding(3.dp)
+                                    .size(34.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) colors.brandPrimary else Color.Transparent)
+                                    .clickable { selectedDay = day },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = day.toString(),
+                                    fontSize = 12.sp,
+                                    fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Normal,
+                                    color = if (isSelected) Color.White else colors.textPrimary
+                                )
+                            }
                         }
                     }
                 }
@@ -565,10 +672,11 @@ fun ModernDatePickerDialog(
                     Spacer(modifier = Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val dayStr = if (selectedDay < 10) "0" + selectedDay else selectedDay.toString()
+                            val validDay = selectedDay.coerceAtMost(daysInSelectedMonth)
+                            val dayStr = if (validDay < 10) "0$validDay" else "$validDay"
                             val monthNum = selectedMonthIndex + 1
-                            val monthStr = if (monthNum < 10) "0" + monthNum else monthNum.toString()
-                            onDateSelected(dayStr + "/" + monthStr + "/" + selectedYear)
+                            val monthStr = if (monthNum < 10) "0$monthNum" else "$monthNum"
+                            onDateSelected("$dayStr/$monthStr/$selectedYear")
                             onDismiss()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
@@ -581,3 +689,4 @@ fun ModernDatePickerDialog(
         }
     }
 }
+

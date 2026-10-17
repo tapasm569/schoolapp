@@ -1,5 +1,7 @@
 package com.school.manage.presentation.screens
 
+import com.school.manage.core.utils.getSystemCurrentDate
+
 import com.school.manage.presentation.components.StylishAttendanceSummaryCard
 import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
@@ -55,10 +57,11 @@ fun DashboardScreen(
     val attendanceList by database.attendanceDao().getAttendanceBySchool(schoolCode).collectAsState(initial = emptyList())
 
     val monthsList = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-    var selectedMonthIndex by remember { mutableStateOf(9) }
-    var selectedYear by remember { mutableStateOf(2026) }
+    val today = remember { getSystemCurrentDate() }
+    var selectedMonthIndex by remember { mutableStateOf(today.monthIndex) }
+    var selectedYear by remember { mutableStateOf(today.year) }
 
-    var selectedAttendanceDay by remember { mutableStateOf<Int?>(null) }
+    var selectedAttendanceDay by remember { mutableStateOf<Int?>(today.day) }
     var selectedStatusFilter by remember { mutableStateOf("ALL") }
 
     val currentMonthLabel = monthsList[selectedMonthIndex] + "-" + selectedYear

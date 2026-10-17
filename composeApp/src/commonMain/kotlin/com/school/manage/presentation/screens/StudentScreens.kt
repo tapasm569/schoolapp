@@ -1,4 +1,6 @@
 package com.school.manage.presentation.screens
+
+import com.school.manage.core.utils.getSystemCurrentDate
 import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.background
@@ -330,7 +332,7 @@ fun AddStudentScreen(
 
         if (showDobPicker) {
             ModernDatePickerDialog(
-                currentDate = "02/10/2026",
+                currentDate = dob.ifEmpty { getSystemCurrentDate().formatted },
                 onDateSelected = { dob = it },
                 onDismiss = { showDobPicker = false }
             )

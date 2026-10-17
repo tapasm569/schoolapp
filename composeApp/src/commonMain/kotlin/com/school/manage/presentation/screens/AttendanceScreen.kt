@@ -1,4 +1,6 @@
 package com.school.manage.presentation.screens
+
+import com.school.manage.core.utils.getSystemCurrentDate
 import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.BorderStroke
@@ -32,7 +34,7 @@ fun AttendanceScreen(
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val attendanceMap = remember { listOf(Pair(0L, "")).toMutableStateMap().apply { clear() } }
     val scope = rememberCoroutineScope()
-    var date by remember { mutableStateOf("03/10/2026") }
+    var date by remember { mutableStateOf(getSystemCurrentDate().formatted) }
     var showDatePicker by remember { mutableStateOf(false) }
     var savedMessage by remember { mutableStateOf("") }
 
