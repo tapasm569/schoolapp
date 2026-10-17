@@ -1,5 +1,12 @@
 package com.school.manage.presentation.screens
 
+import com.school.manage.presentation.localization.AppLanguage
+import com.school.manage.presentation.localization.EnglishStrings
+import com.school.manage.presentation.localization.BengaliStrings
+import com.school.manage.presentation.localization.HindiStrings
+import com.school.manage.presentation.localization.LocalAppStrings
+import androidx.compose.runtime.CompositionLocalProvider
+
 import com.school.manage.presentation.theme.LocalSchoolColors
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -134,6 +141,12 @@ fun LoginScreen(
     var selectedLanguage by remember { mutableStateOf("English") }
     var showLangMenu by remember { mutableStateOf(false) }
 
+    val strings = when (selectedLanguage) {
+        "Bengali" -> BengaliStrings
+        "Hindi" -> HindiStrings
+        else -> EnglishStrings
+    }
+
     var schoolCode by remember { mutableStateOf("") }
     var passwordOrPhone by remember { mutableStateOf("") }
     var isLoggingIn by remember { mutableStateOf(false) }
@@ -158,7 +171,7 @@ fun LoginScreen(
 
             item {
                 Text(
-                    text = "Simplify your life and boost\nyour productivity 🚀",
+                    text = strings.headline,
                     fontWeight = FontWeight.Bold,
                     fontSize = 22.sp,
                     lineHeight = 30.sp,
@@ -183,7 +196,7 @@ fun LoginScreen(
                         ) {
                             Text("文A", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = Color(0xFF475569))
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Language: $selectedLanguage", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E293B))
+                            Text("${strings.languageLabel}: ${if (selectedLanguage == \"Bengali\") \"বাংলা\" else if (selectedLanguage == \"Hindi\") \"हिन्दी\" else \"English\"}", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1E293B))
                             Spacer(modifier = Modifier.width(6.dp))
                             Text("▾", fontSize = 12.sp, color = Color(0xFF64748B))
                         }
@@ -193,11 +206,21 @@ fun LoginScreen(
                         expanded = showLangMenu,
                         onDismissRequest = { showLangMenu = false }
                     ) {
-                        listOf("English", "Hindi", "Bengali").forEach { lang ->
+                        listOf(
+                            Triple("English", "English", "English"),
+                            Triple("Hindi", "Hindi", "हिन्दी"),
+                            Triple("Bengali", "Bengali", "বাংলা")
+                        ).forEach { (key, engLabel, nativeLabel) ->
                             DropdownMenuItem(
-                                text = { Text(lang) },
+                                text = {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(nativeLabel, fontWeight = FontWeight.Bold)
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text("($engLabel)", fontSize = 12.sp, color = Color(0xFF64748B))
+                                    }
+                                },
                                 onClick = {
-                                    selectedLanguage = lang
+                                    selectedLanguage = key
                                     showLangMenu = false
                                 }
                             )
@@ -210,14 +233,14 @@ fun LoginScreen(
 
             item {
                 Text(
-                    text = "Select role",
+                    text = strings.selectRoleTitle,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 20.sp,
                     color = Color(0xFF0F172A)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Please choose your role to continue. Select the role that best describes your position within the organization.",
+                    text = strings.selectRoleDesc,
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
                     color = Color(0xFF64748B),
@@ -230,8 +253,8 @@ fun LoginScreen(
 
             item {
                 RoleSelectionCard(
-                    title = "Login as Admin",
-                    subtitle = "Control all administrative tasks and monitor operations.",
+                    title = strings.loginAdminTitle,
+                    subtitle = strings.loginAdminSubtitle,
                     iconBadgeColor = Color(0xFFE0E7FF),
                     emoji = "👨‍‍💼",
                     onClick = {
@@ -247,8 +270,8 @@ fun LoginScreen(
 
             item {
                 RoleSelectionCard(
-                    title = "Login as Staff",
-                    subtitle = "Manage classes, communicate with students, and track progress.",
+                    title = strings.loginStaffTitle,
+                    subtitle = strings.loginStaffSubtitle,
                     iconBadgeColor = Color(0xFFDCFCE7),
                     emoji = "👩‍🏫",
                     onClick = {
@@ -264,8 +287,8 @@ fun LoginScreen(
 
             item {
                 RoleSelectionCard(
-                    title = "Login as Student",
-                    subtitle = "View your classes, fees, homework and more.",
+                    title = strings.loginStudentTitle,
+                    subtitle = strings.loginStudentSubtitle,
                     iconBadgeColor = Color(0xFFFEF3C7),
                     emoji = "🎒",
                     onClick = {
@@ -292,7 +315,7 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                         modifier = Modifier.padding(horizontal = 10.dp)
                     ) {
                         Text(
-                            text = "OR",
+                            text = strings.orDivider,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF475569),
@@ -307,8 +330,8 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
 
             item {
                 RoleSelectionCard(
-                    title = "Create Admin Account",
-                    subtitle = "New here? Step up and create your Admin Account to unlock endless possibilities!",
+                    title = strings.createAdminTitle,
+                    subtitle = strings.createAdminSubtitle,
                     iconBadgeColor = Color(0xFFF1F5F9),
                     emoji = "🏫",
                     onClick = onNavigateRegister
@@ -352,7 +375,7 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Back",
+                            text = strings.back,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1E293B)
@@ -390,7 +413,7 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                                     color = Color(0xFF2563EB).copy(alpha = 0.12f)
                                 ) {
                                     Text(
-                                        text = "PORTAL ACCESS",
+                                        text = strings.portalAccess,
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Bold,
                                         color = Color(0xFF2563EB),
@@ -427,7 +450,7 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                     OutlinedTextField(
                         value = schoolCode,
                         onValueChange = { schoolCode = it.uppercase() },
-                        placeholder = { Text("Institute Code", color = Color(0xFF94A3B8)) },
+                        placeholder = { Text(strings.schoolCodeLabel, color = Color(0xFF94A3B8)) },
                         leadingIcon = {
                             Text("🏛️", fontSize = 16.sp, modifier = Modifier.padding(start = 12.dp, end = 4.dp))
                         },
@@ -447,7 +470,7 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                         onValueChange = { passwordOrPhone = it },
                         placeholder = {
                             Text(
-                                text = if (isStudent || isStaff) "Registered Mobile Number" else "Password",
+                                text = if (isStudent || isStaff) strings.registeredPhoneLabel else strings.passwordLabel,
                                 color = Color(0xFF94A3B8)
                             )
                         },
