@@ -561,7 +561,6 @@ fun DashboardScreen(
                                 val dayNet = flow.third
                                 val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
                                 val absNet = if (dayNet < 0L) -dayNet else dayNet
-                                val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
 
                                 Surface(
                                     shape = RoundedCornerShape(14.dp),
