@@ -498,6 +498,9 @@ fun ModernDatePickerDialog(
         }
     }
 
+    // Recent and student birth years appear right at the top
+    val years = remember { (2030 downTo 1980).toList() }
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
@@ -531,7 +534,6 @@ fun ModernDatePickerDialog(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Month / Year Selector Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -552,7 +554,7 @@ fun ModernDatePickerDialog(
                         Spacer(modifier = Modifier.width(44.dp))
                     }
 
-                    // Tappable Month-Year chip with Dropdown arrow
+                    // Tappable Month-Year chip with dropdown arrow
                     Surface(
                         shape = RoundedCornerShape(10.dp),
                         color = if (isSelectingYear) colors.brandPrimary.copy(alpha = 0.12f) else colors.bgCardHover,
@@ -597,19 +599,15 @@ fun ModernDatePickerDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 if (isSelectingYear) {
-                    // Fast Year Grid (1980 to 2035)
-                    val years = remember { (1980..2035).toList().reversed() }
-                    val gridState = rememberLazyGridState(
-                        initialFirstVisibleItemIndex = (years.indexOf(selectedYear) - 4).coerceAtLeast(0)
-                    )
+                    // Fast Year Grid using native items(count)
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
-                        state = gridState,
                         modifier = Modifier.height(210.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(years) { yr ->
+                        items(years.size) { idx ->
+                            val yr = years[idx]
                             val isSelectedYr = (yr == selectedYear)
                             Box(
                                 modifier = Modifier
@@ -632,7 +630,7 @@ fun ModernDatePickerDialog(
                         }
                     }
                 } else {
-                    // Day Selector Grid
+                    // Days Grid
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(7),
                         modifier = Modifier.height(210.dp)
