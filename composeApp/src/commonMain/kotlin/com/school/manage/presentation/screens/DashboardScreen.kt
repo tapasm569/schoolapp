@@ -158,6 +158,8 @@ fun DashboardScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .clip(RoundedCornerShape(14.dp))
+                            .weight(1f)
+                            .padding(end = 8.dp)
                             .clickable { showSchoolProfileSheet = true }
                             .padding(vertical = 4.dp, horizontal = 4.dp)
                     ) {
@@ -171,13 +173,16 @@ fun DashboardScreen(
                             Text("🏫", fontSize = 22.sp)
                         }
                         Spacer(modifier = Modifier.width(10.dp))
-                        Column {
+                        Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = schoolName.ifEmpty { "SCHOOL PORTAL" }.uppercase(),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp,
-                                    color = colors.textPrimary
+                                    color = colors.textPrimary,
+                                    maxLines = 2,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f, fill = false)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("ⓘ", fontSize = 12.sp, color = colors.brandPrimary, fontWeight = FontWeight.Bold)
