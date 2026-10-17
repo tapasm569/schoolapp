@@ -1,5 +1,6 @@
-import com.school.manage.presentation.components.StylishAttendanceSummaryCard
 package com.school.manage.presentation.screens
+
+import com.school.manage.presentation.components.StylishAttendanceSummaryCard
 import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
 
