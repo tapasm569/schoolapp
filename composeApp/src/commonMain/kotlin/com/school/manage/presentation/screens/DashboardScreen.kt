@@ -101,7 +101,7 @@ fun DashboardScreen(
                 it.paymentDate == dayDateStr || it.paymentDate == altDateStr || (it.feeMonth == "$monthNumberStr/$selectedYear" && it.paymentDate.startsWith("$dStr/"))
             }.sumOf { it.amountPaid }
             val expense = expenses.filter { it.date == dayDateStr || it.date == altDateStr }.sumOf { it.amount }
-            Triple(income, expense, income - expense)
+            Triple(income.toDouble(), expense.toDouble(), (income - expense).toDouble())
         }
     }
 
@@ -555,12 +555,12 @@ fun DashboardScreen(
                                 val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
                                 val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
 
-                                val flow = dailyCashFlowMap[day] ?: Triple(0L, 0L, 0L)
+                                val flow = dailyCashFlowMap[day] ?: Triple(0.0, 0.0, 0.0)
                                 val dayIncome = flow.first
                                 val dayExpense = flow.second
                                 val dayNet = flow.third
-                                val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
-                                val absNet = if (dayNet < 0L) -dayNet else dayNet
+                                val netPrefix = if (dayNet > 0.0) "+₹" else if (dayNet < 0.0) "-₹" else "₹"
+                                val absNet = if (dayNet < 0.0) -dayNet else dayNet
 
                                 Surface(
                                     shape = RoundedCornerShape(14.dp),
@@ -597,7 +597,7 @@ fun DashboardScreen(
                                                 text = netPrefix + absNet.toInt(),
                                                 fontSize = 11.sp,
                                                 fontWeight = FontWeight.Black,
-                                                color = if (dayNet > 0) colors.success else if (dayNet < 0) colors.error else colors.textSecondary
+                                                color = if (dayNet > 0.0) colors.success else if (dayNet < 0.0) colors.error else colors.textSecondary
                                             )
                                         }
                                     }
