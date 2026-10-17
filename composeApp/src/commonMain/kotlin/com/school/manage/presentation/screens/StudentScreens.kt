@@ -1,4 +1,6 @@
 package com.school.manage.presentation.screens
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 import com.school.manage.core.database.entity.BatchEntity
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.CheckboxDefaults
