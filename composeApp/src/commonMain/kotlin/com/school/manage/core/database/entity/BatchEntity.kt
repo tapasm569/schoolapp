@@ -9,5 +9,8 @@ data class BatchEntity(
     val schoolCode: String = "",
     val batchName: String = "",
     val subjects: String = "",
-    val sections: String = ""
+    val sections: String = "",
+    val feeTemplateRaw: String = "",
+    val defaultMonthlyTuition: Double = 0.0,
+    val collectTuitionAtAdmission: Boolean = true
 )

@@ -27,7 +27,7 @@ import com.school.manage.core.database.entity.*
         OnlineClassEntity::class,
         QuestionBankEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
