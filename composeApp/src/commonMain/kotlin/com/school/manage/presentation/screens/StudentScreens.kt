@@ -387,19 +387,9 @@ fun AssignBatchScreen(
     var showBatchMenu by remember { mutableStateOf(false) }
     var showTemplateDialog by remember { mutableStateOf(false) }
 
-    // Dynamic list of fee parts for the student's admission
-    var feeParts by remember {
-        mutableStateOf(
-            listOf(
-                AdmissionFeePart("Admission Fee", 1000.0, true),
-                AdmissionFeePart("Cloth / Uniform Fee", 800.0, true),
-                AdmissionFeePart("Bag Fee", 450.0, true),
-                AdmissionFeePart("Cultural Program Fee", 200.0, true),
-                AdmissionFeePart("Saraswati Puja Chanda", 150.0, true)
-            )
-        )
-    }
-var tuitionFeeInput by remember { mutableStateOf("500") }
+    // Starts empty until a class template is loaded or items are manually added
+    var feeParts by remember { mutableStateOf<List<AdmissionFeePart>>(emptyList()) }
+    var tuitionFeeInput by remember { mutableStateOf("") }
     var collectTuitionAtAdmission by remember { mutableStateOf(true) }
 
     // Inline add extra item states
@@ -407,19 +397,21 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
     var newPartName by remember { mutableStateOf("") }
     var newPartAmount by remember { mutableStateOf("") }
 
-    // Auto-fill template whenever selectedBatch changes
+    // Auto-fill saved template whenever selectedBatch changes
     LaunchedEffect(selectedBatch, batches) {
         if (selectedBatch.isNotEmpty()) {
             val matched = batches.find { it.batchName.equals(selectedBatch, ignoreCase = true) }
-            if (matched != null && (matched.feeTemplateRaw.isNotBlank() || matched.defaultMonthlyTuition > 0.0)) {
-                val parsed = parseFeeTemplate(matched.feeTemplateRaw)
-                if (parsed.isNotEmpty()) {
-                    feeParts = parsed
-                }
-                if (matched.defaultMonthlyTuition > 0.0) {
-                    tuitionFeeInput = matched.defaultMonthlyTuition.toInt().toString()
+            if (matched != null) {
+                feeParts = parseFeeTemplate(matched.feeTemplateRaw)
+                tuitionFeeInput = if (matched.defaultMonthlyTuition > 0.0) {
+                    matched.defaultMonthlyTuition.toInt().toString()
+                } else {
+                    ""
                 }
                 collectTuitionAtAdmission = matched.collectTuitionAtAdmission
+            } else {
+                feeParts = emptyList()
+                tuitionFeeInput = ""
             }
         }
     }
@@ -529,7 +521,8 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                     modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)
                 )
             }
-// 1. Class Selection + "+ Fee Template" Button
+
+            // 1. Class Selection + "+ Fee Template" Button
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -629,53 +622,69 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
 
                         Spacer(modifier = Modifier.height(12.dp))
 
-                        feeParts.forEachIndexed { index, item ->
+                        if (feeParts.isEmpty()) {
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
-                                color = if (item.isSelected) colors.brandPrimary.copy(alpha = 0.06f) else colors.bgApp,
-                                border = BorderStroke(
-                                    1.dp,
-                                    if (item.isSelected) colors.brandPrimary.copy(alpha = 0.3f) else colors.borderCard
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 4.dp)
+                                color = colors.bgApp,
+                                border = BorderStroke(1.dp, colors.borderCard),
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                             ) {
-                                Row(
+                                Text(
+                                    text = "No fee items configured yet. Tap '＋ Fee Template' above to set class fee heads & amounts, or add an item below.",
+                                    fontSize = 12.sp,
+                                    color = colors.textSecondary,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        } else {
+                            feeParts.forEachIndexed { index, item ->
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (item.isSelected) colors.brandPrimary.copy(alpha = 0.06f) else colors.bgApp,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        if (item.isSelected) colors.brandPrimary.copy(alpha = 0.3f) else colors.borderCard
+                                    ),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                        .padding(vertical = 4.dp)
                                 ) {
-                                    Checkbox(
-                                        checked = item.isSelected,
-                                        onCheckedChange = { checked ->
-                                            feeParts = feeParts.toMutableList().also {
-                                                it[index] = item.copy(isSelected = checked)
-                                            }
-                                        },
-                                        colors = CheckboxDefaults.colors(checkedColor = colors.brandPrimary)
-                                    )
-                                    Text(
-                                        text = item.name,
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = colors.textPrimary,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Text(
-                                        text = "₹${item.amount.toInt()}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = if (item.isSelected) colors.brandPrimary else colors.textSecondary
-                                    )
-                                    IconButton(
-                                        onClick = {
-                                            feeParts = feeParts.toMutableList().also { it.removeAt(index) }
-                                        },
-                                        modifier = Modifier.size(30.dp)
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text("✕", fontSize = 12.sp, color = colors.textSecondary)
+                                        Checkbox(
+                                            checked = item.isSelected,
+                                            onCheckedChange = { checked ->
+                                                feeParts = feeParts.toMutableList().also {
+                                                    it[index] = item.copy(isSelected = checked)
+                                                }
+                                            },
+                                            colors = CheckboxDefaults.colors(checkedColor = colors.brandPrimary)
+                                        )
+                                        Text(
+                                            text = item.name,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = colors.textPrimary,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Text(
+                                            text = "₹${item.amount.toInt()}",
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (item.isSelected) colors.brandPrimary else colors.textSecondary
+                                        )
+                                        IconButton(
+                                            onClick = {
+                                                feeParts = feeParts.toMutableList().also { it.removeAt(index) }
+                                            },
+                                            modifier = Modifier.size(30.dp)
+                                        ) {
+                                            Text("✕", fontSize = 12.sp, color = colors.textSecondary)
+                                        }
                                     }
                                 }
                             }
@@ -692,7 +701,7 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                                 OutlinedTextField(
                                     value = newPartName,
                                     onValueChange = { newPartName = it },
-                                    placeholder = { Text("Fee Name (e.g. Tie/Belt)", fontSize = 11.sp) },
+                                    placeholder = { Text("Fee Name", fontSize = 11.sp) },
                                     singleLine = true,
                                     modifier = Modifier.weight(1.4f)
                                 )
@@ -735,14 +744,15 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                                         showTemplateDialog = true
                                     }
                                 ) {
-                                    Text("⚙ Save as Class Template", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary)
+                                    Text("⚙ Configure Template", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textSecondary)
                                 }
                             }
                         }
                     }
                 }
             }
-// 3. Monthly Tuition Fee & Collection Timing Mode
+
+            // 3. Monthly Tuition Fee & Collection Timing Mode
             item {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
@@ -768,7 +778,7 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                         CustomRoundedInput(
                             value = tuitionFeeInput,
                             onValueChange = { tuitionFeeInput = it },
-                            placeholder = "MONTHLY TUITION FEE (e.g. 500)"
+                            placeholder = "ENTER MONTHLY TUITION FEE (₹)"
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -919,22 +929,32 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
         }
     }
 
-    // Modal Dialog to Configure & Save Class-Wise Admission Fee Template
+    // Modal Dialog to Configure & Save Class-Wise Admission Fee Template (Manual Amounts)
     if (showTemplateDialog) {
         val targetBatchName = selectedBatch.ifEmpty { "Class 1" }
-        var dialogParts by remember(feeParts) { mutableStateOf(feeParts) }
+        // Pair of (Fee Head Name, Editable Amount String)
+        var dialogEntries by remember(feeParts) {
+            mutableStateOf(
+                feeParts.map { part ->
+                    part.name to (if (part.amount > 0.0) part.amount.toInt().toString() else "")
+                }
+            )
+        }
         var dialogTuition by remember(tuitionFeeInput) { mutableStateOf(tuitionFeeInput) }
         var dialogCollectAtAdmission by remember(collectTuitionAtAdmission) { mutableStateOf(collectTuitionAtAdmission) }
-        var itemTitleInput by remember { mutableStateOf("") }
-        var itemAmountInput by remember { mutableStateOf("") }
+        var customTitleInput by remember { mutableStateOf("") }
+        var customAmountInput by remember { mutableStateOf("") }
 
-        val quickSuggestions = listOf(
-            "Cloth Fee" to 800.0,
-            "Bag Fee" to 450.0,
-            "Cultural Program" to 200.0,
-            "Saraswati Puja Chanda" to 150.0,
-            "Books & Diary" to 650.0,
-            "ID Card & Tie" to 150.0
+        // Common fee head names WITHOUT preset amounts
+        val quickFeeHeads = listOf(
+            "Admission Fee",
+            "Cloth / Uniform Fee",
+            "Bag Fee",
+            "Cultural Program",
+            "Saraswati Puja Chanda",
+            "Books & Diary",
+            "ID Card & Tie",
+            "Session / Exam Fee"
         )
 
         Dialog(onDismissRequest = { showTemplateDialog = false }) {
@@ -956,42 +976,52 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                         color = colors.textPrimary
                     )
                     Text(
-                        text = "Auto-fills whenever a student is admitted to $targetBatchName",
+                        text = "Tap any fee head below and enter its amount manually",
                         fontSize = 12.sp,
                         color = colors.textSecondary
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    Text("Quick Add Common Fee Heads:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                    Text(
+                        text = "Quick Select Common Fee Heads:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.brandPrimary
+                    )
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // 2-row quick suggestion chips
+                    // 2-column grid of fee head chips (no auto-set amounts)
                     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        quickSuggestions.chunked(2).forEach { pairRow ->
+                        quickFeeHeads.chunked(2).forEach { rowHeads ->
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                pairRow.forEach { (sName, sAmt) ->
+                                rowHeads.forEach { headName ->
+                                    val isAdded = dialogEntries.any { it.first.equals(headName, ignoreCase = true) }
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
-                                        color = colors.brandPrimary.copy(alpha = 0.1f),
-                                        border = BorderStroke(1.dp, colors.brandPrimary.copy(alpha = 0.3f)),
+                                        color = if (isAdded) colors.brandPrimary.copy(alpha = 0.18f) else colors.bgApp,
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isAdded) colors.brandPrimary else colors.borderCard
+                                        ),
                                         modifier = Modifier
                                             .weight(1f)
                                             .clickable {
-                                                if (dialogParts.none { it.name.equals(sName, ignoreCase = true) }) {
-                                                    dialogParts = dialogParts + AdmissionFeePart(sName, sAmt, true)
+                                                if (!isAdded) {
+                                                    // Adds fee head with blank amount so admin enters it manually
+                                                    dialogEntries = dialogEntries + (headName to "")
                                                 }
                                             }
                                     ) {
                                         Text(
-                                            text = "＋ $sName (₹${sAmt.toInt()})",
+                                            text = if (isAdded) "✓ $headName" else "＋ $headName",
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.SemiBold,
-                                            color = colors.brandPrimary,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                                            color = if (isAdded) colors.brandPrimary else colors.textPrimary,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
                                             maxLines = 1
                                         )
                                     }
@@ -1000,35 +1030,91 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                    // Add Custom Fee Part Row
+                    // Selected Fee Heads with Manual Amount Input Boxes
+                    if (dialogEntries.isNotEmpty()) {
+                        Text(
+                            text = "Enter Amount for Selected Fee Heads:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.textSecondary
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        dialogEntries.forEachIndexed { idx, (headName, amtStr) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = headName,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colors.textPrimary,
+                                    modifier = Modifier.weight(1.2f)
+                                )
+                                OutlinedTextField(
+                                    value = amtStr,
+                                    onValueChange = { newVal ->
+                                        dialogEntries = dialogEntries.toMutableList().also {
+                                            it[idx] = headName to newVal
+                                        }
+                                    },
+                                    placeholder = { Text("₹ Enter Amt", fontSize = 11.sp) },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                IconButton(
+                                    onClick = {
+                                        dialogEntries = dialogEntries.toMutableList().also { it.removeAt(idx) }
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Text("✕", fontSize = 13.sp, color = colors.error)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
+
+                    // Add Custom Fee Head Row
+                    Text(
+                        text = "Or Add Custom Fee Head:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.textSecondary
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         OutlinedTextField(
-                            value = itemTitleInput,
-                            onValueChange = { itemTitleInput = it },
+                            value = customTitleInput,
+                            onValueChange = { customTitleInput = it },
                             placeholder = { Text("Custom Fee Name", fontSize = 11.sp) },
                             singleLine = true,
-                            modifier = Modifier.weight(1.3f)
+                            modifier = Modifier.weight(1.2f)
                         )
                         OutlinedTextField(
-                            value = itemAmountInput,
-                            onValueChange = { itemAmountInput = it },
+                            value = customAmountInput,
+                            onValueChange = { customAmountInput = it },
                             placeholder = { Text("₹ Amt", fontSize = 11.sp) },
                             singleLine = true,
-                            modifier = Modifier.weight(0.8f)
+                            modifier = Modifier.weight(0.9f)
                         )
                         Button(
                             onClick = {
-                                val amt = itemAmountInput.toDoubleOrNull() ?: 0.0
-                                if (itemTitleInput.isNotBlank() && amt > 0.0) {
-                                    dialogParts = dialogParts + AdmissionFeePart(itemTitleInput.trim(), amt, true)
-                                    itemTitleInput = ""
-                                    itemAmountInput = ""
+                                if (customTitleInput.isNotBlank()) {
+                                    dialogEntries = dialogEntries + (customTitleInput.trim() to customAmountInput.trim())
+                                    customTitleInput = ""
+                                    customAmountInput = ""
                                 }
                             },
                             shape = RoundedCornerShape(10.dp),
@@ -1038,38 +1124,15 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    // Current Template Items
-                    dialogParts.forEachIndexed { idx, part ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 3.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("• ${part.name}", fontSize = 13.sp, color = colors.textPrimary, modifier = Modifier.weight(1f))
-                            Text("₹${part.amount.toInt()}", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                            IconButton(
-                                onClick = {
-                                    dialogParts = dialogParts.toMutableList().also { it.removeAt(idx) }
-                                },
-                                modifier = Modifier.size(28.dp)
-                            ) {
-                                Text("✕", fontSize = 12.sp, color = colors.error)
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     HorizontalDivider(color = colors.borderCard)
                     Spacer(modifier = Modifier.height(10.dp))
 
                     OutlinedTextField(
                         value = dialogTuition,
                         onValueChange = { dialogTuition = it },
-                        label = { Text("Default Monthly Tuition Fee (₹)", fontSize = 12.sp) },
+                        label = { Text("Monthly Tuition Fee (₹)", fontSize = 12.sp) },
+                        placeholder = { Text("Enter monthly tuition manually", fontSize = 11.sp) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -1108,15 +1171,21 @@ var tuitionFeeInput by remember { mutableStateOf("500") }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
                             onClick = {
-                                val tAmt = dialogTuition.toDoubleOrNull() ?: 0.0
-                                val encoded = encodeFeeTemplate(dialogParts)
+                                val validParts = dialogEntries.mapNotNull { (name, amtStr) ->
+                                    val amt = amtStr.trim().toDoubleOrNull() ?: 0.0
+                                    if (name.isNotBlank() && amt > 0.0) {
+                                        AdmissionFeePart(name.trim(), amt, true)
+                                    } else null
+                                }
+                                val tAmt = dialogTuition.trim().toDoubleOrNull() ?: 0.0
+                                val encoded = encodeFeeTemplate(validParts)
                                 scope.launch {
                                     val existingBatch = batches.find { it.batchName.equals(targetBatchName, ignoreCase = true) }
                                     val updatedBatch = if (existingBatch != null) {
                                         existingBatch.copy(
                                             feeTemplateRaw = encoded,
                                             defaultMonthlyTuition = tAmt,
-collectTuitionAtAdmission = dialogCollectAtAdmission
+                                            collectTuitionAtAdmission = dialogCollectAtAdmission
                                         )
                                     } else {
                                         BatchEntity(
@@ -1130,8 +1199,8 @@ collectTuitionAtAdmission = dialogCollectAtAdmission
                                         )
                                     }
                                     database.batchDao().insertBatch(updatedBatch)
-                                    feeParts = dialogParts
-                                    tuitionFeeInput = tAmt.toInt().toString()
+                                    feeParts = validParts
+                                    tuitionFeeInput = if (tAmt > 0.0) tAmt.toInt().toString() else ""
                                     collectTuitionAtAdmission = dialogCollectAtAdmission
                                     showTemplateDialog = false
                                 }
