@@ -1,4 +1,7 @@
 package com.school.manage.presentation.screens
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
 
 import com.school.manage.core.firebase.FirestoreSyncService
 import androidx.compose.foundation.Canvas
@@ -676,18 +679,37 @@ fun RegisterSchoolScreen(
     onRegisterSuccess: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    var schoolName by remember { mutableStateOf("") }
-    var schoolCode by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var errorMsg by remember { mutableStateOf("") }
+    val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
 
+    var schoolName by remember { mutableStateOf("") }
+    var schoolCode by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isPasswordVisible by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+
     Scaffold(
+        containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Register Your School", fontWeight = FontWeight.Bold) },
-                navigationIcon = { TextButton(onClick = onNavigateBack) { Text("Back") } }
+                title = {
+                    Text(
+                        "School Registration",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = colors.textPrimary
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         }
     ) { padding ->
@@ -695,72 +717,313 @@ fun RegisterSchoolScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
-                value = schoolName,
-                onValueChange = { schoolName = it },
-                label = { Text("School Full Name") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = schoolCode,
-                onValueChange = { schoolCode = it.uppercase() },
-                label = { Text("Create Unique School Code (e.g., SCH01)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
-                label = { Text("Official Contact Number") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Admin Password") },
-                visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            if (errorMsg.isNotEmpty()) {
-                Text(errorMsg, color = MaterialTheme.colorScheme.error)
+            // Big Modern School Badge / Logo
+            Box(
+                modifier = Modifier
+                    .size(92.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(colors.brandPrimary.copy(alpha = 0.15f), colors.brandPrimary.copy(alpha = 0.05f))
+                        )
+                    )
+                    .border(2.dp, colors.brandPrimary.copy(alpha = 0.3f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(68.dp)
+                        .clip(CircleShape)
+                        .background(colors.brandPrimary.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🏫", fontSize = 38.sp)
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
+            Text(
+                text = "Register Your Institution",
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 22.sp,
+                color = colors.textPrimary
+            )
+            Text(
+                text = "Set up your centralized digital campus in seconds",
+                fontSize = 13.sp,
+                color = colors.textSecondary,
+                modifier = Modifier.padding(top = 2.dp, bottom = 20.dp)
+            )
+
+            // Input Fields with Stylish Leading Badges
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // School Full Name
+                ModernInputField(
+                    value = schoolName,
+                    onValueChange = { schoolName = it },
+                    label = "School Full Name",
+                    icon = "🏛️",
+                    placeholder = "e.g., Delhi Public Academy"
+                )
+
+                // Unique School Code
+                ModernInputField(
+                    value = schoolCode,
+                    onValueChange = { schoolCode = it.uppercase() },
+                    label = "Unique School Code",
+                    icon = "🏷️",
+                    placeholder = "e.g., DPA01 (Used for staff/admin login)"
+                )
+
+                // Official Email Address
+                ModernInputField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = "Official Email Address",
+                    icon = "✉️",
+                    placeholder = "e.g., contact@dpaedu.in"
+                )
+
+                // Official Contact Number
+                ModernInputField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = "Official Contact Number",
+                    icon = "📞",
+                    placeholder = "e.g., +91 9876543210"
+                )
+
+                // School Address
+                ModernInputField(
+                    value = address,
+                    onValueChange = { address = it },
+                    label = "School Address",
+                    icon = "📍",
+                    placeholder = "e.g., Main Road, City, State, PIN"
+                )
+
+                // Admin Password with Toggle
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.inputBg,
+                    border = BorderStroke(1.dp, colors.inputBorder),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(colors.brandPrimary.copy(alpha = 0.1f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🔒", fontSize = 17.sp)
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Admin Password",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.textSecondary,
+                                modifier = Modifier.padding(top = 6.dp)
+                            )
+                            BasicTextField(
+                                value = password,
+                                onValueChange = { password = it },
+                                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                singleLine = true,
+                                textStyle = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colors.textPrimary
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp)
+                            )
+                        }
+
+                        IconButton(
+                            onClick = { isPasswordVisible = !isPasswordVisible },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Text(
+                                text = if (isPasswordVisible) "👁️" else "🙈",
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (errorMsg.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = colors.error.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, colors.error.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = errorMsg,
+                        color = colors.error,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Action Button
             Button(
-                modifier = Modifier.fillMaxWidth().height(50.dp),
                 onClick = {
                     if (schoolName.isBlank() || schoolCode.isBlank() || password.isBlank()) {
-                        errorMsg = "Please fill in all mandatory fields"
+                        errorMsg = "Please fill in School Name, Code, and Password"
                         return@Button
                     }
+                    isLoading = true
+                    errorMsg = ""
                     scope.launch {
                         val existing = database.schoolDao().getSchoolByCode(schoolCode.trim())
                         if (existing != null) {
-                            errorMsg = "School Code '$schoolCode' is already taken. Pick another code."
+                            isLoading = false
+                            errorMsg = "School Code '${schoolCode.trim()}' is already taken. Pick another code."
                         } else {
                             val newSchool = SchoolEntity(
                                 schoolCode = schoolCode.trim(),
                                 schoolName = schoolName.trim(),
                                 password = password,
-                                phone = phone
+                                phone = phone.trim(),
+                                email = email.trim(),
+                                address = address.trim()
                             )
                             database.schoolDao().registerSchool(newSchool)
                             try {
                                 FirestoreSyncService(database).saveSchoolToCloud(newSchool)
                             } catch (e: Exception) {
-                                e.printStackTrace()
+                                // Local registration proceeds even if offline
                             }
+                            isLoading = false
                             onRegisterSuccess()
                         }
                     }
-                }
+                },
+                enabled = !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.brandPrimary,
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp)
             ) {
-                Text("Complete School Registration")
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Complete School Registration 🚀",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun ModernInputField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: String,
+    placeholder: String
+) {
+    val colors = LocalSchoolColors.current
+
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = colors.inputBg,
+        border = BorderStroke(1.dp, colors.inputBorder),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(colors.brandPrimary.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(icon, fontSize = 17.sp)
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = colors.textSecondary,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    singleLine = true,
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.textPrimary
+                    ),
+                    decorationBox = { innerTextField ->
+                        if (value.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                fontSize = 13.sp,
+                                color = colors.textSecondary.copy(alpha = 0.6f)
+                            )
+                        }
+                        innerTextField()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                )
             }
         }
     }
 }
+

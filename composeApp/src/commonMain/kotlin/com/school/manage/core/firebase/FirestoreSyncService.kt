@@ -51,6 +51,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "schoolCode" to school.schoolCode,
                             "schoolName" to school.schoolName,
                             "phone" to school.phone,
+                            "email" to school.email,
+                            "address" to school.address,
                             "password" to school.password
                         )
                     )

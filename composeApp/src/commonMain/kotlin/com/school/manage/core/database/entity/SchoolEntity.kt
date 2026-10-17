@@ -9,5 +9,7 @@ data class SchoolEntity(
     val schoolCode: String,
     val schoolName: String,
     val password: String,
-    val phone: String
+    val phone: String,
+    val email: String = "",
+    val address: String = ""
 )
