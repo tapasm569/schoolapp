@@ -1,4 +1,9 @@
 package com.school.manage.presentation.screens
+
+import com.school.manage.presentation.theme.LocalSchoolColors
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -721,31 +726,34 @@ fun RegisterSchoolScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Big Modern School Badge / Logo
+            // Hero School Badge / Crest
             Box(
                 modifier = Modifier
-                    .size(92.dp)
+                    .size(96.dp)
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
-                            colors = listOf(colors.brandPrimary.copy(alpha = 0.15f), colors.brandPrimary.copy(alpha = 0.05f))
+                            colors = listOf(
+                                colors.brandPrimary.copy(alpha = 0.18f),
+                                colors.brandPrimary.copy(alpha = 0.05f)
+                            )
                         )
                     )
-                    .border(2.dp, colors.brandPrimary.copy(alpha = 0.3f), CircleShape),
+                    .border(2.dp, colors.brandPrimary.copy(alpha = 0.35f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
-                        .size(68.dp)
+                        .size(72.dp)
                         .clip(CircleShape)
-                        .background(colors.brandPrimary.copy(alpha = 0.2f)),
+                        .background(colors.brandPrimary.copy(alpha = 0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text("🏫", fontSize = 38.sp)
+                    Text("🏫", fontSize = 40.sp)
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Text(
                 text = "Register Your Institution",
@@ -757,10 +765,10 @@ fun RegisterSchoolScreen(
                 text = "Set up your centralized digital campus in seconds",
                 fontSize = 13.sp,
                 color = colors.textSecondary,
-                modifier = Modifier.padding(top = 2.dp, bottom = 20.dp)
+                modifier = Modifier.padding(top = 4.dp, bottom = 22.dp)
             )
 
-            // Input Fields with Stylish Leading Badges
+            // Modern Input Fields
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -780,7 +788,7 @@ fun RegisterSchoolScreen(
                     onValueChange = { schoolCode = it.uppercase() },
                     label = "Unique School Code",
                     icon = "🏷️",
-                    placeholder = "e.g., DPA01 (Used for staff/admin login)"
+                    placeholder = "e.g., DPA01 (Used for staff login)"
                 )
 
                 // Official Email Address
@@ -807,75 +815,26 @@ fun RegisterSchoolScreen(
                     onValueChange = { address = it },
                     label = "School Address",
                     icon = "📍",
-                    placeholder = "e.g., Main Road, City, State, PIN"
+                    placeholder = "e.g., Main Road, City, PIN"
                 )
 
-                // Admin Password with Toggle
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = colors.inputBg,
-                    border = BorderStroke(1.dp, colors.inputBorder),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(colors.brandPrimary.copy(alpha = 0.1f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("🔒", fontSize = 17.sp)
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "Admin Password",
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = colors.textSecondary,
-                                modifier = Modifier.padding(top = 6.dp)
-                            )
-                            BasicTextField(
-                                value = password,
-                                onValueChange = { password = it },
-                                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                                singleLine = true,
-                                textStyle = TextStyle(
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colors.textPrimary
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 6.dp)
-                            )
-                        }
-
-                        IconButton(
-                            onClick = { isPasswordVisible = !isPasswordVisible },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Text(
-                                text = if (isPasswordVisible) "👁️" else "🙈",
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-                }
+                // Admin Password
+                ModernInputField(
+                    value = password,
+                    onValueChange = { password = it },
+                    label = "Admin Password",
+                    icon = "🔒",
+                    placeholder = "Enter secure password",
+                    isPassword = true,
+                    isPasswordVisible = isPasswordVisible,
+                    onTogglePassword = { isPasswordVisible = !isPasswordVisible }
+                )
             }
 
             if (errorMsg.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = colors.error.copy(alpha = 0.12f),
                     border = BorderStroke(1.dp, colors.error.copy(alpha = 0.3f)),
                     modifier = Modifier.fillMaxWidth()
@@ -885,14 +844,14 @@ fun RegisterSchoolScreen(
                         color = colors.error,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Action Button
+            // Primary Action Button
             Button(
                 onClick = {
                     if (schoolName.isBlank() || schoolCode.isBlank() || password.isBlank()) {
@@ -919,7 +878,7 @@ fun RegisterSchoolScreen(
                             try {
                                 FirestoreSyncService(database).saveSchoolToCloud(newSchool)
                             } catch (e: Exception) {
-                                // Local registration proceeds even if offline
+                                // Offline registration is still saved in Room
                             }
                             isLoading = false
                             onRegisterSuccess()
@@ -935,7 +894,7 @@ fun RegisterSchoolScreen(
                     containerColor = colors.brandPrimary,
                     contentColor = Color.White
                 ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 3.dp)
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
@@ -952,7 +911,7 @@ fun RegisterSchoolScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }
@@ -963,67 +922,53 @@ private fun ModernInputField(
     onValueChange: (String) -> Unit,
     label: String,
     icon: String,
-    placeholder: String
+    placeholder: String = "",
+    isPassword: Boolean = false,
+    isPasswordVisible: Boolean = false,
+    onTogglePassword: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
     val colors = LocalSchoolColors.current
 
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = colors.inputBg,
-        border = BorderStroke(1.dp, colors.inputBorder),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, fontSize = 12.sp) },
+        placeholder = if (placeholder.isNotEmpty()) {
+            { Text(placeholder, fontSize = 13.sp, color = colors.textSecondary.copy(alpha = 0.5f)) }
+        } else null,
+        leadingIcon = {
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(colors.brandPrimary.copy(alpha = 0.1f)),
+                    .background(colors.brandPrimary.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(icon, fontSize = 17.sp)
             }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = label,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colors.textSecondary,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colors.textPrimary
-                    ),
-                    decorationBox = { innerTextField ->
-                        if (value.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                fontSize = 13.sp,
-                                color = colors.textSecondary.copy(alpha = 0.6f)
-                            )
-                        }
-                        innerTextField()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                )
+        },
+        trailingIcon = if (isPassword && onTogglePassword != null) {
+            {
+                IconButton(onClick = onTogglePassword) {
+                    Text(if (isPasswordVisible) "👁️" else "🙈", fontSize = 16.sp)
+                }
             }
-        }
-    }
+        } else null,
+        visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+        singleLine = true,
+        shape = RoundedCornerShape(16.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = colors.inputBg,
+            unfocusedContainerColor = colors.inputBg,
+            focusedBorderColor = colors.brandPrimary,
+            unfocusedBorderColor = colors.inputBorder,
+            focusedLabelColor = colors.brandPrimary,
+            unfocusedLabelColor = colors.textSecondary,
+            focusedTextColor = colors.textPrimary,
+            unfocusedTextColor = colors.textPrimary
+        ),
+        modifier = modifier.fillMaxWidth()
+    )
 }
 
