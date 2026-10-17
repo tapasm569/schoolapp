@@ -72,14 +72,36 @@ fun DashboardScreen(
         }
     }
 
-    val monthlyFees = feeRecords.filter { it.feeMonth.contains(monthFilterPattern) || it.paymentDate.contains(monthFilterPattern) }.sumOf { it.amountPaid }
-    val totalFees = feeRecords.sumOf { it.amountPaid }
-    val monthlyExpenses = expenses.filter { it.date.contains(monthFilterPattern) }.sumOf { it.amount }
-    val totalExpenses = expenses.sumOf { it.amount }
-    val netMonthCashFlow = monthlyFees - monthlyExpenses
+    val monthlyFees = remember(feeRecords, monthFilterPattern) {
+        feeRecords.filter { it.feeMonth.contains(monthFilterPattern) || it.paymentDate.contains(monthFilterPattern) }.sumOf { it.amountPaid }
+    }
+    val totalFees = remember(feeRecords) { feeRecords.sumOf { it.amountPaid } }
+    val monthlyExpenses = remember(expenses, monthFilterPattern) {
+        expenses.filter { it.date.contains(monthFilterPattern) }.sumOf { it.amount }
+    }
+    val totalExpenses = remember(expenses) { expenses.sumOf { it.amount } }
+    val netMonthCashFlow = remember(monthlyFees, monthlyExpenses) { monthlyFees - monthlyExpenses }
 
-    val studentMonthAttendance = attendanceList.filter { it.userType == "STUDENT" && it.date.contains(monthFilterPattern) }
-    val teacherMonthAttendance = attendanceList.filter { it.userType == "STAFF" && it.date.contains(monthFilterPattern) }
+    val studentMonthAttendance = remember(attendanceList, monthFilterPattern) {
+        attendanceList.filter { it.userType == "STUDENT" && it.date.contains(monthFilterPattern) }
+    }
+    val teacherMonthAttendance = remember(attendanceList, monthFilterPattern) {
+        attendanceList.filter { it.userType == "STAFF" && it.date.contains(monthFilterPattern) }
+    }
+
+    // Precomputed daily cash-flow map for instant O(1) day-chip lookup
+    val dailyNetMap = remember(feeRecords, expenses, monthNumberStr, selectedYear, daysInMonth) {
+        (1..daysInMonth).associateWith { day ->
+            val dStr = if (day < 10) "0$day" else day.toString()
+            val dayDateStr = "$dStr/$monthNumberStr/$selectedYear"
+            val altDateStr = "$day/$monthNumberStr/$selectedYear"
+            val income = feeRecords.filter {
+                it.paymentDate == dayDateStr || it.paymentDate == altDateStr || (it.feeMonth == "$monthNumberStr/$selectedYear" && it.paymentDate.startsWith("$dStr/"))
+            }.sumOf { it.amountPaid }
+            val expense = expenses.filter { it.date == dayDateStr || it.date == altDateStr }.sumOf { it.amount }
+            income - expense
+        }
+    }
 
     val activeAttendanceRecords = remember(selectedAttendanceDay, studentMonthAttendance, selectedMonthIndex, selectedYear) {
         if (selectedAttendanceDay == null) {
@@ -319,7 +341,7 @@ fun DashboardScreen(
                                 }
                             }
 
-                            items((1..daysInMonth).toList()) { day ->
+                            items(items = (1..daysInMonth).toList(), key = { day -> "day_$day" }, contentType = { "day_chip" }) { day ->
                                 val isSelected = (selectedAttendanceDay == day)
                                 val dStr = if (day < 10) "0" + day else day.toString()
                                 val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
@@ -553,20 +575,12 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items((1..daysInMonth).toList()) { day ->
+                            items(items = (1..daysInMonth).toList(), key = { day -> "day_$day" }, contentType = { "day_chip" }) { day ->
                                 val dStr = if (day < 10) "0" + day else day.toString()
                                 val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
                                 val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
 
-                                val dayIncome = feeRecords.filter { 
-                                    it.paymentDate == dayDateStr || it.paymentDate == altDateStr || (it.feeMonth == (monthNumberStr + "/" + selectedYear) && it.paymentDate.startsWith(dStr + "/"))
-                                }.sumOf { it.amountPaid }
-
-                                val dayExpense = expenses.filter { 
-                                    it.date == dayDateStr || it.date == altDateStr 
-                                }.sumOf { it.amount }
-
-                                val dayNet = dayIncome - dayExpense
+                                val dayNet = dailyNetMap[day] ?: 0L
                                 val netPrefix = if (dayNet > 0) "+₹" else if (dayNet < 0) "-₹" else "₹"
 
                                 Surface(

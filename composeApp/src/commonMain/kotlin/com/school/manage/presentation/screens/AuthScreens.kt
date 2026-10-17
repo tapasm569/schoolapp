@@ -26,6 +26,10 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.SchoolEntity
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import androidx.compose.material3.CircularProgressIndicator
 
 @Composable
 fun AppIconLogoBadge(modifier: Modifier = Modifier) {
@@ -467,56 +471,94 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // 5. Full-Width Sign In Button
+                    // 5. Full-Width Sign In Button (Optimized Async)
                     Button(
+                        enabled = !isLoggingIn,
                         onClick = {
+                            if (isLoggingIn) return@Button
+                            isLoggingIn = true
+                            errorMessage = null
                             scope.launch {
-                                when {
-                                    isStudent -> {
-                                        val student = database.studentDao().loginStudent(schoolCode.trim(), passwordOrPhone.trim())
-                                        if (student != null) {
-                                            activeLoginRole = null
-                                            onStudentLoginSuccess(student.id)
-                                        } else {
-                                            errorMessage = "Invalid School Code or Mobile Number"
+                                try {
+                                    when {
+                                        isStudent -> {
+                                            val student = withContext(Dispatchers.IO) {
+                                                database.studentDao().loginStudent(schoolCode.trim(), passwordOrPhone.trim())
+                                            }
+                                            if (student != null) {
+                                                activeLoginRole = null
+                                                onStudentLoginSuccess(student.id)
+                                            } else {
+                                                errorMessage = "Invalid School Code or Mobile Number"
+                                            }
                                         }
-                                    }
-                                    isStaff -> {
-                                        var staff = database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
-                                        if (staff == null) {
-                                            try {
+                                        isStaff -> {
+                                            var staff = withContext(Dispatchers.IO) {
+                                                database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
+                                            }
+                                            if (staff == null) {
+                                                withContext(Dispatchers.IO) {
+                                                    try {
+                                                        FirestoreSyncService(database).restoreAllFromCloud(schoolCode.trim())
+                                                        staff = database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
+                                                    } catch (e: Exception) {
+                                                        e.printStackTrace()
+                                                    }
+                                                }
+                                            }
+                                            if (staff != null) {
+                                                activeLoginRole = null
+                                                onStaffLoginSuccess(staff.id, staff.schoolCode, staff.name, staff.role)
+                                            } else {
+                                                errorMessage = "Invalid School Code or Staff Mobile Number"
+                                            }
+                                        }
+                                        else -> {
+                                            val sCode = schoolCode.trim()
+                                            var school = withContext(Dispatchers.IO) {
+                                                database.schoolDao().loginSchool(sCode, passwordOrPhone)
+                                            }
+                                            var isLocalHit = true
+                                            if (school == null) {
+                                                isLocalHit = false
+                                                val restored = withContext(Dispatchers.IO) {
+                                                    try {
+                                                        FirestoreSyncService(database).restoreSchoolFromCloud(sCode)
+                                                    } catch (e: Exception) { null }
+                                                }
+                                                if (restored != null && restored.password == passwordOrPhone) {
+                                                    school = restored
+                                                }
+                                            }
+                                            if (school != null) {
+                                                val code = school.schoolCode
+                                                val name = school.schoolName
                                                 val syncService = FirestoreSyncService(database)
-                                                syncService.restoreAllFromCloud(schoolCode.trim())
-                                                staff = database.staffDao().loginStaffByPhone(schoolCode.trim(), passwordOrPhone.trim())
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
+                                                // If already in local DB, restore in background without delaying login
+                                                if (isLocalHit) {
+                                                    scope.launch(Dispatchers.IO) {
+                                                        try {
+                                                            syncService.restoreAllFromCloud(code)
+                                                            syncService.startSync(code)
+                                                        } catch (e: Exception) { e.printStackTrace() }
+                                                    }
+                                                } else {
+                                                    withContext(Dispatchers.IO) {
+                                                        try {
+                                                            syncService.restoreAllFromCloud(code)
+                                                            syncService.startSync(code)
+                                                        } catch (e: Exception) { e.printStackTrace() }
+                                                    }
+                                                }
+                                                activeLoginRole = null
+                                                onSchoolLoginSuccess(code, name)
+                                            } else {
+                                                errorMessage = "Invalid School Code or Password"
                                             }
                                         }
-                                        if (staff != null) {
-                                            activeLoginRole = null
-                                            onStaffLoginSuccess(staff.id, staff.schoolCode, staff.name, staff.role)
-                                        } else {
-                                            errorMessage = "Invalid School Code or Staff Mobile Number"
-                                        }
                                     }
-                                    else -> {
-                                        var school = database.schoolDao().loginSchool(schoolCode.trim(), passwordOrPhone)
-                                        if (school == null) {
-                                            val restored = FirestoreSyncService(database).restoreSchoolFromCloud(schoolCode.trim())
-                                            if (restored != null && restored.password == passwordOrPhone) {
-                                                school = restored
-                                            }
-                                        }
-                                        if (school != null) {
-                                            val syncService = FirestoreSyncService(database)
-                                            syncService.restoreAllFromCloud(school.schoolCode)
-                                            syncService.startSync(school.schoolCode)
-                                            activeLoginRole = null
-                                            onSchoolLoginSuccess(school.schoolCode, school.schoolName)
-                                        } else {
-                                            errorMessage = "Invalid School Code or Password"
-                                        }
-                                    }
+                                } finally {
+                                    isLoggingIn = false
                                 }
                             }
                         },
@@ -526,12 +568,20 @@ item { Spacer(modifier = Modifier.height(26.dp)) }
                             .fillMaxWidth()
                             .height(52.dp)
                     ) {
-                        Text(
-                            text = "Login",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
+                        if (isLoggingIn) {
+                            CircularProgressIndicator(
+                                color = Color.White,
+                                strokeWidth = 2.5.dp,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        } else {
+                            Text(
+                                text = "Login",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
