@@ -1,3 +1,4 @@
+import com.school.manage.presentation.components.StylishAttendanceSummaryCard
 package com.school.manage.presentation.screens
 import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
@@ -382,43 +383,16 @@ fun DashboardScreen(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            AttendanceCountTile(
-                                label = "Present",
-                                count = presentCount.toString(),
-                                isSelected = selectedStatusFilter == "PRESENT",
-                                activeColor = Color(0xFF22C55E),
-                                modifier = Modifier.weight(1f),
-                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "PRESENT") "ALL" else "PRESENT" }
-                            )
-                            AttendanceCountTile(
-                                label = "Absent",
-                                count = absentCount.toString(),
-                                isSelected = selectedStatusFilter == "ABSENT",
-                                activeColor = Color(0xFFEF4444),
-                                modifier = Modifier.weight(1f),
-                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "ABSENT") "ALL" else "ABSENT" }
-                            )
-                            AttendanceCountTile(
-                                label = "Leave",
-                                count = leaveCount.toString(),
-                                isSelected = selectedStatusFilter == "LEAVE",
-                                activeColor = Color(0xFFF59E0B),
-                                modifier = Modifier.weight(1f),
-                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "LEAVE") "ALL" else "LEAVE" }
-                            )
-                            AttendanceCountTile(
-                                label = "Holiday",
-                                count = holidayCount.toString(),
-                                isSelected = selectedStatusFilter == "HOLIDAY",
-                                activeColor = Color(0xFF3B82F6),
-                                modifier = Modifier.weight(1f),
-                                onClick = { selectedStatusFilter = if (selectedStatusFilter == "HOLIDAY") "ALL" else "HOLIDAY" }
-                            )
-                        }
+                        StylishAttendanceSummaryCard(
+                            presentCount = presentCount,
+                            absentCount = absentCount,
+                            leaveCount = leaveCount,
+                            holidayCount = holidayCount,
+                            selectedFilter = selectedStatusFilter,
+                            onFilterSelected = { status ->
+                                selectedStatusFilter = if (selectedStatusFilter == status) "ALL" else status
+                            }
+                        )
 
                         if (selectedStatusFilter != "ALL" && activeAttendanceRecords.isNotEmpty()) {
                             val filteredList = activeAttendanceRecords.filter { it.status == selectedStatusFilter }
