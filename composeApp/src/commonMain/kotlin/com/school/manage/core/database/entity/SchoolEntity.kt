@@ -12,5 +12,6 @@ data class SchoolEntity(
     val phone: String,
     val email: String = "",
     val address: String = "",
+    val masterSubjects: String = "Bengali, English, Mathematics, Science, Geography, History, Computer, Drawing, General Knowledge, Physical Education",
     val photoBase64: String = ""
 )
