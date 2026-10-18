@@ -375,7 +375,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
             }
 
             val sysDateObj = getSystemCurrentDate()
-            val currentDatestr = sysDateObj.formattedDate
+            val currentDatestr = sysDateObj.formatted
             val currentYear = sysDateObj.year
             val currentMonthIndex = sysDateObj.monthIndex
 
