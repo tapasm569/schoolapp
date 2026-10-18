@@ -1528,6 +1528,8 @@ fun DashboardScreen(
         }
     }
 }
+@Composable
+fun AttendanceCountTile(
     label: String,
     count: String,
     isSelected: Boolean,
