@@ -118,7 +118,7 @@ fun TeacherSalaryScreen(
                                                 category = "Salary",
                                                 amount = payoutAmount,
                                                 date = sysToday.formatted,
-                                                remarks = "Monthly salary for $currentMonthKey"
+                                                notes = "Monthly salary for $currentMonthKey"
                                             )
                                         )
                                     }

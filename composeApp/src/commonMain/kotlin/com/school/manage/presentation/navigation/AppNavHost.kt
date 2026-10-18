@@ -215,6 +215,20 @@ fun AppNavHost(database: AppDatabase) {
                     onNavigateBack = { navController.popBackStack() }
                 )
             }
+            composable("student_dues") {
+                StudentDuesScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable("teacher_salaries") {
+                TeacherSalaryScreen(
+                    database = database,
+                    schoolCode = currentSchoolCode,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
             composable("expense_list") {
                 ExpenseScreen(
                     database = database,

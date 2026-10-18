@@ -32,7 +32,7 @@ fun StudentDuesScreen(
     val uriHandler = LocalUriHandler.current
 
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val allFeeRecords by database.feeDao().getAllFeeRecordsForSchool(schoolCode).collectAsState(initial = emptyList())
+    val allFeeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
 
     val defaulters = remember(students, allFeeRecords) {
         students.map { student ->
