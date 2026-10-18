@@ -17,5 +17,6 @@ data class StaffEntity(
     val address: String = "",
     val qualification: String = "",
     val salaryType: String = "Monthly",
-    val password: String = ""
+    val password: String = "",
+    val photoBase64: String = ""
 )

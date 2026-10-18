@@ -1,6 +1,8 @@
 package com.school.manage.presentation.screens
 
 import com.school.manage.core.utils.getSystemCurrentDate
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.utils.ProfileAvatar
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.foundation.verticalScroll
@@ -208,6 +210,16 @@ fun DashboardScreen(
     LaunchedEffect(schoolCode) {
         schoolRecord = database.schoolDao().getSchoolByCode(schoolCode)
     }
+    val pickSchoolLogo = rememberPhotoPickerLauncher { encodedBase64 ->
+        scope.launch {
+            val current = schoolRecord ?: database.schoolDao().getSchoolByCode(schoolCode)
+            if (current != null) {
+                val updated = current.copy(photoBase64 = encodedBase64)
+                database.schoolDao().insertSchool(updated)
+                schoolRecord = updated
+            }
+        }
+    }
     val scope = rememberCoroutineScope()
 
     Scaffold(
@@ -250,15 +262,14 @@ fun DashboardScreen(
                             .clickable { showSchoolProfileSheet = true }
                             .padding(vertical = 4.dp, horizontal = 4.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(colors.brandPrimary.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("🏫", fontSize = 22.sp)
-                        }
+                        ProfileAvatar(
+                            photoBase64 = schoolRecord?.photoBase64.orEmpty(),
+                            name = schoolName,
+                            fallbackEmoji = "🏫",
+                            size = 44.dp,
+                            cornerRadius = 12.dp,
+                            backgroundColor = colors.brandPrimary.copy(alpha = 0.15f)
+                        )
                         Spacer(modifier = Modifier.width(10.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1034,15 +1045,16 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(colors.brandPrimary.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("🏫", fontSize = 28.sp)
-                        }
+                        ProfileAvatar(
+                            photoBase64 = schoolRecord?.photoBase64.orEmpty(),
+                            name = schoolName,
+                            fallbackEmoji = "🏫",
+                            size = 56.dp,
+                            cornerRadius = 14.dp,
+                            backgroundColor = colors.brandPrimary.copy(alpha = 0.15f),
+                            showEditBadge = true,
+                            onClick = { pickSchoolLogo() }
+                        )
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text(
@@ -1057,6 +1069,38 @@ fun DashboardScreen(
                                 color = colors.brandPrimary,
                                 fontWeight = FontWeight.SemiBold
                             )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { pickSchoolLogo() },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = if (schoolRecord?.photoBase64.isNullOrEmpty()) "📷 Upload School Logo" else "📷 Change School Logo",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        if (!schoolRecord?.photoBase64.isNullOrEmpty()) {
+                            TextButton(
+                                onClick = {
+                                    scope.launch {
+                                        schoolRecord?.let { current ->
+                                            val updated = current.copy(photoBase64 = "")
+                                            database.schoolDao().insertSchool(updated)
+                                            schoolRecord = updated
+                                        }
+                                    }
+                                }
+                            ) {
+                                Text("Remove", fontSize = 12.sp, color = Color(0xFFDC2626))
+                            }
                         }
                     }
 

@@ -11,5 +11,6 @@ data class SchoolEntity(
     val password: String,
     val phone: String,
     val email: String = "",
-    val address: String = ""
+    val address: String = "",
+    val photoBase64: String = ""
 )

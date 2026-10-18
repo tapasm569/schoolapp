@@ -23,5 +23,6 @@ data class StudentEntity(
     val gender: String = "Male",
     val whatsapp: String = "",
     val address: String = "",
-    val admissionFee: Double = 0.0
+    val admissionFee: Double = 0.0,
+    val photoBase64: String = ""
 )

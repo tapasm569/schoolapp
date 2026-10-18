@@ -50,6 +50,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
     }
 
     suspend fun generateBackupJson(schoolCode: String): Pair<String, String> = withContext(Dispatchers.IO) {
+        val schoolObj = database.schoolDao().getSchoolByCode(schoolCode)
         val batches = database.batchDao().getBatchesBySchool(schoolCode).first()
         val students = database.studentDao().getStudentsBySchool(schoolCode).first()
         val staffList = database.staffDao().getStaffBySchool(schoolCode).first()
@@ -61,6 +62,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
         sb.append("{\n")
         sb.append("  \"version\": 1,\n")
         sb.append("  \"schoolCode\": \"${escapeJson(schoolCode)}\",\n")
+        sb.append("  \"schoolLogoBase64\": \"${escapeJson(schoolObj?.photoBase64.orEmpty())}\",\n")
 
         // 1. Batches
         sb.append("  \"batches\": [\n")
@@ -74,7 +76,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
         // 2. Students
         sb.append("  \"students\": [\n")
         students.forEachIndexed { i, s ->
-            sb.append("    {\"id\": ${s.id}, \"rollNo\": \"${escapeJson(s.rollNo)}\", \"name\": \"${escapeJson(s.name)}\", \"gradeClass\": \"${escapeJson(s.gradeClass)}\", \"section\": \"${escapeJson(s.section)}\", \"guardianName\": \"${escapeJson(s.guardianName)}\", \"phone\": \"${escapeJson(s.phone)}\", \"monthlyFee\": ${s.monthlyFee}, \"admissionDate\": \"${escapeJson(s.admissionDate)}\", \"fatherName\": \"${escapeJson(s.fatherName)}\", \"motherName\": \"${escapeJson(s.motherName)}\", \"dob\": \"${escapeJson(s.dob)}\", \"aadharNumber\": \"${escapeJson(s.aadharNumber)}\", \"caste\": \"${escapeJson(s.caste)}\", \"gender\": \"${escapeJson(s.gender)}\", \"whatsapp\": \"${escapeJson(s.whatsapp)}\", \"address\": \"${escapeJson(s.address)}\", \"admissionFee\": ${s.admissionFee}}")
+            sb.append("    {\"id\": ${s.id}, \"rollNo\": \"${escapeJson(s.rollNo)}\", \"name\": \"${escapeJson(s.name)}\", \"gradeClass\": \"${escapeJson(s.gradeClass)}\", \"section\": \"${escapeJson(s.section)}\", \"guardianName\": \"${escapeJson(s.guardianName)}\", \"phone\": \"${escapeJson(s.phone)}\", \"monthlyFee\": ${s.monthlyFee}, \"admissionDate\": \"${escapeJson(s.admissionDate)}\", \"fatherName\": \"${escapeJson(s.fatherName)}\", \"motherName\": \"${escapeJson(s.motherName)}\", \"dob\": \"${escapeJson(s.dob)}\", \"aadharNumber\": \"${escapeJson(s.aadharNumber)}\", \"caste\": \"${escapeJson(s.caste)}\", \"gender\": \"${escapeJson(s.gender)}\", \"whatsapp\": \"${escapeJson(s.whatsapp)}\", \"address\": \"${escapeJson(s.address)}\", \"admissionFee\": ${s.admissionFee}, \"photoBase64\": \"${escapeJson(s.photoBase64)}\"}")
             if (i < students.size - 1) sb.append(",")
             sb.append("\n")
         }
@@ -83,7 +85,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
         // 3. Staff
         sb.append("  \"staff\": [\n")
         staffList.forEachIndexed { i, st ->
-            sb.append("    {\"id\": ${st.id}, \"name\": \"${escapeJson(st.name)}\", \"role\": \"${escapeJson(st.role)}\", \"phone\": \"${escapeJson(st.phone)}\", \"salary\": ${st.salary}, \"joinDate\": \"${escapeJson(st.joinDate)}\", \"gender\": \"${escapeJson(st.gender)}\", \"whatsapp\": \"${escapeJson(st.whatsapp)}\", \"address\": \"${escapeJson(st.address)}\", \"qualification\": \"${escapeJson(st.qualification)}\", \"salaryType\": \"${escapeJson(st.salaryType)}\", \"password\": \"${escapeJson(st.password)}\"}")
+            sb.append("    {\"id\": ${st.id}, \"name\": \"${escapeJson(st.name)}\", \"role\": \"${escapeJson(st.role)}\", \"phone\": \"${escapeJson(st.phone)}\", \"salary\": ${st.salary}, \"joinDate\": \"${escapeJson(st.joinDate)}\", \"gender\": \"${escapeJson(st.gender)}\", \"whatsapp\": \"${escapeJson(st.whatsapp)}\", \"address\": \"${escapeJson(st.address)}\", \"qualification\": \"${escapeJson(st.qualification)}\", \"salaryType\": \"${escapeJson(st.salaryType)}\", \"password\": \"${escapeJson(st.password)}\", \"photoBase64\": \"${escapeJson(st.photoBase64)}\"}")
             if (i < staffList.size - 1) sb.append(",")
             sb.append("\n")
         }
@@ -128,6 +130,13 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 ?: return@withContext Result.failure(Exception("Invalid JSON backup format"))
 
             val targetCode = getString(root, "schoolCode", schoolCode)
+            val backedUpLogo = getString(root, "schoolLogoBase64")
+            if (backedUpLogo.isNotEmpty()) {
+                val existingSchool = database.schoolDao().getSchoolByCode(targetCode)
+                if (existingSchool != null) {
+                    database.schoolDao().insertSchool(existingSchool.copy(photoBase64 = backedUpLogo))
+                }
+            }
 
             // Restore Batches
             val batches = (root["batches"] as? List<*>)?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
@@ -169,7 +178,8 @@ class SchoolBackupManager(private val database: AppDatabase) {
                         gender = getString(s, "gender", "Male"),
                         whatsapp = getString(s, "whatsapp"),
                         address = getString(s, "address"),
-                        admissionFee = getDouble(s, "admissionFee", 0.0)
+                        admissionFee = getDouble(s, "admissionFee", 0.0),
+                        photoBase64 = getString(s, "photoBase64")
                     )
                 )
             }
@@ -191,7 +201,8 @@ class SchoolBackupManager(private val database: AppDatabase) {
                         address = getString(st, "address"),
                         qualification = getString(st, "qualification"),
                         salaryType = getString(st, "salaryType", "Monthly"),
-                        password = getString(st, "password")
+                        password = getString(st, "password"),
+                        photoBase64 = getString(st, "photoBase64")
                     )
                 )
             }
