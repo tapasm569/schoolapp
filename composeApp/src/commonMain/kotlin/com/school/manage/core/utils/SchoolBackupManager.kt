@@ -398,7 +398,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val monthlyFee = cols.getOrNull(idxMonthlyFee)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val pendingDue = cols.getOrNull(idxPendingDue)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val gender = if (idxGender >= 0) cols.getOrNull(idxGender)?.trim().orEmpty().ifEmpty { "Male" } else "Male"
-                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty().ifEmpty { sysDate.formattedDate } else sysDate.formattedDate
+                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty().ifEmpty { sysDate.date } else sysDate.date
                 val dob = if (idxDob >= 0) cols.getOrNull(idxDob)?.trim().orEmpty() else ""
                 val caste = if (idxCaste >= 0) cols.getOrNull(idxCaste)?.trim().orEmpty() else ""
                 val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
@@ -474,8 +474,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                                 studentId = effectiveStudentId,
                                 studentName = studentName,
                                 amountPaid = pastPaidAmount,
-                                paymentDate = sysDate.formattedDate,
-                                month = "Past Months Settled (Import)",
+                                paymentDate = sysDate.date,
                                 paymentMode = "Historical Import",
                                 remarks = "Auto-settled $pastMonthsCount past months on Excel import"
                             )
