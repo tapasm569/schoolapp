@@ -294,7 +294,91 @@ class SchoolBackupManager(private val database: AppDatabase) {
         return result
     }
 
-    suspend fun importStudentsFromExcelCsv(
+    
+    // Native lightweight XLSX parser for Kotlin Multiplatform / Android
+    fun parseXlsxBytes(bytes: ByteArray): String {
+        try {
+            val zis = java.util.zip.ZipInputStream(bytes.inputStream())
+            var entry = zis.nextEntry
+            var sharedStrings = mutableListOf<String>()
+            val sheetRows = mutableListOf<MutableMap<String, String>>()
+
+            while (entry != null) {
+                val name = entry.name
+                if (name == "xl/sharedStrings.xml") {
+                    val content = zis.bufferedReader().readText()
+                    // Extract <t>...</t> text values
+                    val regex = "<t[^>]*>(.*?)</t>".toRegex()
+                    sharedStrings = regex.findAll(content).map { 
+                        it.groupValues[1]
+                            .replace("&amp;", "&")
+                            .replace("&lt;", "<")
+                            .replace("&gt;", ">")
+                            .replace("&quot;", """)
+                            .replace("&apos;", "'")
+                    }.toMutableList()
+                } else if (name.startsWith("xl/worksheets/sheet")) {
+                    val content = zis.bufferedReader().readText()
+                    // Simple row & cell extractor
+                    val rowRegex = "<row[^>]*>(.*?)</row>".toRegex()
+                    val cellRegex = "<c([^>]*)>(.*?)</c>".toRegex()
+                    val vRegex = "<v>(.*?)</v>".toRegex()
+                    val tRegex = "<t[^>]*>(.*?)</t>".toRegex()
+
+                    rowRegex.findAll(content).forEach { rowMatch ->
+                        val rowContent = rowMatch.groupValues[1]
+                        val rowCells = mutableMapOf<String, String>()
+                        cellRegex.findAll(rowContent).forEach { cellMatch ->
+                            val cellAttr = cellMatch.groupValues[1]
+                            val cellBody = cellMatch.groupValues[2]
+                            val cellRefMatch = "r="([A-Z]+[0-9]+)"".toRegex().find(cellAttr)
+                            val colLetter = cellRefMatch?.groupValues?.get(1)?.filter { it.isLetter() } ?: "A"
+                            
+                            val vMatch = vRegex.find(cellBody)?.groupValues?.get(1).orEmpty()
+                            val cellVal = if (cellAttr.contains("t="s"")) {
+                                val stringIndex = vMatch.toIntOrNull()
+                                if (stringIndex != null && stringIndex < sharedStrings.size) {
+                                    sharedStrings[stringIndex]
+                                } else vMatch
+                            } else {
+                                vMatch
+                            }
+                            rowCells[colLetter] = cellVal
+                        }
+                        if (rowCells.isNotEmpty()) {
+                            // Convert column letters A, B, C... to ordered list values
+                            sheetRows.add(rowCells)
+                        }
+                    }
+                }
+                zis.closeEntry()
+                entry = zis.nextEntry
+            }
+
+            if (sheetRows.isEmpty()) return ""
+
+            // Convert parsed cells to CSV-like lines
+            val csvLines = mutableListOf<String>()
+            sheetRows.forEach { rowMap ->
+                // Determine max columns A to N (14 columns)
+                val maxCol = 'N'
+                val rowValues = mutableListOf<String>()
+                var colChar = 'A'
+                while (colChar <= maxCol) {
+                    rowValues.add(rowMap[colChar.toString()].orEmpty())
+                    colChar++
+                }
+                csvLines.add(rowValues.joinToString(","))
+            }
+            return csvLines.joinToString("\n")
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return ""
+        }
+    }
+
+
+suspend fun importStudentsFromExcelCsv(
         schoolCode: String,
         rawText: String,
         settlePastMonthsAutomatically: Boolean = true
