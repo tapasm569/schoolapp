@@ -61,20 +61,40 @@ actual fun decodeBase64ToImageBitmap(base64Str: String): ImageBitmap? {
 }
 
 @Composable
-actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit): () -> Unit {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val currentCallback = androidx.compose.runtime.rememberUpdatedState(onFileContentLoaded)
 
-    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
-        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
-    ) { uri: android.net.Uri? ->
+@Composable
+actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val currentCallback = rememberUpdatedState(onFileContentLoaded)
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
         if (uri != null) {
             try {
                 val inputStream = context.contentResolver.openInputStream(uri)
-                val text = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
+                val bytes = inputStream?.readBytes()
                 inputStream?.close()
-                if (text.isNotBlank()) {
-                    currentCallback.value(text)
+
+                if (bytes != null && bytes.isNotEmpty()) {
+                    // Check if it's an XLSX zip file (starts with PK / 0x50 0x4B)
+                    val isXlsx = bytes.size > 2 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4B.toByte()
+                    if (isXlsx) {
+                        // Parse XLSX bytes natively
+                        val backupManager = com.school.manage.core.utils.SchoolBackupManager(
+                            com.school.manage.core.database.AppDatabase.getDatabase(context)
+                        )
+                        // Run parser in background coroutine or helper
+                        val parsedCsv = backupManager.parseXlsxBytes(bytes)
+                        if (parsedCsv.isNotBlank()) {
+                            currentCallback.value(parsedCsv)
+                        }
+                    } else {
+                        val content = bytes.toString(Charsets.UTF_8)
+                        if (content.isNotBlank()) {
+                            currentCallback.value(content)
+                        }
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -84,4 +104,5 @@ actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit):
 
     return { launcher.launch("*/*") }
 }
+
 
