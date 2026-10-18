@@ -1,6 +1,12 @@
 package com.school.manage.presentation.screens
 
 import com.school.manage.core.utils.getSystemCurrentDate
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import com.school.manage.core.utils.SchoolBackupManager
+
 
 import com.school.manage.presentation.components.StylishAttendanceSummaryCard
 import com.school.manage.core.firebase.FirestoreSyncService
@@ -183,6 +189,16 @@ fun DashboardScreen(
     var showBatchSessionDialog by remember { mutableStateOf(false) }
     var showResetPasswordDialog by remember { mutableStateOf(false) }
     var showHelpDialog by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
+    val backupManager = remember { SchoolBackupManager(database) }
+    var showExportDialog by remember { mutableStateOf(false) }
+    var showImportDialog by remember { mutableStateOf(false) }
+    var exportBackupJson by remember { mutableStateOf("") }
+    var exportSummaryText by remember { mutableStateOf("") }
+    var importInputJson by remember { mutableStateOf("") }
+    var importStatusMessage by remember { mutableStateOf<String?>(null) }
+    var isBackupLoading by remember { mutableStateOf(false) }
+
 
     var currentBatchSession by remember { mutableStateOf("2026 - 2027") }
     var newAdminPassword by remember { mutableStateOf("") }
@@ -916,6 +932,38 @@ fun DashboardScreen(
                         }
                     )
 
+                    // Option: Export School Data (Backup)
+                    HamburgerOptionItem(
+                        icon = "📤",
+                        title = "Export Data (Backup)",
+                        subtitle = "Save students, staff & fees as JSON backup",
+                        onClick = {
+                            showHamburgerMenu = false
+                            isBackupLoading = true
+                            scope.launch {
+                                val (jsonStr, summary) = backupManager.generateBackupJson(schoolCode)
+                                exportBackupJson = jsonStr
+                                exportSummaryText = summary
+                                isBackupLoading = false
+                                showExportDialog = true
+                            }
+                        }
+                    )
+
+                    // Option: Import School Data (Restore)
+                    HamburgerOptionItem(
+                        icon = "📥",
+                        title = "Import Data (Restore)",
+                        subtitle = "Restore database from your JSON backup",
+                        onClick = {
+                            showHamburgerMenu = false
+                            importInputJson = ""
+                            importStatusMessage = null
+                            showImportDialog = true
+                        }
+                    )
+
+
                     // Option 3: Theme Toggle (Dark / Light Mode)
                     HamburgerOptionItem(
                         icon = if (colors.isDark) "☀️" else "🌙",
@@ -1259,4 +1307,181 @@ fun ProfileDetailRow(
             }
         }
     }
+
+        // ================= EXPORT DATA DIALOG =================
+        if (showExportDialog) {
+            var copiedMessage by remember { mutableStateOf(false) }
+            AlertDialog(
+                onDismissRequest = { showExportDialog = false },
+                containerColor = colors.bgCard,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("📤", fontSize = 22.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("School Data Backup", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary)
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = colors.brandPrimary.copy(alpha = 0.1f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = exportSummaryText,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.brandPrimary,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString(exportBackupJson))
+                                copiedMessage = true
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(if (copiedMessage) "✓ Backup Copied to Clipboard!" else "📋 Copy JSON to Clipboard")
+                        }
+
+                        if (copiedMessage) {
+                            Text(
+                                text = "Paste this JSON into WhatsApp, Google Keep, or an Email draft to keep a permanent backup safe.",
+                                fontSize = 11.sp,
+                                color = colors.success,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+
+                        Text("Preview JSON:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textSecondary)
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = colors.bgApp,
+                            border = BorderStroke(1.dp, colors.borderCard),
+                            modifier = Modifier.fillMaxWidth().height(140.dp)
+                        ) {
+                            Text(
+                                text = exportBackupJson.take(800) + if (exportBackupJson.length > 800) "... [more]" else "",
+                                fontSize = 10.sp,
+                                color = colors.textSecondary,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showExportDialog = false }) {
+                        Text("Done", color = colors.brandPrimary, fontWeight = FontWeight.Bold)
+                    }
+                }
+            )
+        }
+
+        // ================= IMPORT DATA DIALOG =================
+        if (showImportDialog) {
+            var isRestoring by remember { mutableStateOf(false) }
+            AlertDialog(
+                onDismissRequest = { if (!isRestoring) showImportDialog = false },
+                containerColor = colors.bgCard,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("📥", fontSize = 22.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Restore School Backup", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary)
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            text = "Paste your previously exported JSON backup below. This will restore all your classes, students, staff, fee payments, and expenses.",
+                            fontSize = 12.sp,
+                            color = colors.textSecondary
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("Backup JSON:", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                            TextButton(
+                                onClick = {
+                                    val clip = clipboardManager.getText()?.text.orEmpty()
+                                    if (clip.isNotBlank()) importInputJson = clip
+                                }
+                            ) {
+                                Text("📋 Paste Clipboard", fontSize = 12.sp, color = colors.brandPrimary)
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = importInputJson,
+                            onValueChange = { importInputJson = it },
+                            placeholder = { Text("Paste JSON string here...", fontSize = 12.sp) },
+                            modifier = Modifier.fillMaxWidth().height(160.dp),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        importStatusMessage?.let { msg ->
+                            val isSuccess = msg.startsWith("Restored successfully")
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSuccess) Color(0xFFDCFCE7) else Color(0xFFFEE2E2),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = msg,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSuccess) Color(0xFF15803D) else Color(0xFFB91C1C),
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        enabled = importInputJson.isNotBlank() && !isRestoring,
+                        onClick = {
+                            isRestoring = true
+                            scope.launch {
+                                val result = backupManager.restoreBackupJson(schoolCode, importInputJson)
+                                if (result.isSuccess) {
+                                    importStatusMessage = result.getOrNull()
+                                } else {
+                                    importStatusMessage = "Error: ${result.exceptionOrNull()?.message ?: "Failed to restore data"}"
+                                }
+                                isRestoring = false
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(if (isRestoring) "Restoring..." else "⚡ Restore Data")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showImportDialog = false }) {
+                        Text("Cancel", color = colors.textSecondary)
+                    }
+                }
+            )
+        }
+
 }
