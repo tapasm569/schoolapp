@@ -268,6 +268,8 @@ class SchoolBackupManager(private val database: AppDatabase) {
         }
     }
 
+    fun parseXlsxBytes(bytes: ByteArray): String = parseXlsxBytesStandalone(bytes)
+
     private fun splitCsvOrTsvLine(line: String, delimiter: Char): List<String> {
         val result = mutableListOf<String>()
         val sb = StringBuilder()
@@ -275,9 +277,9 @@ class SchoolBackupManager(private val database: AppDatabase) {
         var i = 0
         while (i < line.length) {
             val c = line[i]
-            if (c == '"') {
-                if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
-                    sb.append('"')
+            if (c == '\"') {
+                if (inQuotes && i + 1 < line.length && line[i + 1] == '\"') {
+                    sb.append('\"')
                     i++
                 } else {
                     inQuotes = !inQuotes
@@ -294,91 +296,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
         return result
     }
 
-    
-    // Native lightweight XLSX parser for Kotlin Multiplatform / Android
-    fun parseXlsxBytes(bytes: ByteArray): String {
-        try {
-            val zis = java.util.zip.ZipInputStream(bytes.inputStream())
-            var entry = zis.nextEntry
-            var sharedStrings = mutableListOf<String>()
-            val sheetRows = mutableListOf<MutableMap<String, String>>()
-
-            while (entry != null) {
-                val name = entry.name
-                if (name == "xl/sharedStrings.xml") {
-                    val content = zis.bufferedReader().readText()
-                    // Extract <t>...</t> text values
-                    val regex = "<t[^>]*>(.*?)</t>".toRegex()
-                    sharedStrings = regex.findAll(content).map { 
-                        it.groupValues[1]
-                            .replace("&amp;", "&")
-                            .replace("&lt;", "<")
-                            .replace("&gt;", ">")
-                            .replace("&quot;", """)
-                            .replace("&apos;", "'")
-                    }.toMutableList()
-                } else if (name.startsWith("xl/worksheets/sheet")) {
-                    val content = zis.bufferedReader().readText()
-                    // Simple row & cell extractor
-                    val rowRegex = "<row[^>]*>(.*?)</row>".toRegex()
-                    val cellRegex = "<c([^>]*)>(.*?)</c>".toRegex()
-                    val vRegex = "<v>(.*?)</v>".toRegex()
-                    val tRegex = "<t[^>]*>(.*?)</t>".toRegex()
-
-                    rowRegex.findAll(content).forEach { rowMatch ->
-                        val rowContent = rowMatch.groupValues[1]
-                        val rowCells = mutableMapOf<String, String>()
-                        cellRegex.findAll(rowContent).forEach { cellMatch ->
-                            val cellAttr = cellMatch.groupValues[1]
-                            val cellBody = cellMatch.groupValues[2]
-                            val cellRefMatch = "r="([A-Z]+[0-9]+)"".toRegex().find(cellAttr)
-                            val colLetter = cellRefMatch?.groupValues?.get(1)?.filter { it.isLetter() } ?: "A"
-                            
-                            val vMatch = vRegex.find(cellBody)?.groupValues?.get(1).orEmpty()
-                            val cellVal = if (cellAttr.contains("t="s"")) {
-                                val stringIndex = vMatch.toIntOrNull()
-                                if (stringIndex != null && stringIndex < sharedStrings.size) {
-                                    sharedStrings[stringIndex]
-                                } else vMatch
-                            } else {
-                                vMatch
-                            }
-                            rowCells[colLetter] = cellVal
-                        }
-                        if (rowCells.isNotEmpty()) {
-                            // Convert column letters A, B, C... to ordered list values
-                            sheetRows.add(rowCells)
-                        }
-                    }
-                }
-                zis.closeEntry()
-                entry = zis.nextEntry
-            }
-
-            if (sheetRows.isEmpty()) return ""
-
-            // Convert parsed cells to CSV-like lines
-            val csvLines = mutableListOf<String>()
-            sheetRows.forEach { rowMap ->
-                // Determine max columns A to N (14 columns)
-                val maxCol = 'N'
-                val rowValues = mutableListOf<String>()
-                var colChar = 'A'
-                while (colChar <= maxCol) {
-                    rowValues.add(rowMap[colChar.toString()].orEmpty())
-                    colChar++
-                }
-                csvLines.add(rowValues.joinToString(","))
-            }
-            return csvLines.joinToString("\n")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            return ""
-        }
-    }
-
-
-suspend fun importStudentsFromExcelCsv(
+    suspend fun importStudentsFromExcelCsv(
         schoolCode: String,
         rawText: String,
         settlePastMonthsAutomatically: Boolean = true
@@ -459,9 +377,9 @@ suspend fun importStudentsFromExcelCsv(
             }
 
             val sysDateObj = getSystemCurrentDate()
-            val currentDatestr = sysDateObj.formatted
             val currentYear = sysDateObj.year
             val currentMonthIndex = sysDateObj.monthIndex
+            val currentDatestr = "01/${(currentMonthIndex + 1).toString().padStart(2, '0')}/$currentYear"
 
             var importedCount = 0
             var updatedCount = 0
@@ -486,7 +404,8 @@ suspend fun importStudentsFromExcelCsv(
                 val monthlyFee = cols.getOrNull(idxMonthlyFee)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val pendingDue = cols.getOrNull(idxPendingDue)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val gender = if (idxGender >= 0) cols.getOrNull(idxGender)?.trim().orEmpty().ifEmpty { "Male" } else "Male"
-                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.toString()?.trim().orEmpty().ifEmpty { currentDatestr } else currentDatestr
+                val rawAdmDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty() else ""
+                val admDate: String = if (rawAdmDate.isNotEmpty()) rawAdmDate else currentDatestr
                 val dob = if (idxDob >= 0) cols.getOrNull(idxDob)?.trim().orEmpty() else ""
                 val caste = if (idxCaste >= 0) cols.getOrNull(idxCaste)?.trim().orEmpty() else ""
                 val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
@@ -549,7 +468,7 @@ suspend fun importStudentsFromExcelCsv(
                 val effectiveStudentId = if (duplicate != null && duplicate.id != 0L) duplicate.id else savedId
 
                 if (settlePastMonthsAutomatically && monthlyFee > 0.0 && duplicate == null) {
-                    val admParts = admDate.toString().split("/", "-", ".")
+                    val admParts = admDate.split("/", "-", ".")
                     val admMonth = admParts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: currentMonthIndex
                     val admYear = admParts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: currentYear
                     val pastMonthsCount = maxOf(0, (currentYear - admYear) * 12 + (currentMonthIndex - admMonth))
@@ -590,127 +509,93 @@ suspend fun importStudentsFromExcelCsv(
             Result.failure(e)
         }
     }
-
 }
 
-class MiniJsonParser(private val json: String) {
-    private var i = 0
+fun parseXlsxBytesStandalone(bytes: ByteArray): String {
+    try {
+        val sharedStrings = mutableListOf<String>()
+        val sheetXmlList = mutableListOf<String>()
 
-    private fun skip() {
-        while (i < json.length && json[i].isWhitespace()) i++
-    }
-
-    fun parse(): Any? {
-        skip()
-        if (i >= json.length) return null
-        return when (json[i]) {
-            '{' -> parseObject()
-            '[' -> parseArray()
-            '"' -> parseString()
-            't', 'f' -> parseBoolean()
-            'n' -> parseNull()
-            else -> parseNumber()
-        }
-    }
-
-    private fun parseObject(): Map<String, Any?> {
-        val map = mutableMapOf<String, Any?>()
-        i++ // consume '{'
-        skip()
-        if (i < json.length && json[i] == '}') {
-            i++
-            return map
-        }
-        while (i < json.length) {
-            skip()
-            val key = parseString()
-            skip()
-            if (i < json.length && json[i] == ':') i++
-            skip()
-            val value = parse()
-            map[key] = value
-            skip()
-            if (i < json.length && json[i] == ',') {
-                i++
-            } else if (i < json.length && json[i] == '}') {
-                i++
-                break
-            }
-        }
-        return map
-    }
-
-    private fun parseArray(): List<Any?> {
-        val list = mutableListOf<Any?>()
-        i++ // consume '['
-        skip()
-        if (i < json.length && json[i] == ']') {
-            i++
-            return list
-        }
-        while (i < json.length) {
-            val item = parse()
-            list.add(item)
-            skip()
-            if (i < json.length && json[i] == ',') {
-                i++
-            } else if (i < json.length && json[i] == ']') {
-                i++
-                break
-            }
-        }
-        return list
-    }
-
-    private fun parseString(): String {
-        i++ // consume '"'
-        val sb = StringBuilder()
-        while (i < json.length) {
-            val c = json[i++]
-            if (c == '"') break
-            if (c == '\\' && i < json.length) {
-                when (val esc = json[i++]) {
-                    '"' -> sb.append('"')
-                    '\\' -> sb.append('\\')
-                    'n' -> sb.append('\n')
-                    'r' -> sb.append('\r')
-                    't' -> sb.append('\t')
-                    '/' -> sb.append('/')
-                    else -> sb.append(esc)
+        val zis = java.util.zip.ZipInputStream(bytes.inputStream())
+        var entry = zis.nextEntry
+        while (entry != null) {
+            val name = entry.name
+            if (name == "xl/sharedStrings.xml") {
+                val xml = zis.bufferedReader().readText()
+                val tRegex = Regex("<t[^>]*>(.*?)</t>", RegexOption.DOT_MATCHES_ALL)
+                tRegex.findAll(xml).forEach { m ->
+                    sharedStrings.add(
+                        m.groupValues[1]
+                            .replace("&amp;", "&")
+                            .replace("&lt;", "<")
+                            .replace("&gt;", ">")
+                            .replace("&quot;", "\"")
+                            .replace("&apos;", "'")
+                    )
                 }
-            } else {
-                sb.append(c)
+            } else if (name.startsWith("xl/worksheets/sheet") && name.endsWith(".xml")) {
+                sheetXmlList.add(zis.bufferedReader().readText())
+            }
+            zis.closeEntry()
+            entry = zis.nextEntry
+        }
+
+        val sheetContent = sheetXmlList.firstOrNull() ?: return ""
+        val rowRegex = Regex("<row[^>]*>(.*?)</row>", RegexOption.DOT_MATCHES_ALL)
+        val cellRegex = Regex("<c([^>]*)>(.*?)</c>", RegexOption.DOT_MATCHES_ALL)
+        val vRegex = Regex("<v[^>]*>(.*?)</v>", RegexOption.DOT_MATCHES_ALL)
+        val tRegex = Regex("<t[^>]*>(.*?)</t>", RegexOption.DOT_MATCHES_ALL)
+        val refRegex = Regex("r=\"([A-Z]+)[0-9]+\"")
+
+        val csvLines = mutableListOf<String>()
+        rowRegex.findAll(sheetContent).forEach { rowMatch ->
+            val rowBody = rowMatch.groupValues[1]
+            val rowCells = mutableMapOf<String, String>()
+            cellRegex.findAll(rowBody).forEach { cellMatch ->
+                val cellAttr = cellMatch.groupValues[1]
+                val cellBody = cellMatch.groupValues[2]
+                val colLetter = refRegex.find(cellAttr)?.groupValues?.get(1) ?: "A"
+
+                val rawVal = when {
+                    cellAttr.contains("t=\"s\"") -> {
+                        val idx = vRegex.find(cellBody)?.groupValues?.get(1)?.trim()?.toIntOrNull()
+                        if (idx != null && idx in sharedStrings.indices) sharedStrings[idx] else ""
+                    }
+                    cellAttr.contains("t=\"inlineStr\"") || cellAttr.contains("t=\"str\"") -> {
+                        tRegex.find(cellBody)?.groupValues?.get(1) ?: ""
+                    }
+                    else -> {
+                        vRegex.find(cellBody)?.groupValues?.get(1)
+                            ?: tRegex.find(cellBody)?.groupValues?.get(1)
+                            ?: ""
+                    }
+                }
+
+                val cleanVal = rawVal
+                    .replace("&amp;", "&")
+                    .replace("&lt;", "<")
+                    .replace("&gt;", ">")
+                    .replace("&quot;", "\"")
+                    .replace("&apos;", "'")
+                    .trim()
+
+                rowCells[colLetter] = cleanVal
+            }
+
+            if (rowCells.isNotEmpty()) {
+                val rowValues = mutableListOf<String>()
+                var colChar = 'A'
+                while (colChar <= 'N') {
+                    val cellText = rowCells[colChar.toString()].orEmpty().replace("\"", "\"\"")
+                    rowValues.add("\"$cellText\"")
+                    colChar++
+                }
+                csvLines.add(rowValues.joinToString(","))
             }
         }
-        return sb.toString()
-    }
-
-    private fun parseBoolean(): Boolean {
-        if (json.startsWith("true", i)) {
-            i += 4
-            return true
-        }
-        if (json.startsWith("false", i)) {
-            i += 5
-            return false
-        }
-        return false
-    }
-
-    private fun parseNull(): Any? {
-        if (json.startsWith("null", i)) i += 4
-        return null
-    }
-
-    private fun parseNumber(): Number {
-        val start = i
-        if (i < json.length && (json[i] == '-' || json[i] == '+')) i++
-        while (i < json.length && (json[i].isDigit() || json[i] == '.' || json[i] == 'e' || json[i] == 'E')) i++
-        val numStr = json.substring(start, i)
-        return if (numStr.contains('.')) {
-            numStr.toDoubleOrNull() ?: 0.0
-        } else {
-            numStr.toLongOrNull() ?: 0L
-        }
+        return csvLines.joinToString("\n")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return ""
     }
 }

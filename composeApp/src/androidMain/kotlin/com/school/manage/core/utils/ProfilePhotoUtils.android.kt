@@ -77,20 +77,14 @@ actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit):
                 inputStream?.close()
 
                 if (bytes != null && bytes.isNotEmpty()) {
-                    // Check if it's an XLSX zip file (starts with PK / 0x50 0x4B)
                     val isXlsx = bytes.size > 2 && bytes[0] == 0x50.toByte() && bytes[1] == 0x4B.toByte()
                     if (isXlsx) {
-                        // Parse XLSX bytes natively
-                        val backupManager = com.school.manage.core.utils.SchoolBackupManager(
-                            com.school.manage.core.database.AppDatabase.getDatabase(context)
-                        )
-                        // Run parser in background coroutine or helper
-                        val parsedCsv = backupManager.parseXlsxBytes(bytes)
+                        val parsedCsv = com.school.manage.core.utils.parseXlsxBytesStandalone(bytes)
                         if (parsedCsv.isNotBlank()) {
                             currentCallback.value(parsedCsv)
                         }
                     } else {
-                        val content = bytes.toString(Charsets.UTF_8)
+                        val content = bytes.decodeToString()
                         if (content.isNotBlank()) {
                             currentCallback.value(content)
                         }
