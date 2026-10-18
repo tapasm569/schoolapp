@@ -352,13 +352,13 @@ fun AddStudentScreen(
                             label = "Male",
                             icon = "♂",
                             isSelected = gender == "Male",
-                            onClick = { gender = "Male" }
+                            onClick = { gender = "Male"; section = "A" }
                         )
                         GenderOptionButton(
                             label = "Female",
                             icon = "♀",
                             isSelected = gender == "Female",
-                            onClick = { gender = "Female" }
+                            onClick = { gender = "Female"; section = "B" }
                         )
                     }
                 }
@@ -1244,7 +1244,7 @@ fun AssignBatchScreen(
                                             schoolCode = schoolCode,
                                             batchName = targetBatchName,
                                             subjects = "General",
-                                            sections = "A",
+                                            sections = "A, B",
                                             feeTemplateRaw = encoded,
                                             defaultMonthlyTuition = tAmt,
                                             collectTuitionAtAdmission = dialogCollectAtAdmission

@@ -363,7 +363,7 @@ fun DashboardScreen(
                             Column {
                                 Text("Attendance Summary", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
                                 Text(
-                                    text = if (selectedAttendanceDay == null) "All Month Overview" else "Day: " + (if (selectedAttendanceDay!! < 10) "0" + selectedAttendanceDay else selectedAttendanceDay.toString()) + "/" + monthNumberStr + "/" + selectedYear,
+                                    text = if (selectedAttendanceDay == null) "Today: " + today.formatted + " (All Month)" else "Date: " + (if (selectedAttendanceDay!! < 10) "0" + selectedAttendanceDay else selectedAttendanceDay.toString()) + "/" + monthNumberStr + "/" + selectedYear,
                                     fontSize = 11.sp,
                                     color = colors.textSecondary,
                                     fontWeight = FontWeight.Medium
@@ -377,7 +377,7 @@ fun DashboardScreen(
                                     color = colors.brandPrimary,
                                     modifier = Modifier.clickable {
                                         if (selectedMonthIndex > 0) selectedMonthIndex -= 1 else { selectedMonthIndex = 11; selectedYear -= 1 }
-                                        selectedAttendanceDay = null
+                                        selectedAttendanceDay = if (selectedMonthIndex == today.monthIndex && selectedYear == today.year) today.day else null
                                     }.padding(horizontal = 6.dp)
                                 )
                                 Text(currentMonthLabel, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
@@ -388,7 +388,7 @@ fun DashboardScreen(
                                     color = colors.brandPrimary,
                                     modifier = Modifier.clickable {
                                         if (selectedMonthIndex < 11) selectedMonthIndex += 1 else { selectedMonthIndex = 0; selectedYear += 1 }
-                                        selectedAttendanceDay = null
+                                        selectedAttendanceDay = if (selectedMonthIndex == today.monthIndex && selectedYear == today.year) today.day else null
                                     }.padding(horizontal = 6.dp)
                                 )
                             }
@@ -589,7 +589,10 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("Monthly Summary", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
+                            Column {
+                                Text("Monthly Summary", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
+                                Text("Date: " + today.formatted, fontSize = 11.sp, color = colors.textSecondary, fontWeight = FontWeight.SemiBold)
+                            }
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "‹",

@@ -107,7 +107,7 @@ fun AddBatchScreen(
     val scope = rememberCoroutineScope()
     var batchName by remember { mutableStateOf("") }
     val subjects = remember { listOf("").toMutableStateList().apply { clear() } }
-    val sections = remember { listOf("").toMutableStateList().apply { clear() } }
+    val sections = remember { mutableStateListOf("A", "B") }
 
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     var newSubject by remember { mutableStateOf("") }
@@ -142,7 +142,7 @@ fun AddBatchScreen(
                                         schoolCode = schoolCode,
                                         batchName = batchName.trim(),
                                         subjects = subjects.joinToString(", "),
-                                        sections = sections.joinToString(", ")
+                                        sections = if (sections.isEmpty()) "A, B" else sections.joinToString(", ")
                                     )
                                 )
                                 onNavigateBack()
@@ -267,7 +267,7 @@ fun AddBatchScreen(
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
                         Text("Sections", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                        Text("Add sections for this class (e.g. A, B, C)", fontSize = 12.sp, color = colors.textSecondary)
+                        Text("Default: Section A (Boys) & Section B (Girls) — Optional", fontSize = 12.sp, color = colors.textSecondary)
                         Spacer(modifier = Modifier.height(8.dp))
 
                         if (sections.isEmpty()) {
