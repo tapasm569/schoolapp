@@ -6,6 +6,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 
 import com.school.manage.core.utils.getSystemCurrentDate
 import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.utils.rememberCsvFilePickerLauncher
 import com.school.manage.core.utils.ProfileAvatar
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -200,6 +201,13 @@ fun DashboardScreen(
     val backupManager = remember { SchoolBackupManager(database) }
     var showExportDialog by remember { mutableStateOf(false) }
     var showImportDialog by remember { mutableStateOf(false) }
+    var showBulkStudentImportDialog by remember { mutableStateOf(false) }
+    var bulkStudentExcelInput by remember { mutableStateOf("") }
+    var bulkImportStatusMessage by remember { mutableStateOf<String?>(null) }
+    val pickExcelCsvFile = rememberCsvFilePickerLauncher { fileText ->
+        bulkStudentExcelInput = fileText
+        bulkImportStatusMessage = "✓ Excel/CSV file loaded! Tap 'Import Students' below."
+    }
     var exportBackupJson by remember { mutableStateOf("") }
     var exportSummaryText by remember { mutableStateOf("") }
     var importInputJson by remember { mutableStateOf("") }
@@ -991,6 +999,19 @@ fun DashboardScreen(
                         }
                     )
 
+                    // Option: Bulk Import Admitted Students (Excel / CSV)
+                    HamburgerOptionItem(
+                        icon = "📊",
+                        title = "Import Students (Excel / CSV)",
+                        subtitle = "Upload past 3 years students from Excel .csv file",
+                        onClick = {
+                            showHamburgerMenu = false
+                            bulkStudentExcelInput = ""
+                            bulkImportStatusMessage = null
+                            showBulkStudentImportDialog = true
+                        }
+                    )
+
 
                     // Option 3: Theme Toggle (Dark / Light Mode)
                     HamburgerOptionItem(
@@ -1429,6 +1450,167 @@ fun DashboardScreen(
                 dismissButton = {
                     TextButton(onClick = { showImportDialog = false }) {
                         Text("Cancel", color = colors.textSecondary)
+                    }
+                }
+            )
+        }
+
+        // ================= BULK STUDENT IMPORT (EXCEL / CSV) DIALOG =================
+        if (showBulkStudentImportDialog) {
+            var isImportingBulk by remember { mutableStateOf(false) }
+            var settlePastMonths by remember { mutableStateOf(true) }
+            val sampleCsvTemplate = "Roll No,Student Name,Class,Section,Father Name,Mother Name,Phone,Monthly Fee,Pending Due,Gender,Admission Date,DOB,Caste,Address\n1,Rahul Das,Class 5,A,Ramesh Das,Sita Das,9876543210,500,0,Male,10/01/2024,15/05/2015,General,Ranirhat\n2,Priya Roy,Class 6,A,Subir Roy,Mina Roy,9123456789,600,1200,Female,15/01/2025,20/08/2014,OBC,Mekhliganj"
+
+            AlertDialog(
+                onDismissRequest = { if (!isImportingBulk) showBulkStudentImportDialog = false },
+                containerColor = colors.bgCard,
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("📊", fontSize = 22.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("Import Admitted Students", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = colors.textPrimary)
+                            Text("Bulk upload 3 years school register from Excel (.csv)", fontSize = 11.sp, color = colors.textSecondary)
+                        }
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = colors.brandPrimary.copy(alpha = 0.1f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Text("Supported Excel Columns:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.brandPrimary)
+                                Text(
+                                    text = "Roll No | Student Name | Class | Section | Father Name | Mother Name | Phone | Monthly Fee | Pending Due | Gender | Admission Date | DOB | Caste | Address",
+                                    fontSize = 11.sp,
+                                    color = colors.textPrimary
+                                )
+                                Text(
+                                    text = "• Leave Roll No blank to auto-assign 1, 2, 3... per class.\n• Put any old unpaid balance in 'Pending Due'.",
+                                    fontSize = 10.sp,
+                                    color = colors.textSecondary
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { pickExcelCsvFile() },
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text("📂 Pick Excel (.csv)", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(sampleCsvTemplate))
+                                    bulkStudentExcelInput = sampleCsvTemplate
+                                    bulkImportStatusMessage = "✓ 14-Column Excel Template loaded & copied!"
+                                },
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("📋 Copy Template", fontSize = 12.sp)
+                            }
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(colors.bgApp)
+                                .clickable { settlePastMonths = !settlePastMonths }
+                                .padding(horizontal = 8.dp, vertical = 6.dp)
+                        ) {
+                            Checkbox(
+                                checked = settlePastMonths,
+                                onCheckedChange = { settlePastMonths = it }
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Column {
+                                Text(
+                                    text = "Auto-settle past months (2023–2026)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = colors.textPrimary
+                                )
+                                Text(
+                                    text = "Prevents old Admission Dates from creating false unpaid dues. Only 'Pending Due' column + current month will be owed.",
+                                    fontSize = 10.sp,
+                                    color = colors.textSecondary
+                                )
+                            }
+                        }
+
+                        OutlinedTextField(
+                            value = bulkStudentExcelInput,
+                            onValueChange = { bulkStudentExcelInput = it },
+                            label = { Text("Excel CSV Content (or Paste directly from Excel)", fontSize = 11.sp) },
+                            placeholder = { Text("Roll No,Student Name,Class,Section,Father Name...", fontSize = 11.sp) },
+                            modifier = Modifier.fillMaxWidth().height(140.dp),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        val status = bulkImportStatusMessage
+                        if (status != null) {
+                            val isError = status.startsWith("Error:")
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isError) Color(0xFFFEE2E2) else Color(0xFFDCFCE7),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = status,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isError) Color(0xFFB91C1C) else Color(0xFF15803D),
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        enabled = bulkStudentExcelInput.isNotBlank() && !isImportingBulk,
+                        onClick = {
+                            isImportingBulk = true
+                            scope.launch {
+                                val res = backupManager.importStudentsFromExcelCsv(
+                                    schoolCode = schoolCode,
+                                    rawText = bulkStudentExcelInput,
+                                    settlePastMonthsAutomatically = settlePastMonths
+                                )
+                                if (res.isSuccess) {
+                                    bulkImportStatusMessage = res.getOrNull()
+                                } else {
+                                    bulkImportStatusMessage = "Error: " + (res.exceptionOrNull()?.message ?: "Could not parse Excel file")
+                                }
+                                isImportingBulk = false
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(if (isImportingBulk) "Importing..." else "⚡ Import Students")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBulkStudentImportDialog = false }) {
+                        Text("Close", color = colors.textSecondary)
                     }
                 }
             )

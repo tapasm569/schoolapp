@@ -27,6 +27,9 @@ import androidx.compose.ui.unit.sp
 @Composable
 expect fun rememberPhotoPickerLauncher(onPhotoSelected: (String) -> Unit): () -> Unit
 
+@Composable
+expect fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit): () -> Unit
+
 expect fun decodeBase64ToImageBitmap(base64Str: String): ImageBitmap?
 
 @Composable

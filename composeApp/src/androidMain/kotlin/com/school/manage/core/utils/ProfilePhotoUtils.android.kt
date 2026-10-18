@@ -59,3 +59,29 @@ actual fun decodeBase64ToImageBitmap(base64Str: String): ImageBitmap? {
         null
     }
 }
+
+@Composable
+actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit): () -> Unit {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val currentCallback = androidx.compose.runtime.rememberUpdatedState(onFileContentLoaded)
+
+    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        if (uri != null) {
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val text = inputStream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() }.orEmpty()
+                inputStream?.close()
+                if (text.isNotBlank()) {
+                    currentCallback.value(text)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    return { launcher.launch("*/*") }
+}
+

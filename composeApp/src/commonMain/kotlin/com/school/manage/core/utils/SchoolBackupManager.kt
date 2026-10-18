@@ -2,6 +2,7 @@ package com.school.manage.core.utils
 
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
+import com.school.manage.core.utils.getSystemCurrentDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.first
@@ -266,6 +267,243 @@ class SchoolBackupManager(private val database: AppDatabase) {
             Result.failure(ex)
         }
     }
+
+    private fun splitCsvOrTsvLine(line: String, delimiter: Char): List<String> {
+        val result = mutableListOf<String>()
+        val sb = StringBuilder()
+        var inQuotes = false
+        var i = 0
+        while (i < line.length) {
+            val c = line[i]
+            if (c == '"') {
+                if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+                    sb.append('"')
+                    i++
+                } else {
+                    inQuotes = !inQuotes
+                }
+            } else if (c == delimiter && !inQuotes) {
+                result.add(sb.toString().trim())
+                sb.clear()
+            } else {
+                sb.append(c)
+            }
+            i++
+        }
+        result.add(sb.toString().trim())
+        return result
+    }
+
+    suspend fun importStudentsFromExcelCsv(
+        schoolCode: String,
+        rawText: String,
+        settlePastMonthsAutomatically: Boolean = true
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val cleanText = rawText.replace("\uFEFF", "").trim()
+            val lines = cleanText.lines().map { it.trim() }.filter { it.isNotEmpty() }
+            if (lines.isEmpty()) {
+                return@withContext Result.failure(Exception("Excel/CSV data is empty!"))
+            }
+
+            val firstLine = lines.first()
+            val delimiter = when {
+                firstLine.contains('\t') -> '\t'
+                firstLine.count { it == ';' } > firstLine.count { it == ',' } -> ';'
+                else -> ','
+            }
+
+            val firstCells = splitCsvOrTsvLine(firstLine, delimiter).map { it.lowercase().trim() }
+            val hasHeader = firstCells.any {
+                it.contains("name") || it.contains("roll") || it.contains("class") ||
+                it.contains("phone") || it.contains("mobile") || it.contains("fee")
+            }
+
+            var idxRoll = 0
+            var idxName = 1
+            var idxClass = 2
+            var idxSection = 3
+            var idxFather = 4
+            var idxMother = 5
+            var idxPhone = 6
+            var idxWhatsapp = -1
+            var idxMonthlyFee = 7
+            var idxPendingDue = 8
+            var idxGender = 9
+            var idxAdmissionDate = 10
+            var idxDob = 11
+            var idxCaste = 12
+            var idxAddress = 13
+
+            if (hasHeader) {
+                idxMother = -1
+                idxDob = -1
+                idxCaste = -1
+                idxAddress = -1
+                firstCells.forEachIndexed { index, col ->
+                    when {
+                        col.contains("roll") -> idxRoll = index
+                        col.contains("student") || col == "name" || col.contains("full name") -> idxName = index
+                        col.contains("class") || col.contains("grade") || col.contains("batch") || col.contains("std") -> idxClass = index
+                        col.contains("sec") -> idxSection = index
+                        col.contains("father") || col.contains("guardian") || col.contains("parent") -> idxFather = index
+                        col.contains("mother") -> idxMother = index
+                        col.contains("whatsapp") -> idxWhatsapp = index
+                        col.contains("phone") || col.contains("mobile") || col.contains("contact") -> idxPhone = index
+                        col.contains("monthly") || col.contains("tuition") -> idxMonthlyFee = index
+                        col.contains("due") || col.contains("admission fee") || col.contains("balance") || col.contains("arrears") -> idxPendingDue = index
+                        col.contains("gender") || col.contains("sex") -> idxGender = index
+                        col.contains("admission date") || col.contains("join") || col == "date" -> idxAdmissionDate = index
+                        col.contains("dob") || col.contains("birth") -> idxDob = index
+                        col.contains("caste") || col.contains("category") -> idxCaste = index
+                        col.contains("address") || col.contains("village") || col.contains("city") -> idxAddress = index
+                    }
+                }
+            }
+
+            val dataRows = if (hasHeader) lines.drop(1) else lines
+            val existingBatches = database.batchDao().getBatchesBySchool(schoolCode).first()
+                .map { it.batchName.lowercase() }.toMutableSet()
+            val existingStudents = database.studentDao().getStudentsBySchool(schoolCode).first().toMutableList()
+
+            val classMaxRollMap = mutableMapOf<String, Int>()
+            existingStudents.forEach { st ->
+                val key = st.gradeClass.ifEmpty { "General" }.lowercase()
+                val rNum = st.rollNo.filter { it.isDigit() }.toIntOrNull() ?: 0
+                val curMax = classMaxRollMap[key] ?: 0
+                if (rNum > curMax) classMaxRollMap[key] = rNum
+            }
+
+            val sysDate = getSystemCurrentDate()
+            var importedCount = 0
+            var updatedCount = 0
+            var newClassesCount = 0
+
+            for (row in dataRows) {
+                val cols = splitCsvOrTsvLine(row, delimiter)
+                if (cols.all { it.isBlank() }) continue
+
+                val studentName = cols.getOrNull(idxName)?.trim().orEmpty()
+                if (studentName.isEmpty()) continue
+
+                val gradeClass = cols.getOrNull(idxClass)?.trim().orEmpty().ifEmpty { "General" }
+                val classKey = gradeClass.lowercase()
+                val rawRoll = cols.getOrNull(idxRoll)?.trim().orEmpty()
+
+                val section = if (idxSection >= 0) cols.getOrNull(idxSection)?.trim().orEmpty() else ""
+                val father = if (idxFather >= 0) cols.getOrNull(idxFather)?.trim().orEmpty() else ""
+                val mother = if (idxMother >= 0) cols.getOrNull(idxMother)?.trim().orEmpty() else ""
+                val phone = if (idxPhone >= 0) cols.getOrNull(idxPhone)?.trim().orEmpty() else ""
+                val whatsapp = if (idxWhatsapp >= 0) cols.getOrNull(idxWhatsapp)?.trim().orEmpty().ifEmpty { phone } else phone
+                val monthlyFee = cols.getOrNull(idxMonthlyFee)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
+                val pendingDue = cols.getOrNull(idxPendingDue)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
+                val gender = if (idxGender >= 0) cols.getOrNull(idxGender)?.trim().orEmpty().ifEmpty { "Male" } else "Male"
+                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty().ifEmpty { sysDate.formattedDate } else sysDate.formattedDate
+                val dob = if (idxDob >= 0) cols.getOrNull(idxDob)?.trim().orEmpty() else ""
+                val caste = if (idxCaste >= 0) cols.getOrNull(idxCaste)?.trim().orEmpty() else ""
+                val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
+
+                if (classKey !in existingBatches) {
+                    database.batchDao().insertBatch(
+                        BatchEntity(
+                            schoolCode = schoolCode,
+                            batchName = gradeClass,
+                            defaultMonthlyTuition = monthlyFee
+                        )
+                    )
+                    existingBatches.add(classKey)
+                    newClassesCount++
+                }
+
+                val duplicate = existingStudents.find {
+                    it.name.equals(studentName, ignoreCase = true) &&
+                    it.gradeClass.equals(gradeClass, ignoreCase = true)
+                }
+
+                val finalRoll = when {
+                    rawRoll.isNotEmpty() -> {
+                        val parsedNum = rawRoll.filter { it.isDigit() }.toIntOrNull() ?: 0
+                        val curMax = classMaxRollMap[classKey] ?: 0
+                        if (parsedNum > curMax) classMaxRollMap[classKey] = parsedNum
+                        rawRoll
+                    }
+                    duplicate != null && duplicate.rollNo.isNotBlank() -> duplicate.rollNo
+                    else -> {
+                        val nextRoll = (classMaxRollMap[classKey] ?: 0) + 1
+                        classMaxRollMap[classKey] = nextRoll
+                        nextRoll.toString()
+                    }
+                }
+
+                val studentToSave = StudentEntity(
+                    id = duplicate?.id ?: 0L,
+                    schoolCode = schoolCode,
+                    rollNo = finalRoll,
+                    name = studentName,
+                    gradeClass = gradeClass,
+                    section = section.ifEmpty { duplicate?.section.orEmpty() },
+                    guardianName = father.ifEmpty { duplicate?.guardianName.orEmpty() },
+                    fatherName = father.ifEmpty { duplicate?.fatherName.orEmpty() },
+                    motherName = mother.ifEmpty { duplicate?.motherName.orEmpty() },
+                    phone = phone.ifEmpty { duplicate?.phone.orEmpty() },
+                    whatsapp = whatsapp.ifEmpty { duplicate?.whatsapp.orEmpty() },
+                    monthlyFee = if (monthlyFee > 0.0) monthlyFee else (duplicate?.monthlyFee ?: 0.0),
+                    admissionFee = pendingDue,
+                    admissionDate = admDate,
+                    dob = dob.ifEmpty { duplicate?.dob.orEmpty() },
+                    caste = caste.ifEmpty { duplicate?.caste.orEmpty() },
+                    gender = gender,
+                    address = address.ifEmpty { duplicate?.address.orEmpty() },
+                    photoBase64 = duplicate?.photoBase64.orEmpty()
+                )
+
+                val savedId = database.studentDao().insertStudent(studentToSave)
+                val effectiveStudentId = if (duplicate != null && duplicate.id != 0L) duplicate.id else savedId
+
+                if (settlePastMonthsAutomatically && monthlyFee > 0.0 && duplicate == null) {
+                    val parts = admDate.split("/", "-", ".")
+                    val admMonth = parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: sysDate.monthIndex
+                    val admYear = parts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: sysDate.year
+                    val pastMonthsCount = maxOf(0, (sysDate.year - admYear) * 12 + (sysDate.monthIndex - admMonth))
+
+                    if (pastMonthsCount > 0) {
+                        val pastPaidAmount = pastMonthsCount * monthlyFee
+                        database.feeDao().insertFeeRecord(
+                            FeeRecordEntity(
+                                schoolCode = schoolCode,
+                                studentId = effectiveStudentId,
+                                studentName = studentName,
+                                amountPaid = pastPaidAmount,
+                                paymentDate = sysDate.formattedDate,
+                                month = "Past Months Settled (Import)",
+                                paymentMode = "Historical Import",
+                                remarks = "Auto-settled $pastMonthsCount past months on Excel import"
+                            )
+                        )
+                    }
+                }
+
+                if (duplicate != null) {
+                    updatedCount++
+                } else {
+                    importedCount++
+                }
+            }
+
+            if (importedCount == 0 && updatedCount == 0) {
+                Result.failure(Exception("No valid student rows found. Please check your Excel columns."))
+            } else {
+                val summaryParts = mutableListOf<String>()
+                if (importedCount > 0) summaryParts.add("$importedCount new students added")
+                if (updatedCount > 0) summaryParts.add("$updatedCount existing updated")
+                if (newClassesCount > 0) summaryParts.add("$newClassesCount classes created")
+                Result.success("✓ Import Complete: " + summaryParts.joinToString(", ") + "!")
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 }
 
 class MiniJsonParser(private val json: String) {
