@@ -1,6 +1,6 @@
 package com.school.manage.presentation.screens
 
-import androidx.compose.material3.Dialog
+import androidx.compose.ui.window.Dialog
 
 import androidx.compose.runtime.rememberCoroutineScope
 
