@@ -839,6 +839,15 @@ fun DashboardScreen(
                         }
                     )
                     AddNewOptionItem(
+                        title = "Subjects",
+                        subtitle = "Add & manage all school subjects",
+                        icon = "📚",
+                        onClick = {
+                            showAddNewBottomSheet = false
+                            showManageSubjectsDialog = true
+                        }
+                    )
+                    AddNewOptionItem(
                         title = "Exams",
                         subtitle = "Schedule exams and input marks",
                         icon = "📝",

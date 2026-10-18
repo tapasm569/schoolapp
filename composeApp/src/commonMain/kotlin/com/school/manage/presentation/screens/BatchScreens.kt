@@ -96,7 +96,7 @@ fun BatchListScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AddBatchScreen(
     database: AppDatabase,
@@ -106,14 +106,28 @@ fun AddBatchScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     var batchName by remember { mutableStateOf("") }
-    val subjects = remember { listOf("").toMutableStateList().apply { clear() } }
-    val sections = remember { mutableStateListOf("A", "B") }
+    val subjects = remember { mutableStateListOf<String>() }
+    val masterSubjects = remember { mutableStateListOf<String>() }
 
     var showAddSubjectDialog by remember { mutableStateOf(false) }
     var newSubject by remember { mutableStateOf("") }
 
-    var showAddSectionDialog by remember { mutableStateOf(false) }
-    var newSection by remember { mutableStateOf("") }
+    LaunchedEffect(schoolCode) {
+        val defaults = listOf(
+            "Bengali", "English", "Mathematics", "Science",
+            "Geography", "History", "Computer", "Drawing",
+            "General Knowledge", "Physical Education"
+        )
+        val school = database.schoolDao().getSchoolByCode(schoolCode)
+        val saved = school?.masterSubjects
+            ?.split(",")
+            ?.map { it.trim() }
+            ?.filter { it.isNotEmpty() }
+            ?.distinct()
+            .orEmpty()
+        masterSubjects.clear()
+        masterSubjects.addAll(saved.ifEmpty { defaults })
+    }
 
     Scaffold(
         containerColor = colors.bgApp,
@@ -142,7 +156,7 @@ fun AddBatchScreen(
                                         schoolCode = schoolCode,
                                         batchName = batchName.trim(),
                                         subjects = subjects.joinToString(", "),
-                                        sections = if (sections.isEmpty()) "A, B" else sections.joinToString(", ")
+                                        sections = "A, B"
                                     )
                                 )
                                 onNavigateBack()
@@ -222,85 +236,54 @@ fun AddBatchScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(14.dp)) {
-                        Text("Subjects", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                        Text("Add subjects taught in this batch", fontSize = 12.sp, color = colors.textSecondary)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "Subjects",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = colors.textPrimary
+                        )
+                        Text(
+                            "Select subjects taught in this class",
+                            fontSize = 12.sp,
+                            color = colors.textSecondary
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                        if (subjects.isEmpty()) {
-                            Text("No subjects added yet", fontSize = 13.sp, color = colors.textSecondary)
-                        } else {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                for (sub in subjects) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = colors.bgCardHover,
-                                        modifier = Modifier.padding(vertical = 2.dp)
-                                    ) {
-                                        Text(sub, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                                    }
-                                }
+                        val availableSubjects =
+                            (masterSubjects + subjects).distinct()
+
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            availableSubjects.forEach { subject ->
+                                FilterChip(
+                                    selected = subject in subjects,
+                                    onClick = {
+                                        if (subject in subjects) {
+                                            subjects.remove(subject)
+                                        } else {
+                                            subjects.add(subject)
+                                        }
+                                    },
+                                    label = { Text(subject) }
+                                )
                             }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
-                        Button(
+                        OutlinedButton(
                             onClick = { showAddSubjectDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = colors.bgCardHover, contentColor = colors.textPrimary),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                            shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text("+ Add", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            Text("+ Add Custom Subject")
                         }
                     }
                 }
             }
 
-            item {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Text("Sections", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                        Text("Default: Section A (Boys) & Section B (Girls) — Optional", fontSize = 12.sp, color = colors.textSecondary)
-                        Spacer(modifier = Modifier.height(8.dp))
 
-                        if (sections.isEmpty()) {
-                            Text("No sections added yet", fontSize = 13.sp, color = colors.textSecondary)
-                        } else {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                for (sec in sections) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = colors.bgCardHover,
-                                        modifier = Modifier.padding(vertical = 2.dp)
-                                    ) {
-                                        Text(sec, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-                        Button(
-                            onClick = { showAddSectionDialog = true },
-                            colors = ButtonDefaults.buttonColors(containerColor = colors.bgCardHover, contentColor = colors.textPrimary),
-                            shape = RoundedCornerShape(10.dp),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
-                        ) {
-                            Text("+ Add", fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
         }
 
         if (showAddSubjectDialog) {
@@ -341,42 +324,6 @@ fun AddBatchScreen(
             }
         }
 
-        if (showAddSectionDialog) {
-            Dialog(onDismissRequest = { showAddSectionDialog = false }) {
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        Text("Add Section", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
-                        CustomRoundedInput(
-                            value = newSection,
-                            onValueChange = { newSection = it },
-                            placeholder = "Section (e.g. Section A)"
-                        )
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { showAddSectionDialog = false }) {
-                                Text("Cancel", color = colors.textSecondary)
-                            }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                onClick = {
-                                    if (newSection.isNotBlank()) {
-                                        sections.add(newSection.trim())
-                                        newSection = ""
-                                        showAddSectionDialog = false
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
-                            ) {
-                                Text("Add")
-                            }
-                        }
-                    }
-                }
-            }
-        }
+
     }
 }
