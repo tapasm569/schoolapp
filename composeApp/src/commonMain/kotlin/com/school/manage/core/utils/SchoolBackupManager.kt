@@ -374,10 +374,10 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 if (rNum > curMax) classMaxRollMap[key] = rNum
             }
 
-            val currentDatestr = getSystemCurrentDate()
-            val yearMonthParts = currentDatestr.split("/", "-", ".")
-            val currentYear = yearMonthParts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: 2026
-            val currentMonthIndex = yearMonthParts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: 9
+            val sysDateObj = getSystemCurrentDate()
+            val currentDatestr = sysDateObj.formattedDate
+            val currentYear = sysDateObj.year
+            val currentMonthIndex = sysDateObj.monthIndex
 
             var importedCount = 0
             var updatedCount = 0
@@ -402,7 +402,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val monthlyFee = cols.getOrNull(idxMonthlyFee)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val pendingDue = cols.getOrNull(idxPendingDue)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val gender = if (idxGender >= 0) cols.getOrNull(idxGender)?.trim().orEmpty().ifEmpty { "Male" } else "Male"
-                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty().ifEmpty { currentDatestr } else currentDatestr
+                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.toString()?.trim().orEmpty().ifEmpty { currentDatestr } else currentDatestr
                 val dob = if (idxDob >= 0) cols.getOrNull(idxDob)?.trim().orEmpty() else ""
                 val caste = if (idxCaste >= 0) cols.getOrNull(idxCaste)?.trim().orEmpty() else ""
                 val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
@@ -465,9 +465,9 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val effectiveStudentId = if (duplicate != null && duplicate.id != 0L) duplicate.id else savedId
 
                 if (settlePastMonthsAutomatically && monthlyFee > 0.0 && duplicate == null) {
-                    val parts = admDate.split("/", "-", ".")
-                    val admMonth = parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: currentMonthIndex
-                    val admYear = parts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: currentYear
+                    val admParts = admDate.toString().split("/", "-", ".")
+                    val admMonth = admParts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: currentMonthIndex
+                    val admYear = admParts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: currentYear
                     val pastMonthsCount = maxOf(0, (currentYear - admYear) * 12 + (currentMonthIndex - admMonth))
 
                     if (pastMonthsCount > 0) {
