@@ -17,6 +17,38 @@ class SchoolBackupManager(private val database: AppDatabase) {
             .replace("\t", "\\t")
     }
 
+    private fun getString(map: Map<String, Any?>, key: String, default: String = ""): String {
+        val v = map[key]?.toString()?.trim()
+        return if (v.isNullOrEmpty()) default else v
+    }
+
+    private fun getDouble(map: Map<String, Any?>, key: String, default: Double = 0.0): Double {
+        val v = map[key]
+        return when (v) {
+            is Number -> v.toDouble()
+            is String -> v.toDoubleOrNull() ?: default
+            else -> default
+        }
+    }
+
+    private fun getLong(map: Map<String, Any?>, key: String, default: Long = 0L): Long {
+        val v = map[key]
+        return when (v) {
+            is Number -> v.toLong()
+            is String -> v.toLongOrNull() ?: default
+            else -> default
+        }
+    }
+
+    private fun getBoolean(map: Map<String, Any?>, key: String, default: Boolean = true): Boolean {
+        val v = map[key]
+        return when (v) {
+            is Boolean -> v
+            is String -> v.toBooleanStrictOrNull() ?: default
+            else -> default
+        }
+    }
+
     suspend fun generateBackupJson(schoolCode: String): Pair<String, String> = withContext(Dispatchers.IO) {
         val batches = database.batchDao().getBatchesBySchool(schoolCode).first()
         val students = database.studentDao().getStudentsBySchool(schoolCode).first()
@@ -95,21 +127,21 @@ class SchoolBackupManager(private val database: AppDatabase) {
             val root = parser.parse() as? Map<String, Any?>
                 ?: return@withContext Result.failure(Exception("Invalid JSON backup format"))
 
-            val targetCode = root["schoolCode"] as? String ?: schoolCode
+            val targetCode = getString(root, "schoolCode", schoolCode)
 
             // Restore Batches
             val batches = (root["batches"] as? List<*>)?.filterIsInstance<Map<String, Any?>>() ?: emptyList()
             batches.forEach { b ->
                 database.batchDao().insertBatch(
                     BatchEntity(
-                        id = (b["id"] as? Number)?.toLong() ?: 0L,
+                        id = getLong(b, "id", 0L),
                         schoolCode = targetCode,
-                        batchName = b["batchName"]?.toString().orEmpty(),
-                        subjects = b["subjects"]?.toString().orEmpty(),
-                        sections = b["sections"]?.toString().orEmpty(),
-                        feeTemplateRaw = b["feeTemplateRaw"]?.toString().orEmpty(),
-                        defaultMonthlyTuition = (b["defaultMonthlyTuition"] as? Number)?.toDouble() ?: 0.0,
-                        collectTuitionAtAdmission = (b["collectTuitionAtAdmission"] as? Boolean) ?: true
+                        batchName = getString(b, "batchName"),
+                        subjects = getString(b, "subjects"),
+                        sections = getString(b, "sections"),
+                        feeTemplateRaw = getString(b, "feeTemplateRaw"),
+                        defaultMonthlyTuition = getDouble(b, "defaultMonthlyTuition", 0.0),
+                        collectTuitionAtAdmission = getBoolean(b, "collectTuitionAtAdmission", true)
                     )
                 )
             }
@@ -119,25 +151,25 @@ class SchoolBackupManager(private val database: AppDatabase) {
             students.forEach { s ->
                 database.studentDao().insertStudent(
                     StudentEntity(
-                        id = (s["id"] as? Number)?.toLong() ?: 0L,
+                        id = getLong(s, "id", 0L),
                         schoolCode = targetCode,
-                        rollNo = s["rollNo"]?.toString().orEmpty(),
-                        name = s["name"]?.toString().orEmpty(),
-                        gradeClass = s["gradeClass"]?.toString().orEmpty(),
-                        section = s["section"]?.toString().orEmpty(),
-                        guardianName = s["guardianName"]?.toString().orEmpty(),
-                        phone = s["phone"]?.toString().orEmpty(),
-                        monthlyFee = (s["monthlyFee"] as? Number)?.toDouble() ?: 0.0,
-                        admissionDate = s["admissionDate"]?.toString().ifEmpty { "02/10/2026" },
-                        fatherName = s["fatherName"]?.toString().orEmpty(),
-                        motherName = s["motherName"]?.toString().orEmpty(),
-                        dob = s["dob"]?.toString().orEmpty(),
-                        aadharNumber = s["aadharNumber"]?.toString().orEmpty(),
-                        caste = s["caste"]?.toString().orEmpty(),
-                        gender = s["gender"]?.toString().ifEmpty { "Male" },
-                        whatsapp = s["whatsapp"]?.toString().orEmpty(),
-                        address = s["address"]?.toString().orEmpty(),
-                        admissionFee = (s["admissionFee"] as? Number)?.toDouble() ?: 0.0
+                        rollNo = getString(s, "rollNo"),
+                        name = getString(s, "name"),
+                        gradeClass = getString(s, "gradeClass"),
+                        section = getString(s, "section"),
+                        guardianName = getString(s, "guardianName"),
+                        phone = getString(s, "phone"),
+                        monthlyFee = getDouble(s, "monthlyFee", 0.0),
+                        admissionDate = getString(s, "admissionDate", "02/10/2026"),
+                        fatherName = getString(s, "fatherName"),
+                        motherName = getString(s, "motherName"),
+                        dob = getString(s, "dob"),
+                        aadharNumber = getString(s, "aadharNumber"),
+                        caste = getString(s, "caste"),
+                        gender = getString(s, "gender", "Male"),
+                        whatsapp = getString(s, "whatsapp"),
+                        address = getString(s, "address"),
+                        admissionFee = getDouble(s, "admissionFee", 0.0)
                     )
                 )
             }
@@ -147,19 +179,19 @@ class SchoolBackupManager(private val database: AppDatabase) {
             staff.forEach { st ->
                 database.staffDao().insertStaff(
                     StaffEntity(
-                        id = (st["id"] as? Number)?.toLong() ?: 0L,
+                        id = getLong(st, "id", 0L),
                         schoolCode = targetCode,
-                        name = st["name"]?.toString().orEmpty(),
-                        role = st["role"]?.toString().ifEmpty { "Teacher" },
-                        phone = st["phone"]?.toString().orEmpty(),
-                        salary = (st["salary"] as? Number)?.toDouble() ?: 0.0,
-                        joinDate = st["joinDate"]?.toString().ifEmpty { "02/10/2026" },
-                        gender = st["gender"]?.toString().ifEmpty { "Male" },
-                        whatsapp = st["whatsapp"]?.toString().orEmpty(),
-                        address = st["address"]?.toString().orEmpty(),
-                        qualification = st["qualification"]?.toString().orEmpty(),
-                        salaryType = st["salaryType"]?.toString().ifEmpty { "Monthly" },
-                        password = st["password"]?.toString().orEmpty()
+                        name = getString(st, "name"),
+                        role = getString(st, "role", "Teacher"),
+                        phone = getString(st, "phone"),
+                        salary = getDouble(st, "salary", 0.0),
+                        joinDate = getString(st, "joinDate", "02/10/2026"),
+                        gender = getString(st, "gender", "Male"),
+                        whatsapp = getString(st, "whatsapp"),
+                        address = getString(st, "address"),
+                        qualification = getString(st, "qualification"),
+                        salaryType = getString(st, "salaryType", "Monthly"),
+                        password = getString(st, "password")
                     )
                 )
             }
@@ -169,16 +201,16 @@ class SchoolBackupManager(private val database: AppDatabase) {
             fees.forEach { f ->
                 database.feeDao().insertFeeRecord(
                     FeeRecordEntity(
-                        id = (f["id"] as? Number)?.toLong() ?: 0L,
+                        id = getLong(f, "id", 0L),
                         schoolCode = targetCode,
-                        studentId = (f["studentId"] as? Number)?.toLong() ?: 0L,
-                        studentName = f["studentName"]?.toString().orEmpty(),
-                        gradeClass = f["gradeClass"]?.toString().orEmpty(),
-                        amountPaid = (f["amountPaid"] as? Number)?.toDouble() ?: 0.0,
-                        paymentDate = f["paymentDate"]?.toString().orEmpty(),
-                        feeMonth = f["feeMonth"]?.toString().orEmpty(),
-                        paymentMode = f["paymentMode"]?.toString().ifEmpty { "CASH" },
-                        remarks = f["remarks"]?.toString().orEmpty()
+                        studentId = getLong(f, "studentId", 0L),
+                        studentName = getString(f, "studentName"),
+                        gradeClass = getString(f, "gradeClass"),
+                        amountPaid = getDouble(f, "amountPaid", 0.0),
+                        paymentDate = getString(f, "paymentDate"),
+                        feeMonth = getString(f, "feeMonth"),
+                        paymentMode = getString(f, "paymentMode", "CASH"),
+                        remarks = getString(f, "remarks")
                     )
                 )
             }
@@ -188,13 +220,13 @@ class SchoolBackupManager(private val database: AppDatabase) {
             expenses.forEach { e ->
                 database.expenseDao().insertExpense(
                     ExpenseEntity(
-                        id = (e["id"] as? Number)?.toLong() ?: 0L,
+                        id = getLong(e, "id", 0L),
                         schoolCode = targetCode,
-                        title = e["title"]?.toString().orEmpty(),
-                        category = e["category"]?.toString().orEmpty(),
-                        amount = (e["amount"] as? Number)?.toDouble() ?: 0.0,
-                        date = e["date"]?.toString().orEmpty(),
-                        notes = e["notes"]?.toString().orEmpty()
+                        title = getString(e, "title"),
+                        category = getString(e, "category"),
+                        amount = getDouble(e, "amount", 0.0),
+                        date = getString(e, "date"),
+                        notes = getString(e, "notes")
                     )
                 )
             }
@@ -204,15 +236,15 @@ class SchoolBackupManager(private val database: AppDatabase) {
             if (attendance.isNotEmpty()) {
                 val attEntities = attendance.map { a ->
                     AttendanceEntity(
-                        id = (a["id"] as? Number)?.toLong() ?: 0L,
+                        id = getLong(a, "id", 0L),
                         schoolCode = targetCode,
-                        studentId = (a["studentId"] as? Number)?.toLong() ?: 0L,
-                        studentName = a["studentName"]?.toString().orEmpty(),
-                        gradeClass = a["gradeClass"]?.toString().orEmpty(),
-                        staffId = (a["staffId"] as? Number)?.toLong() ?: 0L,
-                        userType = a["userType"]?.toString().ifEmpty { "STUDENT" },
-                        date = a["date"]?.toString().orEmpty(),
-                        status = a["status"]?.toString().ifEmpty { "PRESENT" }
+                        studentId = getLong(a, "studentId", 0L),
+                        studentName = getString(a, "studentName"),
+                        gradeClass = getString(a, "gradeClass"),
+                        staffId = getLong(a, "staffId", 0L),
+                        userType = getString(a, "userType", "STUDENT"),
+                        date = getString(a, "date"),
+                        status = getString(a, "status", "PRESENT")
                     )
                 }
                 database.attendanceDao().insertAll(attEntities)
