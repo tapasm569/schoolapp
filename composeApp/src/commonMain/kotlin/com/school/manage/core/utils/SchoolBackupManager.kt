@@ -374,7 +374,11 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 if (rNum > curMax) classMaxRollMap[key] = rNum
             }
 
-            val sysDate = getSystemCurrentDate()
+            val currentDatestr = getSystemCurrentDate()
+            val yearMonthParts = currentDatestr.split("/", "-", ".")
+            val currentYear = yearMonthParts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: 2026
+            val currentMonthIndex = yearMonthParts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: 9
+
             var importedCount = 0
             var updatedCount = 0
             var newClassesCount = 0
@@ -398,7 +402,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val monthlyFee = cols.getOrNull(idxMonthlyFee)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val pendingDue = cols.getOrNull(idxPendingDue)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val gender = if (idxGender >= 0) cols.getOrNull(idxGender)?.trim().orEmpty().ifEmpty { "Male" } else "Male"
-                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty().ifEmpty { sysDate.date } else sysDate.date
+                val admDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty().ifEmpty { currentDatestr } else currentDatestr
                 val dob = if (idxDob >= 0) cols.getOrNull(idxDob)?.trim().orEmpty() else ""
                 val caste = if (idxCaste >= 0) cols.getOrNull(idxCaste)?.trim().orEmpty() else ""
                 val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
@@ -462,9 +466,9 @@ class SchoolBackupManager(private val database: AppDatabase) {
 
                 if (settlePastMonthsAutomatically && monthlyFee > 0.0 && duplicate == null) {
                     val parts = admDate.split("/", "-", ".")
-                    val admMonth = parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: sysDate.monthIndex
-                    val admYear = parts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: sysDate.year
-                    val pastMonthsCount = maxOf(0, (sysDate.year - admYear) * 12 + (sysDate.monthIndex - admMonth))
+                    val admMonth = parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: currentMonthIndex
+                    val admYear = parts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: currentYear
+                    val pastMonthsCount = maxOf(0, (currentYear - admYear) * 12 + (currentMonthIndex - admMonth))
 
                     if (pastMonthsCount > 0) {
                         val pastPaidAmount = pastMonthsCount * monthlyFee
@@ -474,7 +478,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                                 studentId = effectiveStudentId,
                                 studentName = studentName,
                                 amountPaid = pastPaidAmount,
-                                paymentDate = sysDate.date,
+                                paymentDate = currentDatestr,
                                 paymentMode = "Historical Import",
                                 remarks = "Auto-settled $pastMonthsCount past months on Excel import"
                             )
