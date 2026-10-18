@@ -599,3 +599,125 @@ fun parseXlsxBytesStandalone(bytes: ByteArray): String {
         return ""
     }
 }
+
+class MiniJsonParser(private val json: String) {
+    private var i = 0
+
+    private fun skip() {
+        while (i < json.length && json[i].isWhitespace()) i++
+    }
+
+    fun parse(): Any? {
+        skip()
+        if (i >= json.length) return null
+        return when (json[i]) {
+            '{' -> parseObject()
+            '[' -> parseArray()
+            '"' -> parseString()
+            't', 'f' -> parseBoolean()
+            'n' -> parseNull()
+            else -> parseNumber()
+        }
+    }
+
+    private fun parseObject(): Map<String, Any?> {
+        val map = mutableMapOf<String, Any?>()
+        i++ // consume '{'
+        skip()
+        if (i < json.length && json[i] == '}') {
+            i++
+            return map
+        }
+        while (i < json.length) {
+            skip()
+            val key = parseString()
+            skip()
+            if (i < json.length && json[i] == ':') i++
+            skip()
+            val value = parse()
+            map[key] = value
+            skip()
+            if (i < json.length && json[i] == ',') {
+                i++
+            } else if (i < json.length && json[i] == '}') {
+                i++
+                break
+            }
+        }
+        return map
+    }
+
+    private fun parseArray(): List<Any?> {
+        val list = mutableListOf<Any?>()
+        i++ // consume '['
+        skip()
+        if (i < json.length && json[i] == ']') {
+            i++
+            return list
+        }
+        while (i < json.length) {
+            val item = parse()
+            list.add(item)
+            skip()
+            if (i < json.length && json[i] == ',') {
+                i++
+            } else if (i < json.length && json[i] == ']') {
+                i++
+                break
+            }
+        }
+        return list
+    }
+
+    private fun parseString(): String {
+        i++ // consume '"'
+        val sb = StringBuilder()
+        while (i < json.length) {
+            val c = json[i++]
+            if (c == '"') break
+            if (c == '\\' && i < json.length) {
+                when (val esc = json[i++]) {
+                    '"' -> sb.append('"')
+                    '\\' -> sb.append('\\')
+                    'n' -> sb.append('\n')
+                    'r' -> sb.append('\r')
+                    't' -> sb.append('\t')
+                    '/' -> sb.append('/')
+                    else -> sb.append(esc)
+                }
+            } else {
+                sb.append(c)
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun parseBoolean(): Boolean {
+        if (json.startsWith("true", i)) {
+            i += 4
+            return true
+        }
+        if (json.startsWith("false", i)) {
+            i += 5
+            return false
+        }
+        return false
+    }
+
+    private fun parseNull(): Any? {
+        if (json.startsWith("null", i)) i += 4
+        return null
+    }
+
+    private fun parseNumber(): Number {
+        val start = i
+        if (i < json.length && (json[i] == '-' || json[i] == '+')) i++
+        while (i < json.length && (json[i].isDigit() || json[i] == '.' || json[i] == 'e' || json[i] == 'E')) i++
+        val numStr = json.substring(start, i)
+        return if (numStr.contains('.')) {
+            numStr.toDoubleOrNull() ?: 0.0
+        } else {
+            numStr.toLongOrNull() ?: 0L
+        }
+    }
+}

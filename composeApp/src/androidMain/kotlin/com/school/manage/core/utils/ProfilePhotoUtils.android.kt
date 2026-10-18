@@ -61,8 +61,6 @@ actual fun decodeBase64ToImageBitmap(base64Str: String): ImageBitmap? {
 }
 
 @Composable
-
-@Composable
 actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit): () -> Unit {
     val context = LocalContext.current
     val currentCallback = rememberUpdatedState(onFileContentLoaded)
