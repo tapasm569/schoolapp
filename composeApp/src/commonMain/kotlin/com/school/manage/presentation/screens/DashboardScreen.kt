@@ -212,6 +212,7 @@ fun DashboardScreen(
     LaunchedEffect(schoolCode) {
         schoolRecord = database.schoolDao().getSchoolByCode(schoolCode)
     }
+    val scope = rememberCoroutineScope()
     val pickSchoolLogo = rememberPhotoPickerLauncher { encodedBase64 ->
         scope.launch {
             val current = schoolRecord ?: database.schoolDao().getSchoolByCode(schoolCode)
@@ -222,7 +223,6 @@ fun DashboardScreen(
             }
         }
     }
-    val scope = rememberCoroutineScope()
 
     Scaffold(
         containerColor = colors.bgApp,
