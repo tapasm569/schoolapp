@@ -46,6 +46,9 @@ fun StudentListScreen(
     val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    var editingRollStudent by remember { mutableStateOf<StudentEntity?>(null) }
+    var editRollInput by remember { mutableStateOf("") }
+    var editSectionInput by remember { mutableStateOf("") }
 
     val categorizedStudents = remember(students) {
         students.groupBy { it.gradeClass.ifBlank { "Unassigned Class" } }
@@ -96,8 +99,38 @@ fun StudentListScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Class: " + className, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = colors.brandPrimary)
-                                Text(studentGroup.size.toString() + " Students", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.brandPrimary)
+                                Column {
+                                    Text("Class: " + className, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = colors.brandPrimary)
+                                    Text(studentGroup.size.toString() + " Students", fontWeight = FontWeight.SemiBold, fontSize = 11.sp, color = colors.textSecondary)
+                                }
+                                if (studentGroup.any { it.rollNo.isBlank() }) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = colors.brandPrimary,
+                                        modifier = Modifier.clickable {
+                                            scope.launch {
+                                                val maxExisting = studentGroup.mapNotNull { s ->
+                                                    s.rollNo.filter { it.isDigit() }.toIntOrNull()
+                                                }.maxOrNull() ?: 0
+                                                var nextRoll = maxExisting + 1
+                                                studentGroup.sortedBy { it.name.lowercase() }.forEach { st ->
+                                                    if (st.rollNo.isBlank()) {
+                                                        database.studentDao().insertStudent(st.copy(rollNo = nextRoll.toString()))
+                                                        nextRoll++
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ) {
+                                        Text(
+                                            text = "🔢 Auto-Assign Rolls",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -129,7 +162,32 @@ fun StudentListScreen(
                                         )
                                         Column {
                                             Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                                            Text("Roll: ${student.rollNo.ifEmpty { "N/A" }}", fontSize = 11.sp, color = colors.textSecondary)
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                modifier = Modifier.padding(top = 2.dp)
+                                            ) {
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = colors.brandPrimary.copy(alpha = 0.12f),
+                                                    modifier = Modifier.clickable {
+                                                        editingRollStudent = student
+                                                        editRollInput = student.rollNo
+                                                        editSectionInput = student.section
+                                                    }
+                                                ) {
+                                                    Text(
+                                                        text = if (student.rollNo.isEmpty()) "Roll: Set ✎" else "Roll #${student.rollNo} ✎",
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = colors.brandPrimary,
+                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                                    )
+                                                }
+                                                if (student.section.isNotEmpty()) {
+                                                    Text("Sec: ${student.section}", fontSize = 11.sp, color = colors.textSecondary, fontWeight = FontWeight.Medium)
+                                                }
+                                            }
                                         }
                                     }
                                     Text("Admission Fee: ₹" + student.admissionFee.toInt(), color = colors.brandPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
@@ -161,9 +219,65 @@ fun StudentListScreen(
             }
         }
     }
+
+        if (editingRollStudent != null) {
+            val targetSt = editingRollStudent!!
+            AlertDialog(
+                onDismissRequest = { editingRollStudent = null },
+                containerColor = colors.bgCard,
+                title = {
+                    Text("Update Roll Number", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = colors.textPrimary)
+                },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Student: ${targetSt.name} (${targetSt.gradeClass})", fontSize = 13.sp, color = colors.textSecondary)
+                        OutlinedTextField(
+                            value = editRollInput,
+                            onValueChange = { editRollInput = it },
+                            label = { Text("Roll Number (e.g. 1, 2, 15)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                        OutlinedTextField(
+                            value = editSectionInput,
+                            onValueChange = { editSectionInput = it },
+                            label = { Text("Section (Optional, e.g. A, B)") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                database.studentDao().insertStudent(
+                                    targetSt.copy(
+                                        rollNo = editRollInput.trim(),
+                                        section = editSectionInput.trim()
+                                    )
+                                )
+                                editingRollStudent = null
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Save Roll No")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { editingRollStudent = null }) {
+                        Text("Cancel", color = colors.textSecondary)
+                    }
+                }
+            )
+        }
+
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddStudentScreen(
     database: AppDatabase,
@@ -174,6 +288,7 @@ fun AddStudentScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
 
+    var rollNo by remember { mutableStateOf("") }
     var name by remember { mutableStateOf("") }
     var photoBase64 by remember { mutableStateOf("") }
     val pickStudentPhoto = rememberPhotoPickerLauncher { photoBase64 = it }
@@ -217,6 +332,7 @@ fun AddStudentScreen(
                             val newId = database.studentDao().insertStudent(
                                 StudentEntity(
                                     schoolCode = schoolCode,
+                                    rollNo = rollNo.trim(),
                                     name = name.trim(),
                                     phone = phone.trim(),
                                     fatherName = fatherName.trim(),
@@ -314,6 +430,7 @@ fun AddStudentScreen(
                 }
             }
 
+            item { CustomRoundedInput(value = rollNo, onValueChange = { rollNo = it }, placeholder = "Roll Number (Optional — Auto-assigned by class if blank)") }
             item { CustomRoundedInput(value = name, onValueChange = { name = it }, placeholder = "Student Name (Required)") }
             item { CustomRoundedInput(value = fatherName, onValueChange = { fatherName = it }, placeholder = "Father name") }
             item { CustomRoundedInput(value = motherName, onValueChange = { motherName = it }, placeholder = "Mother name") }
@@ -434,6 +551,7 @@ fun AssignBatchScreen(
     val scope = rememberCoroutineScope()
     val sysToday = remember { getSystemCurrentDate() }
     val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allStudents by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
 
     var selectedBatch by remember { mutableStateOf("") }
     var showBatchMenu by remember { mutableStateOf(false) }
