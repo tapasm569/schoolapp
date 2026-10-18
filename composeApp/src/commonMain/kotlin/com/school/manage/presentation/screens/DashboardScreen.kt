@@ -1583,6 +1583,7 @@ fun ProfileDetailRow(
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                                 ) {
                                     Text(sub, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                                    Spacer(modifier = Modifier.width(4.dp))
                                     Text(
                                         "✕",
                                         fontSize = 12.sp,
@@ -1638,4 +1639,3 @@ fun ProfileDetailRow(
             }
         }
     }
-    
