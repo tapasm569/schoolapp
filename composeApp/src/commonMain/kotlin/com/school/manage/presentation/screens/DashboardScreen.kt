@@ -1581,7 +1581,7 @@ fun ProfileDetailRow(
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                {
+                                ) {
                                     Text(sub, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
                                     Text(
                                         "✕",
