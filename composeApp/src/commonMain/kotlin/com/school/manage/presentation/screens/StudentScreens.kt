@@ -352,13 +352,13 @@ fun AddStudentScreen(
                             label = "Male",
                             icon = "♂",
                             isSelected = gender == "Male",
-                            onClick = { gender = "Male"; section = "A" }
+                            onClick = { gender = "Male" }
                         )
                         GenderOptionButton(
                             label = "Female",
                             icon = "♀",
                             isSelected = gender == "Female",
-                            onClick = { gender = "Female"; section = "B" }
+                            onClick = { gender = "Female" }
                         )
                     }
                 }
