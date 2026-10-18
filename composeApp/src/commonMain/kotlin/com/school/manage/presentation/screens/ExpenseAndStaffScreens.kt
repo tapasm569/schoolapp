@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.ExpenseEntity
 import com.school.manage.core.database.entity.StaffEntity
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.utils.ProfileAvatar
 import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
 
@@ -34,6 +36,8 @@ fun AddStaffScreen(
     val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
+    var photoBase64 by remember { mutableStateOf("") }
+    val pickStaffPhoto = rememberPhotoPickerLauncher { photoBase64 = it }
     var startDate by remember { mutableStateOf("02/10/2026") }
     var showStartDatePicker by remember { mutableStateOf(false) }
 
@@ -143,6 +147,34 @@ fun AddStaffScreen(
                 Column {
                     Text("Staff Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
                     Text("Enter staff personal details here.", fontSize = 12.sp, color = colors.textSecondary)
+                }
+            }
+
+                        item {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().clickable { pickStaffPhoto() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        ProfileAvatar(
+                            photoBase64 = photoBase64,
+                            name = name,
+                            fallbackEmoji = "👨‍🏫",
+                            size = 56.dp,
+                            cornerRadius = 14.dp,
+                            showEditBadge = true
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Staff / Teacher Photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                            Text(if (photoBase64.isEmpty()) "Tap to upload photo" else "Photo attached successfully", fontSize = 12.sp, color = colors.brandPrimary)
+                        }
+                    }
                 }
             }
 

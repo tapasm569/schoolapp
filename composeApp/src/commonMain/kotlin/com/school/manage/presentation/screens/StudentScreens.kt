@@ -8,6 +8,8 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.foundation.BorderStroke
 
 import com.school.manage.core.utils.getSystemCurrentDate
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.utils.ProfileAvatar
 import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.background
@@ -108,8 +110,28 @@ fun StudentListScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Column(modifier = Modifier.padding(14.dp)) {
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        ProfileAvatar(
+                                            photoBase64 = student.photoBase64,
+                                            name = student.name,
+                                            fallbackEmoji = "🎓",
+                                            size = 40.dp,
+                                            cornerRadius = 10.dp
+                                        )
+                                        Column {
+                                            Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                                            Text("Roll: ${student.rollNo.ifEmpty { "N/A" }}", fontSize = 11.sp, color = colors.textSecondary)
+                                        }
+                                    }
                                     Text("Admission Fee: ₹" + student.admissionFee.toInt(), color = colors.brandPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -153,6 +175,8 @@ fun AddStudentScreen(
     val scope = rememberCoroutineScope()
 
     var name by remember { mutableStateOf("") }
+    var photoBase64 by remember { mutableStateOf("") }
+    val pickStudentPhoto = rememberPhotoPickerLauncher { photoBase64 = it }
     var fatherName by remember { mutableStateOf("") }
     var motherName by remember { mutableStateOf("") }
     var dob by remember { mutableStateOf("") }
@@ -259,6 +283,34 @@ fun AddStudentScreen(
                 Column {
                     Text("Student Information", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
                     Text("Enter student personal details here.", fontSize = 12.sp, color = colors.textSecondary)
+                }
+            }
+
+                        item {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth().clickable { pickStudentPhoto() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        ProfileAvatar(
+                            photoBase64 = photoBase64,
+                            name = name,
+                            fallbackEmoji = "🎓",
+                            size = 56.dp,
+                            cornerRadius = 14.dp,
+                            showEditBadge = true
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Student Photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                            Text(if (photoBase64.isEmpty()) "Tap to upload photo" else "Photo attached successfully", fontSize = 12.sp, color = colors.brandPrimary)
+                        }
+                    }
                 }
             }
 
