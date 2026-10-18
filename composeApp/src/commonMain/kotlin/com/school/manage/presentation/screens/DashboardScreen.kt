@@ -40,6 +40,50 @@ fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
+    // Financial Dues & Payroll Calculations for Dashboard Cards
+    val allStudentsList by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allSchoolFeeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allStaffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allExpensesList by database.expenseDao().getExpensesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val dashSysDate = remember { getSystemCurrentDate() }
+    val dashCurrentMonthKey = "${(dashSysDate.monthIndex + 1).toString().padStart(2, '0')}/${dashSysDate.year}"
+
+    val (totalStudentDues, dueStudentsCount) = remember(allStudentsList, allSchoolFeeRecords, dashSysDate) {
+        var duesSum = 0.0
+        var count = 0
+        allStudentsList.forEach { student ->
+            val paid = allSchoolFeeRecords.filter { it.studentId == student.id }.sumOf { it.amountPaid }
+            val parts = student.admissionDate.split("/")
+            val admMonth = parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: dashSysDate.monthIndex
+            val admYear = parts.getOrNull(2)?.toIntOrNull() ?: dashSysDate.year
+            val elapsedMonths = maxOf(1, (dashSysDate.year - admYear) * 12 + (dashSysDate.monthIndex - admMonth) + 1)
+            val expected = (student.monthlyFee * elapsedMonths) + student.admissionFee
+            val due = maxOf(0.0, expected - paid)
+            if (due > 0.0) {
+                duesSum += due
+                count++
+            }
+        }
+        Pair(duesSum, count)
+    }
+
+    val (totalUnpaidSalaries, unpaidTeachersCount) = remember(allStaffList, allExpensesList, dashCurrentMonthKey) {
+        var unpaidSum = 0.0
+        var count = 0
+        allStaffList.forEach { staff ->
+            val isPaid = allExpensesList.any { exp ->
+                exp.category.equals("Salary", ignoreCase = true) &&
+                exp.title.contains(staff.name, ignoreCase = true) &&
+                exp.date.contains(dashCurrentMonthKey)
+            }
+            if (!isPaid) {
+                unpaidSum += staff.salary
+                count++
+            }
+        }
+        Pair(unpaidSum, count)
+    }
+
     LaunchedEffect(schoolCode) {
         FirestoreSyncService(database).startSync(schoolCode)
     }
@@ -444,39 +488,60 @@ fun DashboardScreen(
                 }
             }
 
-            // 4. Marking Attendance Progress Bars
+            // 4. Financial Liabilities (Student Dues & Teacher Salary)
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Box(
+                    // Student Dues Card
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFFEF2F2),
+                        border = BorderStroke(1.dp, Color(0xFFFCA5A5)),
                         modifier = Modifier
                             .weight(1f)
                             .clickable { onNavigate("student_dues") }
                     ) {
-                        AttendanceProgressBarCard(
-                            title = "Student",
-                            subtitle = "Marking Attendance",
-                            pct = studentPct.toString() + "%",
-                            ratio = presentCount.toString() + "/" + studentTotalMarked.toString(),
-                            progress = studentPct / 100f,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Student Dues", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFFDC2626))
+                                Text("🎓", fontSize = 16.sp)
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text("₹${totalStudentDues.toInt()}", fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color(0xFF991B1B))
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("$dueStudentsCount Due Students", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Color(0xFFB91C1C))
+                        }
                     }
-                    Box(
+
+                    // Teacher Unpaid Salary Card
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFEFF6FF),
+                        border = BorderStroke(1.dp, Color(0xFFBFDBFE)),
                         modifier = Modifier
                             .weight(1f)
                             .clickable { onNavigate("teacher_salaries") }
                     ) {
-                        AttendanceProgressBarCard(
-                            title = "Teacher",
-                            subtitle = "Marking Attendance",
-                            pct = teacherPct.toString() + "%",
-                            ratio = teacherPresent.toString() + "/" + teacherTotalMarked.toString(),
-                            progress = teacherPct / 100f,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Teacher Salary", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF2563EB))
+                                Text("👩‍🏫", fontSize = 16.sp)
+                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text("₹${totalUnpaidSalaries.toInt()}", fontSize = 18.sp, fontWeight = FontWeight.Black, color = Color(0xFF1E40AF))
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("$unpaidTeachersCount Unpaid Teachers", fontSize = 11.sp, fontWeight = FontWeight.Medium, color = Color(0xFF1D4ED8))
+                        }
                     }
                 }
             }
