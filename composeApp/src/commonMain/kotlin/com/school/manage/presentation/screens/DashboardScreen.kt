@@ -1486,4 +1486,3 @@ fun ProfileDetailRow(
             }
         }
     }
-}
