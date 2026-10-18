@@ -1,7 +1,6 @@
-import androidx.compose.foundation.BorderStroke
 package com.school.manage.presentation.screens
-import com.school.manage.core.firebase.FirestoreSyncService
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,10 +20,13 @@ import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.ExpenseEntity
 import com.school.manage.core.database.entity.StaffEntity
-import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.firebase.FirestoreSyncService
 import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
 import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
