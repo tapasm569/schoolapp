@@ -186,6 +186,7 @@ fun DashboardScreen(
     val teacherPct = if (teacherTotalMarked > 0) (teacherPresent * 100 / teacherTotalMarked) else 0
 
     var showAddNewBottomSheet by remember { mutableStateOf(false) }
+    var showManageSubjectsDialog by remember { mutableStateOf(false) }
 
     // Navigation Drawer / Hamburger Menu State
     var showHamburgerMenu by remember { mutableStateOf(false) }
@@ -1536,3 +1537,105 @@ fun ProfileDetailRow(
         }
     }
 }
+
+    // Manage School Master Subjects Dialog
+    if (showManageSubjectsDialog) {
+        var schoolData by remember { mutableStateOf<com.school.manage.core.database.entity.SchoolEntity?>(null) }
+        var subjectsStr by remember { mutableStateOf("") }
+        var newSubInput by remember { mutableStateOf("") }
+
+        LaunchedEffect(schoolCode) {
+            schoolData = database.schoolDao().getSchoolByCode(schoolCode)
+            subjectsStr = schoolData?.masterSubjects ?: "Bengali, English, Mathematics, Science, Geography, History, Computer, Drawing, General Knowledge, Physical Education"
+        }
+
+        Dialog(onDismissRequest = { showManageSubjectsDialog = false }) {
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = colors.bgCard,
+                border = BorderStroke(1.dp, colors.borderCard),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text("Manage School Subjects", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary)
+                    Text("Add or remove subjects available across your school.", fontSize = 12.sp, color = colors.textSecondary)
+
+                    val currentList = remember(subjectsStr) {
+                        subjectsStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toMutableStateList()
+                    }
+
+                    // Existing Subjects Chips
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        currentList.forEach { sub ->
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = colors.bgCardHover,
+                                border = BorderStroke(1.dp, colors.borderCard)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                {
+                                    Text(sub, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.textPrimary)
+                                    Text(
+                                        "✕",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = colors.error,
+                                        modifier = Modifier.clickable {
+                                            currentList.remove(sub)
+                                            subjectsStr = currentList.joinToString(", ")
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    CustomRoundedInput(
+                        value = newSubInput,
+                        onValueChange = { newSubInput = it },
+                        placeholder = "New Subject Name (e.g. Sanskrit)"
+                    )
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Button(
+                            onClick = {
+                                if (newSubInput.isNotBlank() && !currentList.contains(newSubInput.trim())) {
+                                    currentList.add(newSubInput.trim())
+                                    subjectsStr = currentList.joinToString(", ")
+                                    newSubInput = ""
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                        ) {
+                            Text("+ Add Subject")
+                        }
+
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    val currentSchool = database.schoolDao().getSchoolByCode(schoolCode)
+                                    if (currentSchool != null) {
+                                        val updated = currentSchool.copy(masterSubjects = subjectsStr)
+                                        database.schoolDao().insertSchool(updated)
+                                    }
+                                    showManageSubjectsDialog = false
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.success)
+                        ) {
+                            Text("Save Changes")
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
