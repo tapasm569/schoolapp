@@ -1636,8 +1636,20 @@ AddNewOptionItem(
             // ================= SET ADMISSION FEE DIALOG =================
         if (showSetAdmissionFeeDialog) {
             val dialogScope = rememberCoroutineScope()
-            var selectedBatchName by remember(batches) {
+            // Keep the chosen class selected when the Room Flow emits the saved batch.
+            // remember(batches) reset this value after every save and could jump back to
+            // the first class, making the entered fee appear to have been lost.
+            var selectedBatchName by remember {
                 mutableStateOf(batches.firstOrNull()?.batchName ?: "")
+            }
+            LaunchedEffect(batches) {
+                if (batches.isNotEmpty() &&
+                    (selectedBatchName.isBlank() || batches.none {
+                        it.batchName.equals(selectedBatchName, ignoreCase = true)
+                    })
+                ) {
+                    selectedBatchName = batches.first().batchName
+                }
             }
             val currentBatch: BatchEntity? = batches.find {
                 it.batchName.equals(selectedBatchName, ignoreCase = true)
@@ -1655,8 +1667,10 @@ AddNewOptionItem(
             }
             var newPartName by remember { mutableStateOf("") }
             var newPartAmount by remember { mutableStateOf("") }
+            var isSavingFeeRules by remember { mutableStateOf(false) }
+            var feeSaveMessage by remember { mutableStateOf<String?>(null) }
 
-            Dialog(onDismissRequest = { showSetAdmissionFeeDialog = false }) {
+            Dialog(onDismissRequest = { if (!isSavingFeeRules) showSetAdmissionFeeDialog = false }) {
                 Surface(
                     shape = RoundedCornerShape(22.dp),
                     color = colors.bgCard,
@@ -1679,7 +1693,7 @@ AddNewOptionItem(
                                     Text("Set Admission Fee", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, color = colors.brandPrimary)
                                     Text("Rules prefill automatically when assigning students", fontSize = 11.sp, color = colors.textSecondary)
                                 }
-                                TextButton(onClick = { showSetAdmissionFeeDialog = false }) {
+                                TextButton(onClick = { if (!isSavingFeeRules) showSetAdmissionFeeDialog = false }) {
                                     Text("✕", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.textSecondary)
                                 }
                             }
@@ -1711,7 +1725,10 @@ AddNewOptionItem(
                                                     border = BorderStroke(1.dp, if (isSelected) colors.brandPrimary else colors.borderCard),
                                                     modifier = Modifier
                                                         .weight(1f)
-                                                        .clickable { selectedBatchName = b.batchName }
+                                                        .clickable {
+                                                            selectedBatchName = b.batchName
+                                                            feeSaveMessage = null
+                                                        }
                                                 ) {
                                                     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(vertical = 8.dp, horizontal = 6.dp)) {
                                                         Text(
@@ -1836,14 +1853,18 @@ AddNewOptionItem(
                                 )
                                 Button(
                                     onClick = {
-                                        if (newPartName.isNotBlank()) {
+                                        val amount = newPartAmount.trim().toDoubleOrNull()
+                                        if (newPartName.isBlank() || amount == null || amount < 0.0) {
+                                            feeSaveMessage = "Error: Enter a fee name and a valid non-negative amount."
+                                        } else {
                                             feeParts = feeParts + AdmissionFeePart(
                                                 name = newPartName.trim(),
-                                                amount = newPartAmount.toDoubleOrNull() ?: 0.0,
+                                                amount = amount,
                                                 isSelected = true
                                             )
                                             newPartName = ""
                                             newPartAmount = ""
+                                            feeSaveMessage = null
                                         }
                                     },
                                     colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
@@ -1859,42 +1880,73 @@ AddNewOptionItem(
                             border = BorderStroke(1.dp, colors.borderCard),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                OutlinedButton(
-                                    onClick = { showSetAdmissionFeeDialog = false },
-                                    modifier = Modifier.weight(1f).height(46.dp),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Text("Cancel")
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                feeSaveMessage?.let { message ->
+                                    val isError = message.startsWith("Error:")
+                                    Text(
+                                        text = message,
+                                        modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = 14.dp, top = 10.dp),
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (isError) colors.error else Color(0xFF15803D)
+                                    )
                                 }
-                                Button(
-                                    onClick = {
-                                        if (currentBatch != null) {
-                                            dialogScope.launch {
-                                                val rawTemplate = feeParts.joinToString(";") {
-                                                    "${it.name}:${it.amount}:${if (it.isSelected) "1" else "0"}"
-                                                }
-                                                val updatedBatch = currentBatch.copy(
-                                                    defaultMonthlyTuition = tuitionInput.toDoubleOrNull() ?: currentBatch.defaultMonthlyTuition,
-                                                    feeTemplateRaw = rawTemplate,
-                                                    collectTuitionAtAdmission = collectTuitionNow
-                                                )
-                                                database.batchDao().insertBatch(updatedBatch)
-                                                try {
-                                                    FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
-                                                } catch (_: Exception) {}
-                                                showSetAdmissionFeeDialog = false
-                                            }
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1.6f).height(46.dp),
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                                Row(
+                                    modifier = Modifier.padding(14.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    Text("💾 Save Fee Rules", fontWeight = FontWeight.Bold)
+                                    OutlinedButton(
+                                        enabled = !isSavingFeeRules,
+                                        onClick = { showSetAdmissionFeeDialog = false },
+                                        modifier = Modifier.weight(1f).height(46.dp),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Text("Cancel")
+                                    }
+                                    Button(
+                                        enabled = currentBatch != null && !isSavingFeeRules,
+                                        onClick = {
+                                            val tuitionAmount = if (tuitionInput.isBlank()) {
+                                                0.0
+                                            } else {
+                                                tuitionInput.trim().toDoubleOrNull()
+                                            }
+                                            if (currentBatch == null) {
+                                                feeSaveMessage = "Error: Add a class before setting its admission fee."
+                                            } else if (tuitionAmount == null || tuitionAmount < 0.0) {
+                                                feeSaveMessage = "Error: Enter a valid non-negative monthly tuition amount."
+                                            } else {
+                                                isSavingFeeRules = true
+                                                feeSaveMessage = null
+                                                dialogScope.launch {
+                                                    try {
+                                                        val updatedBatch = currentBatch.copy(
+                                                            defaultMonthlyTuition = tuitionAmount,
+                                                            feeTemplateRaw = encodeFeeTemplate(feeParts),
+                                                            collectTuitionAtAdmission = collectTuitionNow
+                                                        )
+                                                        val savedId = database.batchDao().insertBatch(updatedBatch)
+                                                        if (savedId > 0L) {
+                                                            feeSaveMessage = "Saved admission fee rules for ${updatedBatch.batchName}."
+                                                            // The dashboard's Room Flow sync uploads the changed class.
+                                                            // Keep this dialog open so the selected class and saved values remain visible.
+                                                        } else {
+                                                            feeSaveMessage = "Error: The fee settings were not saved. Please try again."
+                                                        }
+                                                    } catch (e: Exception) {
+                                                        feeSaveMessage = "Error: Could not save fee rules. ${e.message ?: "Please try again."}"
+                                                    } finally {
+                                                        isSavingFeeRules = false
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.weight(1.6f).height(46.dp),
+                                        shape = RoundedCornerShape(12.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                                    ) {
+                                        Text(if (isSavingFeeRules) "Saving..." else "💾 Save Fee Rules", fontWeight = FontWeight.Bold)
+                                    }
                                 }
                             }
                         }
