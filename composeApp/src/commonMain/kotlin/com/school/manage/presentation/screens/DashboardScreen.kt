@@ -25,6 +25,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -226,6 +231,47 @@ fun DashboardScreen(
         schoolRecord = database.schoolDao().getSchoolByCode(schoolCode)
     }
     val scope = rememberCoroutineScope()
+    val dashboardListState = rememberLazyListState()
+    var isRefreshingDashboard by remember { mutableStateOf(false) }
+    var dashboardPullDistance by remember { mutableFloatStateOf(0f) }
+    val dashboardRefreshThreshold = with(androidx.compose.ui.platform.LocalDensity.current) {
+        80.dp.toPx()
+    }
+
+    val dashboardRefreshConnection = remember(schoolCode, dashboardRefreshThreshold) {
+        object : NestedScrollConnection {
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                val atTop = dashboardListState.firstVisibleItemIndex == 0 &&
+                    dashboardListState.firstVisibleItemScrollOffset == 0
+
+                if (source == NestedScrollSource.Drag && atTop &&
+                    available.y > 0f && !isRefreshingDashboard
+                ) {
+                    dashboardPullDistance += available.y
+                    if (dashboardPullDistance >= dashboardRefreshThreshold) {
+                        dashboardPullDistance = 0f
+                        isRefreshingDashboard = true
+                        scope.launch {
+                            try {
+                                FirestoreSyncService(database)
+                                    .restoreAllFromCloud(schoolCode)
+                            } finally {
+                                isRefreshingDashboard = false
+                            }
+                        }
+                    }
+                } else if (available.y < 0f || !atTop) {
+                    dashboardPullDistance = 0f
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
     val pickSchoolLogo = rememberPhotoPickerLauncher { encodedBase64 ->
         scope.launch {
             val current = schoolRecord ?: database.schoolDao().getSchoolByCode(schoolCode)
@@ -252,12 +298,33 @@ fun DashboardScreen(
         }
     ) { padding ->
         LazyColumn(
+            state = dashboardListState,
             modifier = Modifier
+                .nestedScroll(dashboardRefreshConnection)
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
+            item {
+                if (isRefreshingDashboard) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(22.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Refreshing data...")
+                    }
+                }
+            }
+
             item { Spacer(modifier = Modifier.height(6.dp)) }
 
             // 1. Modern Header: School Profile & Hamburger Menu
