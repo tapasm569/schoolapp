@@ -1,3 +1,4 @@
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 package com.school.manage.presentation.screens
 
 import androidx.compose.foundation.BorderStroke
@@ -424,6 +425,8 @@ fun BatchListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
 fun AddBatchScreen(
     database: AppDatabase,
     schoolCode: String,
