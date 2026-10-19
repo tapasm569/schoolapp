@@ -980,7 +980,7 @@ data class AdmissionFeePart(
     val isSelected: Boolean = true
 )
 
-private fun parseFeeTemplate(raw: String): List<AdmissionFeePart> {
+fun parseFeeTemplate(raw: String): List<AdmissionFeePart> {
     if (raw.isBlank()) return emptyList()
     return raw.split("|").mapNotNull { entry ->
         val parts = entry.split(":")
@@ -1018,6 +1018,7 @@ fun AssignBatchScreen(
 
     var selectedBatch by remember { mutableStateOf("") }
     var showBatchMenu by remember { mutableStateOf(false) }
+    var showTemplateDialog by remember { mutableStateOf(false) }
     
 
     // Starts empty until a class template is loaded or items are manually added
