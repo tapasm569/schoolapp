@@ -1010,6 +1010,11 @@ fun AssignBatchScreen(
     val sysToday = remember { getSystemCurrentDate() }
     val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
     val allStudents by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
+    var resolvedStudent by remember { mutableStateOf<com.school.manage.core.database.entity.StudentEntity?>(null) }
+    LaunchedEffect(studentId) {
+        resolvedStudent = database.studentDao().getStudentById(studentId)
+    }
+    val currentStudentName = resolvedStudent?.name?.ifBlank { studentName } ?: studentName
 
     var selectedBatch by remember { mutableStateOf("") }
     var showBatchMenu by remember { mutableStateOf(false) }
@@ -1105,7 +1110,7 @@ fun AssignBatchScreen(
                                         FeeRecordEntity(
                                             schoolCode = schoolCode,
                                             studentId = studentId,
-                                            studentName = studentName,
+                                            studentName = currentStudentName,
                                             gradeClass = targetClass,
                                             amountPaid = totalInitialPayable,
                                             paymentDate = sysToday.formatted,
@@ -1150,7 +1155,7 @@ fun AssignBatchScreen(
 
             item {
                 Text(
-                    text = studentName.ifEmpty { "Student" },
+                    text = currentStudentName.ifEmpty { "Student" },
                     fontSize = 20.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = colors.textPrimary,

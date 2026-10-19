@@ -159,25 +159,23 @@ fun AppNavHost(database: AppDatabase) {
                     database = database,
                     schoolCode = currentSchoolCode,
                     onNavigateBack = { navController.popBackStack() },
-                    onStudentSaved = { sId, sName ->
-                        navController.navigate("assign_batch/" + sId + "/" + sName)
+                    onStudentSaved = { sId, _ ->
+                        navController.navigate("assign_batch/" + sId)
                     }
                 )
             }
             composable(
-                route = "assign_batch/{studentId}/{studentName}",
+                route = "assign_batch/{studentId}",
                 arguments = listOf(
-                    navArgument("studentId") { type = NavType.LongType },
-                    navArgument("studentName") { type = NavType.StringType }
+                    navArgument("studentId") { type = NavType.LongType }
                 )
             ) { backStackEntry ->
                 val sId = backStackEntry.arguments?.getLong("studentId") ?: 0L
-                val sName = backStackEntry.arguments?.getString("studentName") ?: "Student"
                 AssignBatchScreen(
                     database = database,
                     schoolCode = currentSchoolCode,
                     studentId = sId,
-                    studentName = sName,
+                    studentName = "",
                     onBatchAssigned = {
                         if (!navController.popBackStack("student_list", inclusive = false)) {
                             navController.navigate("dashboard") {
