@@ -26,6 +26,9 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.LeaveRequestEntity
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StudentEntity
+import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,6 +42,19 @@ fun StudentPortalScreen(
     val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
+    val photoPicker = rememberPhotoPickerLauncher { base64 ->
+        val currentStudent = student
+        if (currentStudent != null && base64.isNotBlank()) {
+            scope.launch {
+                val updated = currentStudent.copy(photoBase64 = base64)
+                database.studentDao().insertStudent(updated)
+                student = updated
+                try {
+                    FirestoreSyncService(database).pushAllLocalDataToCloud(currentStudent.schoolCode)
+                } catch (_: Exception) {}
+            }
+        }
+    }
 
     var student by remember { mutableStateOf<StudentEntity?>(null) }
     var school by remember { mutableStateOf<SchoolEntity?>(null) }
@@ -631,7 +647,7 @@ fun StudentPortalScreen(
 
                     OutlinedTextField(
                         value = leaveStartDate,
-                        onValueChange = { leaveStartDate = it },
+                        onValueChange = { leaveStartDate = it.uppercase() },
                         label = { Text("From Date (DD/MM/YYYY)") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -640,7 +656,7 @@ fun StudentPortalScreen(
 
                     OutlinedTextField(
                         value = leaveEndDate,
-                        onValueChange = { leaveEndDate = it },
+                        onValueChange = { leaveEndDate = it.uppercase() },
                         label = { Text("To Date (DD/MM/YYYY)") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -649,7 +665,7 @@ fun StudentPortalScreen(
 
                     OutlinedTextField(
                         value = leaveReason,
-                        onValueChange = { leaveReason = it },
+                        onValueChange = { leaveReason = it.uppercase() },
                         label = { Text("Reason for Leave") },
                         modifier = Modifier
                             .fillMaxWidth()

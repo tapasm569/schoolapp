@@ -4,6 +4,9 @@ import com.school.manage.core.firebase.FirestoreSyncService
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.school.manage.core.firebase.FirestoreSyncService
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -87,7 +90,7 @@ fun ExamsScreen(
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(exam.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
+                                Text(exam.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(end = 8.dp))
                                 Surface(shape = RoundedCornerShape(8.dp), color = colors.brandPrimary.copy(alpha = 0.15f)) {
                                     Text(
                                         text = exam.gradeClass,
@@ -137,7 +140,7 @@ fun ExamsScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Schedule New Exam", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         CustomRoundedInput(value = examTitle, onValueChange = { examTitle = it }, placeholder = "Exam Title (e.g. Unit Test 1)")
 
                         Box {
@@ -159,7 +162,7 @@ fun ExamsScreen(
                             }
                         }
 
-                        CustomRoundedInput(value = subject, onValueChange = { subject = it }, placeholder = "Subject (e.g. Mathematics)")
+                        SubjectDropdownSelector(selectedClass = selectedClass, selectedSubject = subject, batches = batches, onSubjectSelected = { subject = it })
                         CustomRoundedInput(value = maxMarks, onValueChange = { maxMarks = it }, placeholder = "Max Marks (e.g. 100)")
 
                         Surface(
@@ -555,7 +558,7 @@ fun HomeworkScreen(
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(hw.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                                Text(hw.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(end = 8.dp))
                                 Surface(shape = RoundedCornerShape(6.dp), color = colors.brandPrimary.copy(alpha = 0.15f)) {
                                     Text(hw.gradeClass, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
@@ -585,7 +588,7 @@ fun HomeworkScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Assign New Homework", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box {
                             DropdownTriggerInput(
                                 label = "Select Class",
@@ -604,7 +607,7 @@ fun HomeworkScreen(
                                 }
                             }
                         }
-                        CustomRoundedInput(value = subject, onValueChange = { subject = it }, placeholder = "Subject (e.g. English)")
+                        SubjectDropdownSelector(selectedClass = selectedClass, selectedSubject = subject, batches = batches, onSubjectSelected = { subject = it })
                         CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Assignment Title")
                         CustomRoundedInput(value = description, onValueChange = { description = it }, placeholder = "Description / Instructions")
 
@@ -754,7 +757,7 @@ fun ClassworkScreen(
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(cw.topicTitle, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                                Text(cw.topicTitle, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(end = 8.dp))
                                 Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFDCFCE7)) {
                                     Text(cw.gradeClass, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF15803D), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
                                 }
@@ -783,7 +786,7 @@ fun ClassworkScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Log Daily Classwork", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box {
                             DropdownTriggerInput(
                                 label = "Select Class",
@@ -802,7 +805,7 @@ fun ClassworkScreen(
                                 }
                             }
                         }
-                        CustomRoundedInput(value = subject, onValueChange = { subject = it }, placeholder = "Subject (e.g. Science)")
+                        SubjectDropdownSelector(selectedClass = selectedClass, selectedSubject = subject, batches = batches, onSubjectSelected = { subject = it })
                         CustomRoundedInput(value = topicTitle, onValueChange = { topicTitle = it }, placeholder = "Topic / Chapter (e.g. Photosynthesis)")
                         CustomRoundedInput(value = summary, onValueChange = { summary = it }, placeholder = "Summary of lessons taught today")
 

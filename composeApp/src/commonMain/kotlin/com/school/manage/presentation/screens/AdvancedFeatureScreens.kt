@@ -3,6 +3,8 @@ package com.school.manage.presentation.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -156,7 +158,7 @@ fun LeaveManagementScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Submit Leave Request", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         CustomRoundedInput(value = applicantName, onValueChange = { applicantName = it }, placeholder = "Applicant Name")
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             listOf("STUDENT", "STAFF").forEach { role ->
@@ -347,11 +349,11 @@ fun TimetableScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Add Timetable Slot", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         CustomRoundedInput(value = newClass, onValueChange = { newClass = it }, placeholder = "Class (e.g. Class 1)")
                         CustomRoundedInput(value = newPeriod, onValueChange = { newPeriod = it }, placeholder = "Period Number (1-8)")
                         CustomRoundedInput(value = newTimeSlot, onValueChange = { newTimeSlot = it }, placeholder = "Time (e.g. 09:00 AM - 09:45 AM)")
-                        CustomRoundedInput(value = newSubject, onValueChange = { newSubject = it }, placeholder = "Subject (e.g. Mathematics)")
+                        SubjectDropdownSelector(selectedClass = newClass, selectedSubject = newSubject, batches = batches, onSubjectSelected = { newSubject = it })
                         CustomRoundedInput(value = newTeacher, onValueChange = { newTeacher = it }, placeholder = "Teacher Name")
                     }
                 },
@@ -451,7 +453,7 @@ fun OnlineClassesScreen(
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(cls.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
+                                Text(cls.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(end = 8.dp))
                                 Surface(shape = RoundedCornerShape(6.dp), color = colors.brandPrimary.copy(alpha = 0.15f)) {
                                     Text(cls.gradeClass, color = colors.brandPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
                                 }
@@ -490,7 +492,7 @@ fun OnlineClassesScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Schedule Online Class", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Session Title (e.g. Science Chapter 2)")
                         CustomRoundedInput(value = gradeClass, onValueChange = { gradeClass = it }, placeholder = "Target Class (e.g. Class 2)")
                         CustomRoundedInput(value = subject, onValueChange = { subject = it }, placeholder = "Subject")
@@ -542,6 +544,8 @@ fun QuestionBankScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     val questions by database.questionBankDao().getQuestionsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    var showQbClassMenu by remember { mutableStateOf(false) }
 
     var showAddDialog by remember { mutableStateOf(false) }
     var selectedClassFilter by remember { mutableStateOf("ALL") }
@@ -647,9 +651,29 @@ fun QuestionBankScreen(
                 containerColor = colors.bgCard,
                 title = { Text("Add Question / Study Note", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        CustomRoundedInput(value = gradeClass, onValueChange = { gradeClass = it }, placeholder = "Class (e.g. Class 5)")
-                        CustomRoundedInput(value = subject, onValueChange = { subject = it }, placeholder = "Subject (e.g. Science)")
+                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Box {
+                            DropdownTriggerInput(
+                                label = "Select Class",
+                                value = if (gradeClass.isEmpty()) "SELECT CLASS" else gradeClass,
+                                onClick = { showQbClassMenu = true }
+                            )
+                            DropdownMenu(expanded = showQbClassMenu, onDismissRequest = { showQbClassMenu = false }) {
+                                val classList = if (batches.isEmpty()) listOf("Nursery", "LKG", "UKG", "Class 1", "Class 2", "Class 3", "Class 4") else batches.map { it.batchName }
+                                classList.forEach { bName ->
+                                    DropdownMenuItem(
+                                        text = { Text(bName, fontWeight = FontWeight.SemiBold) },
+                                        onClick = { gradeClass = bName; showQbClassMenu = false }
+                                    )
+                                }
+                            }
+                        }
+                        SubjectDropdownSelector(
+                            selectedClass = gradeClass,
+                            selectedSubject = subject,
+                            batches = batches,
+                            onSubjectSelected = { subject = it }
+                        )
                         CustomRoundedInput(value = chapter, onValueChange = { chapter = it }, placeholder = "Chapter / Topic")
                         CustomRoundedInput(value = questionText, onValueChange = { questionText = it }, placeholder = "Question Text")
                         CustomRoundedInput(value = answerKey, onValueChange = { answerKey = it }, placeholder = "Answer Key / Explanation")

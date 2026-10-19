@@ -26,6 +26,10 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.database.entity.StudentEntity
+import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.firebase.FirestoreSyncService
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,6 +42,20 @@ fun StaffPortalScreen(
 ) {
     val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
+    val scope = rememberCoroutineScope()
+    val photoPicker = rememberPhotoPickerLauncher { base64 ->
+        val currentStaff = staff
+        if (currentStaff != null && base64.isNotBlank()) {
+            scope.launch {
+                val updated = currentStaff.copy(photoBase64 = base64)
+                database.staffDao().insertStaff(updated)
+                staff = updated
+                try {
+                    FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                } catch (_: Exception) {}
+            }
+        }
+    }
 
     var staff by remember { mutableStateOf<StaffEntity?>(null) }
     var school by remember { mutableStateOf<SchoolEntity?>(null) }
@@ -112,12 +130,25 @@ fun StaffPortalScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     modifier = Modifier
-                                        .size(54.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.22f)),
-                                    contentAlignment = Alignment.Center
+                                        .size(64.dp)
+                                        .clickable { photoPicker.launch() },
+                                    contentAlignment = Alignment.BottomEnd
                                 ) {
-                                    Text("👨‍🏫", fontSize = 28.sp)
+                                    ProfileAvatar(
+                                        name = teacherName,
+                                        photoBase64 = staff?.photoBase64 ?: "",
+                                        size = 60.dp
+                                    )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = Color.White,
+                                        shadowElevation = 3.dp,
+                                        modifier = Modifier.size(22.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text("📷", fontSize = 11.sp)
+                                        }
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(14.dp))
                                 Column {
@@ -342,7 +373,7 @@ fun StaffPortalScreen(
                             )
                             OutlinedTextField(
                                 value = searchQuery,
-                                onValueChange = { searchQuery = it },
+                                onValueChange = { searchQuery = it.uppercase() },
                                 placeholder = { Text("Search name or class...") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth(),
@@ -419,7 +450,7 @@ fun StaffPortalScreen(
 
                             OutlinedTextField(
                                 value = customMessage,
-                                onValueChange = { customMessage = it },
+                                onValueChange = { customMessage = it.uppercase() },
                                 label = { Text("Message") },
                                 modifier = Modifier
                                     .fillMaxWidth()

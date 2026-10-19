@@ -499,7 +499,7 @@ fun StudentListScreen(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .verticalScroll(rememberScrollState())
+                            .verticalScroll(rememberScrollState()).imePadding()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {

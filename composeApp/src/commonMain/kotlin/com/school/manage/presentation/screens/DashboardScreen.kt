@@ -992,7 +992,7 @@ AddNewOptionItem(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState()).imePadding()
                         .padding(horizontal = 20.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -1164,7 +1164,7 @@ AddNewOptionItem(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(rememberScrollState()).imePadding()
                         .padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -1384,7 +1384,7 @@ AddNewOptionItem(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(rememberScrollState()).imePadding(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Surface(
@@ -1463,7 +1463,7 @@ AddNewOptionItem(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(rememberScrollState()).imePadding(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Text(
@@ -1567,7 +1567,7 @@ AddNewOptionItem(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(rememberScrollState()).imePadding(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         Surface(
@@ -1778,7 +1778,7 @@ AddNewOptionItem(
                         Column(
                             modifier = Modifier
                                 .weight(1f)
-                                .verticalScroll(rememberScrollState())
+                                .verticalScroll(rememberScrollState()).imePadding()
                                 .padding(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {

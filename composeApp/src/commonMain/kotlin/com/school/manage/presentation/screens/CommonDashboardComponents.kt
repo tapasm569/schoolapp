@@ -19,12 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.school.manage.presentation.theme.LocalSchoolColors
+import com.school.manage.core.database.entity.BatchEntity
 
 @Composable
 fun CustomRoundedInput(
@@ -35,20 +39,33 @@ fun CustomRoundedInput(
 ) {
     val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         color = colors.inputBg,
-        border = BorderStroke(1.dp, colors.inputBorder),
+        border = BorderStroke(1.2.dp, colors.inputBorder),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
                 value = value,
-                onValueChange = onValueChange,
-                placeholder = { Text(placeholder, color = colors.textSecondary, fontSize = 14.sp) },
-                textStyle = LocalTextStyle.current.copy(color = colors.textPrimary),
+                onValueChange = { onValueChange(it.uppercase()) },
+                placeholder = {
+                    Text(
+                        placeholder,
+                        color = colors.textSecondary,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                textStyle = LocalTextStyle.current.copy(
+                    color = colors.textPrimary,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp
+                ),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -60,7 +77,7 @@ fun CustomRoundedInput(
                 singleLine = true
             )
             if (trailingIcon != null) {
-                Text(trailingIcon, fontSize = 18.sp, color = colors.textSecondary)
+                Text(trailingIcon, fontSize = 18.sp, color = colors.brandPrimary)
             }
         }
     }
@@ -109,7 +126,7 @@ fun GenderOptionButton(
             1.5.dp,
             if (isSelected) colors.brandPrimary else colors.borderCard
         ),
-        modifier = Modifier.width(115.dp).height(46.dp)
+        modifier = Modifier.height(46.dp).widthIn(min = 100.dp)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp),
@@ -683,6 +700,63 @@ fun ModernDatePickerDialog(
                         Text("Done", fontWeight = FontWeight.Bold)
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun SubjectDropdownSelector(
+    selectedClass: String,
+    selectedSubject: String,
+    batches: List<BatchEntity>,
+    onSubjectSelected: (String) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    val classSubjects = remember(selectedClass, batches) {
+        val matchedBatch = batches.find { it.batchName.equals(selectedClass, ignoreCase = true) }
+        val fromClass = matchedBatch?.subjects
+            ?.split(",")
+            ?.map { it.trim().uppercase() }
+            ?.filter { it.isNotEmpty() && !it.equals("GENERAL", ignoreCase = true) }
+            ?: emptyList()
+
+        if (fromClass.isNotEmpty()) {
+            fromClass.distinct()
+        } else {
+            val allAdminSubjects = batches
+                .flatMap { it.subjects.split(",") }
+                .map { it.trim().uppercase() }
+                .filter { it.isNotEmpty() && !it.equals("GENERAL", ignoreCase = true) }
+                .distinct()
+            if (allAdminSubjects.isNotEmpty()) {
+                allAdminSubjects
+            } else {
+                listOf("BENGALI", "ENGLISH", "MATHEMATICS", "SCIENCE", "HISTORY", "GEOGRAPHY", "COMPUTER", "GENERAL KNOWLEDGE", "DRAWING")
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        DropdownTriggerInput(
+            label = if (selectedClass.isEmpty()) "Select Subject (School Admin Subjects)" else "Select Subject ($selectedClass)",
+            value = if (selectedSubject.isEmpty()) "SELECT SUBJECT" else selectedSubject.uppercase(),
+            onClick = { expanded = true }
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.heightIn(max = 280.dp)
+        ) {
+            classSubjects.forEach { subj ->
+                DropdownMenuItem(
+                    text = { Text(subj, fontWeight = FontWeight.SemiBold) },
+                    onClick = {
+                        onSubjectSelected(subj)
+                        expanded = false
+                    }
+                )
             }
         }
     }

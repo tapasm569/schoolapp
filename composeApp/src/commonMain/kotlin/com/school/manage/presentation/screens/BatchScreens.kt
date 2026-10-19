@@ -297,7 +297,7 @@ fun BatchListScreen(
                     Column(
                         modifier = Modifier
                             .weight(1f)
-                            .verticalScroll(rememberScrollState())
+                            .verticalScroll(rememberScrollState()).imePadding()
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -625,7 +625,7 @@ fun AddBatchScreen(
                 ) {
                     Column(
                         modifier = Modifier
-                            .verticalScroll(rememberScrollState())
+                            .verticalScroll(rememberScrollState()).imePadding()
                             .padding(20.dp),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
