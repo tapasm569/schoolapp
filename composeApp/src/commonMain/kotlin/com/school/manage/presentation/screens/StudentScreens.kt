@@ -341,38 +341,11 @@ fun StudentListScreen(
                                         ContactQuickActions(
                                             phone = student.phone,
                                             whatsapp = student.whatsapp.ifBlank { student.phone },
-                                            messageText = "Hello Parents of ${student.name} (Class ${student.gradeClass}, Roll #${student.rollNo}),"
-                                        )
+                                            messageText = "Hello Parents of ${student.name} (Class ${student.gradeClass}, Roll #${student.rollNo}),",
+                                        profileAction = { selectedProfileStudent = student },
+                                        removeAction = { scope.launch { FirestoreSyncService(database).deleteStudentRecord(schoolCode, student) } }
+                                    )
 
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Surface(
-                                                shape = RoundedCornerShape(8.dp),
-                                                color = colors.brandPrimary.copy(alpha = 0.12f),
-                                                modifier = Modifier.weight(1f).height(36.dp).clickable { selectedProfileStudent = student }
-                                            ) {
-                                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                                    Text("✏️ Profile", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                                                }
-                                            }
-
-                                            Surface(
-                                                shape = RoundedCornerShape(8.dp),
-                                                color = colors.error.copy(alpha = 0.14f),
-                                                modifier = Modifier.weight(1f).height(36.dp).clickable {
-                                                    scope.launch {
-            FirestoreSyncService(database).deleteStudentRecord(schoolCode, student)
-        }
-                                                }
-                                            ) {
-                                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                                    Text("Remove", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.error)
-                                                }
-                                            }
-                                        }
                                     }
                                 }
                             }

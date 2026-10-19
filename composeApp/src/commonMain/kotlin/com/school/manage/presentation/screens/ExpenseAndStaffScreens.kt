@@ -437,38 +437,11 @@ fun StaffScreen(
                                 ContactQuickActions(
                                     phone = staff.phone,
                                     whatsapp = staff.whatsapp.ifBlank { staff.phone },
-                                    messageText = "Hello ${staff.name},"
+                                    messageText = "Hello ${staff.name},",
+                                    profileAction = { selectedTeacherForEdit = staff },
+                                    removeAction = { scope.launch { FirestoreSyncService(database).deleteStaffRecord(schoolCode, staff) } }
                                 )
 
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = colors.brandPrimary.copy(alpha = 0.12f),
-                                        modifier = Modifier.weight(1f).height(36.dp).clickable { selectedTeacherForEdit = staff }
-                                    ) {
-                                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                            Text("✏️ Profile", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                                        }
-                                    }
-
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = colors.error.copy(alpha = 0.14f),
-                                        modifier = Modifier.weight(1f).height(36.dp).clickable {
-                                            scope.launch {
-                                                FirestoreSyncService(database).deleteStaffRecord(schoolCode, staff)
-                                            }
-                                        }
-                                    ) {
-                                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                            Text("Remove", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.error)
-                                        }
-                                    }
-                                }
                             }
                         }
                     }

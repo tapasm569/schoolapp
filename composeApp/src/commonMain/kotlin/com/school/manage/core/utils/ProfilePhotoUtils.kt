@@ -117,23 +117,25 @@ fun ProfileAvatar(
 fun ContactQuickActions(
     phone: String,
     whatsapp: String = "",
-    messageText: String = ""
+    messageText: String = "",
+    profileAction: (() -> Unit)? = null,
+    removeAction: (() -> Unit)? = null
 ) {
     val uriHandler = LocalUriHandler.current
     val cleanPhone = phone.filter { it.isDigit() }
     val cleanWa = whatsapp.ifBlank { phone }.filter { it.isDigit() }
 
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Direct Call Button
+        // Call
         Surface(
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(7.dp),
             color = Color(0xFF2563EB).copy(alpha = 0.12f),
             border = BorderStroke(1.dp, Color(0xFF2563EB).copy(alpha = 0.3f)),
-            modifier = Modifier
-                .height(30.dp)
+            modifier = Modifier.weight(1f).height(32.dp)
                 .clickable(enabled = cleanPhone.isNotEmpty()) {
                     try {
                         uriHandler.openUri("tel:$cleanPhone")
@@ -142,33 +144,33 @@ fun ContactQuickActions(
                     }
                 }
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text("📞", fontSize = 12.sp)
                 Text(
-                    "Call",
-                    fontSize = 11.sp,
+                    "📞 Call",
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2563EB)
+                    color = Color(0xFF2563EB),
+                    maxLines = 1
                 )
             }
         }
 
-        // Direct WhatsApp Button
+        // WhatsApp
         Surface(
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(7.dp),
             color = Color(0xFF16A34A).copy(alpha = 0.14f),
             border = BorderStroke(1.dp, Color(0xFF16A34A).copy(alpha = 0.35f)),
-            modifier = Modifier
-                .height(30.dp)
+            modifier = Modifier.weight(1.35f).height(32.dp)
                 .clickable(enabled = cleanWa.isNotEmpty()) {
                     try {
-                        val formattedWa = if (cleanWa.length == 10) "91$cleanWa" else cleanWa
+                        val formattedWa =
+                            if (cleanWa.length == 10) "91$cleanWa" else cleanWa
                         val url = if (messageText.isNotBlank()) {
-                            "https://wa.me/$formattedWa?text=${messageText.replace(" ", "%20")}"
+                            "https://wa.me/$formattedWa?text=" +
+                                encodeWhatsAppMessage(messageText)
                         } else {
                             "https://wa.me/$formattedWa"
                         }
@@ -178,18 +180,87 @@ fun ContactQuickActions(
                     }
                 }
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                Text("💬", fontSize = 12.sp)
                 Text(
-                    "WhatsApp",
-                    fontSize = 11.sp,
+                    "💬 WhatsApp",
+                    fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF15803D)
+                    color = Color(0xFF15803D),
+                    maxLines = 1
                 )
+            }
+        }
+
+        // Profile
+        if (profileAction != null) {
+            Surface(
+                shape = RoundedCornerShape(7.dp),
+                color = Color(0xFF2563EB).copy(alpha = 0.12f),
+                modifier = Modifier.weight(1.15f).height(32.dp)
+                    .clickable { profileAction() }
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "✏️ Profile",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2563EB),
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+
+        // Remove
+        if (removeAction != null) {
+            Surface(
+                shape = RoundedCornerShape(7.dp),
+                color = Color(0xFFDC2626).copy(alpha = 0.12f),
+                modifier = Modifier.weight(1f).height(32.dp)
+                    .clickable { removeAction() }
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Remove",
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFDC2626),
+                        maxLines = 1
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun encodeWhatsAppMessage(message: String): String {
+    val bytes = message.encodeToByteArray()
+    val hex = "0123456789ABCDEF"
+    return buildString {
+        for (byte in bytes) {
+            val value = byte.toInt() and 0xFF
+            val unreserved =
+                value in 65..90 ||
+                value in 97..122 ||
+                value in 48..57 ||
+                value == 45 || value == 46 ||
+                value == 95 || value == 126
+
+            if (unreserved) {
+                append(value.toChar())
+            } else {
+                append('%')
+                append(hex[value shr 4])
+                append(hex[value and 15])
             }
         }
     }
