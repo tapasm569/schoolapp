@@ -623,7 +623,12 @@ fun AddBatchScreen(
                     border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth().padding(16.dp)
                 ) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .verticalScroll(rememberScrollState())
+                            .padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
                         Text("Add Subject", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
                         CustomRoundedInput(
                             value = newSubject,
