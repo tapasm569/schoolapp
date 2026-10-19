@@ -1,15 +1,14 @@
 package com.school.manage.core.utils
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -19,6 +18,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -37,9 +37,9 @@ fun ProfileAvatar(
     photoBase64: String,
     name: String = "",
     fallbackEmoji: String = "👤",
-    size: Dp = 46.dp,
+    size: Dp = 48.dp,
     cornerRadius: Dp? = null,
-    backgroundColor: Color = Color(0xFF2563EB).copy(alpha = 0.15f),
+    backgroundColor: Color = Color(0xFF2563EB).copy(alpha = 0.14f),
     textColor: Color = Color(0xFF2563EB),
     showEditBadge: Boolean = false,
     onClick: (() -> Unit)? = null
@@ -63,14 +63,15 @@ fun ProfileAvatar(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(shape)
-                    .border(1.dp, backgroundColor, shape)
+                    .border(1.5.dp, textColor.copy(alpha = 0.35f), shape)
             )
         } else {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(shape)
-                    .background(backgroundColor),
+                    .background(backgroundColor)
+                    .border(1.dp, textColor.copy(alpha = 0.25f), shape),
                 contentAlignment = Alignment.Center
             ) {
                 val initials = name.trim()
@@ -79,17 +80,17 @@ fun ProfileAvatar(
                     .take(2)
                     .joinToString("") { it.take(1).uppercase() }
 
-                if (fallbackEmoji.isNotEmpty()) {
+                if (initials.isNotEmpty()) {
                     Text(
-                        text = fallbackEmoji,
-                        fontSize = (size.value * 0.46f).sp
+                        text = initials,
+                        fontSize = (size.value * 0.36f).sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = textColor
                     )
                 } else {
                     Text(
-                        text = initials.ifEmpty { "👤" },
-                        fontSize = (size.value * 0.38f).sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
+                        text = fallbackEmoji.ifEmpty { "👤" },
+                        fontSize = (size.value * 0.44f).sp
                     )
                 }
             }
@@ -107,6 +108,88 @@ fun ProfileAvatar(
                 contentAlignment = Alignment.Center
             ) {
                 Text("📷", fontSize = 10.sp)
+            }
+        }
+    }
+}
+
+@Composable
+fun ContactQuickActions(
+    phone: String,
+    whatsapp: String = "",
+    messageText: String = ""
+) {
+    val uriHandler = LocalUriHandler.current
+    val cleanPhone = phone.filter { it.isDigit() }
+    val cleanWa = whatsapp.ifBlank { phone }.filter { it.isDigit() }
+
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Direct Call Button
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color(0xFF2563EB).copy(alpha = 0.12f),
+            border = BorderStroke(1.dp, Color(0xFF2563EB).copy(alpha = 0.3f)),
+            modifier = Modifier
+                .height(30.dp)
+                .clickable(enabled = cleanPhone.isNotEmpty()) {
+                    try {
+                        uriHandler.openUri("tel:$cleanPhone")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text("📞", fontSize = 12.sp)
+                Text(
+                    "Call",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2563EB)
+                )
+            }
+        }
+
+        // Direct WhatsApp Button
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = Color(0xFF16A34A).copy(alpha = 0.14f),
+            border = BorderStroke(1.dp, Color(0xFF16A34A).copy(alpha = 0.35f)),
+            modifier = Modifier
+                .height(30.dp)
+                .clickable(enabled = cleanWa.isNotEmpty()) {
+                    try {
+                        val formattedWa = if (cleanWa.length == 10) "91$cleanWa" else cleanWa
+                        val url = if (messageText.isNotBlank()) {
+                            "https://wa.me/$formattedWa?text=${messageText.replace(" ", "%20")}"
+                        } else {
+                            "https://wa.me/$formattedWa"
+                        }
+                        uriHandler.openUri(url)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text("💬", fontSize = 12.sp)
+                Text(
+                    "WhatsApp",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF15803D)
+                )
             }
         }
     }

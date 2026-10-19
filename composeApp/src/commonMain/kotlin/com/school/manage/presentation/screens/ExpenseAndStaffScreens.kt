@@ -21,7 +21,11 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.ExpenseEntity
 import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.firebase.FirestoreSyncService
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.window.Dialog
 import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.ContactQuickActions
 import com.school.manage.core.utils.rememberPhotoPickerLauncher
 import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
@@ -95,7 +99,8 @@ fun AddStaffScreen(
                                     role = position.ifBlank { "Teacher" },
                                     salary = salary.toDoubleOrNull() ?: 0.0,
                                     salaryType = salaryType,
-                                    password = phone.trim()
+                                    password = phone.trim(),
+                                    photoBase64 = photoBase64
                                 )
                             )
                             onNavigateBack()
@@ -289,39 +294,422 @@ fun StaffScreen(
 ) {
     val colors = LocalSchoolColors.current
     val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    val scope = rememberCoroutineScope()
+    var selectedTeacherForEdit by remember { mutableStateOf<StaffEntity?>(null) }
+
     Scaffold(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Staff & Faculty Directory (" + staffList.size + ")", color = colors.textPrimary) },
+                title = {
+                    Column {
+                        Text("Staff & Faculty Directory (${staffList.size})", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.textPrimary)
+                        Text("Tap any teacher card to view & update profile", fontSize = 11.sp, color = colors.textSecondary)
+                    }
+                },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                    IconButton(onClick = onNavigateBack) {
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(staffList) { staff ->
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(modifier = Modifier.padding(14.dp)) {
-                        Text(staff.name, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
-                        Text("Position: " + staff.role + " • Contact: " + staff.phone, color = colors.textSecondary)
-                        Text("Salary: ₹" + staff.salary.toInt() + " (" + staff.salaryType + ")", color = colors.brandPrimary, fontWeight = FontWeight.SemiBold)
+        if (staffList.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text("No teachers or staff added yet.", color = colors.textSecondary)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(staffList) { staff ->
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = colors.bgCard,
+                        border = BorderStroke(1.dp, colors.borderCard),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { selectedTeacherForEdit = staff }
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    ProfileAvatar(
+                                        photoBase64 = staff.photoBase64,
+                                        name = staff.name,
+                                        fallbackEmoji = "👨‍🏫",
+                                        size = 54.dp,
+                                        cornerRadius = 14.dp,
+                                        showEditBadge = true,
+                                        onClick = { selectedTeacherForEdit = staff }
+                                    )
+                                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                        Text(
+                                            text = staff.name,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 16.sp,
+                                            color = colors.textPrimary
+                                        )
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Surface(
+                                                shape = RoundedCornerShape(6.dp),
+                                                color = colors.brandPrimary.copy(alpha = 0.14f)
+                                            ) {
+                                                Text(
+                                                    text = staff.role.ifBlank { "Teacher" },
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colors.brandPrimary,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                            if (staff.qualification.isNotBlank()) {
+                                                Surface(
+                                                    shape = RoundedCornerShape(6.dp),
+                                                    color = colors.borderCard.copy(alpha = 0.6f)
+                                                ) {
+                                                    Text(
+                                                        text = "🎓 ${staff.qualification}",
+                                                        fontSize = 11.sp,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = colors.textSecondary,
+                                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = colors.success.copy(alpha = 0.14f)
+                                ) {
+                                    Text(
+                                        text = "₹${staff.salary.toInt()}/${staff.salaryType.take(2).lowercase()}",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = colors.success,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+                            HorizontalDivider(color = colors.borderCard.copy(alpha = 0.6f))
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "📱 Phone: ${staff.phone.ifEmpty { "N/A" }}   •   📅 Joined: ${staff.joinDate.ifEmpty { "N/A" }}   •   🚻 ${staff.gender}",
+                                fontSize = 12.sp,
+                                color = colors.textSecondary
+                            )
+                            if (staff.address.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Text(
+                                    text = "📍 Address: ${staff.address}",
+                                    fontSize = 12.sp,
+                                    color = colors.textSecondary
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                ContactQuickActions(
+                                    phone = staff.phone,
+                                    whatsapp = staff.whatsapp.ifBlank { staff.phone },
+                                    messageText = "Hello ${staff.name},"
+                                )
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = colors.brandPrimary.copy(alpha = 0.12f),
+                                        modifier = Modifier
+                                            .height(30.dp)
+                                            .clickable { selectedTeacherForEdit = staff }
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                            Text("✏️ Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                        }
+                                    }
+
+                                    Surface(
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = colors.error.copy(alpha = 0.14f),
+                                        modifier = Modifier
+                                            .height(30.dp)
+                                            .clickable {
+                                                scope.launch { database.staffDao().deleteStaff(staff) }
+                                            }
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                            Text("Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Teacher Profile & Update Modal
+    if (selectedTeacherForEdit != null) {
+        val teacher = selectedTeacherForEdit!!
+        var editPhoto by remember(teacher) { mutableStateOf(teacher.photoBase64) }
+        val pickTeacherPhoto = rememberPhotoPickerLauncher { editPhoto = it }
+
+        var editName by remember(teacher) { mutableStateOf(teacher.name) }
+        var editRole by remember(teacher) { mutableStateOf(teacher.role) }
+        var editQual by remember(teacher) { mutableStateOf(teacher.qualification) }
+        var editPhone by remember(teacher) { mutableStateOf(teacher.phone) }
+        var editWhatsapp by remember(teacher) { mutableStateOf(teacher.whatsapp.ifBlank { teacher.phone }) }
+        var editSalary by remember(teacher) { mutableStateOf(teacher.salary.toInt().toString()) }
+        var editSalaryType by remember(teacher) { mutableStateOf(teacher.salaryType.ifBlank { "Monthly" }) }
+        var editJoinDate by remember(teacher) { mutableStateOf(teacher.joinDate) }
+        var editGender by remember(teacher) { mutableStateOf(teacher.gender.ifBlank { "Male" }) }
+        var editAddress by remember(teacher) { mutableStateOf(teacher.address) }
+        var editPassword by remember(teacher) { mutableStateOf(teacher.password.ifBlank { teacher.phone }) }
+
+        Dialog(onDismissRequest = { selectedTeacherForEdit = null }) {
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = colors.bgCard,
+                border = BorderStroke(1.dp, colors.borderCard),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.88f)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Surface(
+                        color = colors.brandPrimary.copy(alpha = 0.1f),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Teacher / Staff Profile", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, color = colors.brandPrimary)
+                                TextButton(onClick = { selectedTeacherForEdit = null }) {
+                                    Text("✕ Close", fontWeight = FontWeight.Bold, color = colors.textSecondary)
+                                }
+                            }
+                            ProfileAvatar(
+                                photoBase64 = editPhoto,
+                                name = editName,
+                                fallbackEmoji = "👨‍🏫",
+                                size = 82.dp,
+                                showEditBadge = true,
+                                onClick = { pickTeacherPhoto() }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Tap photo to upload / change picture",
+                                fontSize = 11.sp,
+                                color = colors.brandPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable { pickTeacherPhoto() }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            ContactQuickActions(
+                                phone = editPhone,
+                                whatsapp = editWhatsapp,
+                                messageText = "Hello $editName,"
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = editName,
+                            onValueChange = { editName = it },
+                            label = { Text("Teacher Full Name") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editRole,
+                                onValueChange = { editRole = it },
+                                label = { Text("Role / Designation") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editQual,
+                                onValueChange = { editQual = it },
+                                label = { Text("Qualification") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editPhone,
+                                onValueChange = { editPhone = it },
+                                label = { Text("Mobile Number") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editWhatsapp,
+                                onValueChange = { editWhatsapp = it },
+                                label = { Text("WhatsApp Number") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editSalary,
+                                onValueChange = { editSalary = it },
+                                label = { Text("Salary (₹)") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editSalaryType,
+                                onValueChange = { editSalaryType = it },
+                                label = { Text("Frequency (Monthly)") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editJoinDate,
+                                onValueChange = { editJoinDate = it },
+                                label = { Text("Joining Date") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editGender,
+                                onValueChange = { editGender = it },
+                                label = { Text("Gender") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = editPassword,
+                            onValueChange = { editPassword = it },
+                            label = { Text("Staff Portal Login Password") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = editAddress,
+                            onValueChange = { editAddress = it },
+                            label = { Text("Residential Address") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                    }
+
+                    Surface(
+                        color = colors.bgCard,
+                        border = BorderStroke(1.dp, colors.borderCard),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { selectedTeacherForEdit = null },
+                                modifier = Modifier.weight(1f).height(46.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Cancel")
+                            }
+                            Button(
+                                onClick = {
+                                    if (editName.isNotBlank()) {
+                                        scope.launch {
+                                            val updatedStaff = teacher.copy(
+                                                name = editName.trim(),
+                                                role = editRole.trim().ifEmpty { "Teacher" },
+                                                qualification = editQual.trim(),
+                                                phone = editPhone.trim(),
+                                                whatsapp = editWhatsapp.trim().ifEmpty { editPhone.trim() },
+                                                salary = editSalary.toDoubleOrNull() ?: teacher.salary,
+                                                salaryType = editSalaryType.trim().ifEmpty { "Monthly" },
+                                                joinDate = editJoinDate.trim(),
+                                                gender = editGender.trim().ifEmpty { "Male" },
+                                                address = editAddress.trim(),
+                                                password = editPassword.trim().ifEmpty { editPhone.trim() },
+                                                photoBase64 = editPhoto
+                                            )
+                                            database.staffDao().insertStaff(updatedStaff)
+                                            selectedTeacherForEdit = null
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.weight(1.5f).height(46.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                            ) {
+                                Text("💾 Update Profile", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
             }
         }
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

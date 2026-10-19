@@ -13,6 +13,7 @@ import androidx.compose.foundation.BorderStroke
 import com.school.manage.core.utils.getSystemCurrentDate
 import com.school.manage.core.utils.rememberPhotoPickerLauncher
 import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.ContactQuickActions
 import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.background
@@ -48,22 +49,57 @@ fun StudentListScreen(
 ) {
     val colors = LocalSchoolColors.current
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedClassFilter by remember { mutableStateOf("All") }
+
     var editingRollStudent by remember { mutableStateOf<StudentEntity?>(null) }
     var editRollInput by remember { mutableStateOf("") }
     var editSectionInput by remember { mutableStateOf("") }
 
-    val categorizedStudents = remember(students) {
-        students.groupBy { it.gradeClass.ifBlank { "Unassigned Class" } }
+    var selectedProfileStudent by remember { mutableStateOf<StudentEntity?>(null) }
+
+    val filteredStudents = remember(students, searchQuery, selectedClassFilter) {
+        students.filter { st ->
+            val matchesClass = selectedClassFilter == "All" || st.gradeClass.equals(selectedClassFilter, ignoreCase = true)
+            val q = searchQuery.trim().lowercase()
+            val matchesSearch = q.isEmpty() ||
+                st.name.lowercase().contains(q) ||
+                st.rollNo.lowercase().contains(q) ||
+                st.phone.contains(q) ||
+                st.fatherName.lowercase().contains(q)
+            matchesClass && matchesSearch
+        }
+    }
+
+    val categorizedStudents = remember(filteredStudents) {
+        filteredStudents
+            .sortedWith(compareBy({ it.rollNo.filter { c -> c.isDigit() }.toIntOrNull() ?: Int.MAX_VALUE }, { it.name.lowercase() }))
+            .groupBy { it.gradeClass.ifBlank { "Unassigned Class" } }
+    }
+
+    val classTabs = remember(students, batches) {
+        val fromBatches = batches.map { it.batchName }.filter { it.isNotBlank() }
+        val fromStudents = students.map { it.gradeClass }.filter { it.isNotBlank() }
+        listOf("All") + (fromBatches + fromStudents).distinct()
     }
 
     Scaffold(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Students Directory (" + students.size + ")", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary) },
+                title = {
+                    Column {
+                        Text("Students Directory (${students.size})", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.textPrimary)
+                        Text("Tap any student card to view & update profile", fontSize = 11.sp, color = colors.textSecondary)
+                    }
+                },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
+                    IconButton(onClick = onNavigateBack) {
+                        Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
@@ -79,49 +115,88 @@ fun StudentListScreen(
             }
         }
     ) { padding ->
-        if (students.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No students enrolled yet. Tap + to register.", color = colors.textSecondary)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                item { Spacer(modifier = Modifier.height(6.dp)) }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            // Search & Class Filter Bar
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("🔍 Search by Name, Roll No, or Phone...", fontSize = 13.sp) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
 
-                categorizedStudents.forEach { (className, studentGroup) ->
-                    item {
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(classTabs) { tab ->
+                        val isSelected = selectedClassFilter == tab
                         Surface(
-                            shape = RoundedCornerShape(10.dp),
-                            color = colors.brandPrimary.copy(alpha = 0.15f),
-                            modifier = Modifier.fillMaxWidth()
+                            shape = RoundedCornerShape(20.dp),
+                            color = if (isSelected) colors.brandPrimary else colors.bgCard,
+                            border = BorderStroke(1.dp, if (isSelected) colors.brandPrimary else colors.borderCard),
+                            modifier = Modifier.clickable { selectedClassFilter = tab }
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                            Text(
+                                text = tab,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color.White else colors.textPrimary,
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (filteredStudents.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No matching students found.", color = colors.textSecondary)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    item { Spacer(modifier = Modifier.height(4.dp)) }
+
+                    categorizedStudents.forEach { (className, studentGroup) ->
+                        item {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = colors.brandPrimary.copy(alpha = 0.12f),
+                                border = BorderStroke(1.dp, colors.brandPrimary.copy(alpha = 0.25f)),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Column {
-                                    Text("Class: " + className, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = colors.brandPrimary)
-                                    Text(studentGroup.size.toString() + " Students", fontWeight = FontWeight.SemiBold, fontSize = 11.sp, color = colors.textSecondary)
-                                }
-                                if (studentGroup.any { it.rollNo.isBlank() }) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text("Class: $className", fontWeight = FontWeight.ExtraBold, fontSize = 15.sp, color = colors.brandPrimary)
+                                        Text("${studentGroup.size} Students Enrolled", fontWeight = FontWeight.SemiBold, fontSize = 11.sp, color = colors.textSecondary)
+                                    }
                                     Surface(
                                         shape = RoundedCornerShape(8.dp),
                                         color = colors.brandPrimary,
                                         modifier = Modifier.clickable {
                                             scope.launch {
-                                                val maxExisting = studentGroup.mapNotNull { s ->
-                                                    s.rollNo.filter { it.isDigit() }.toIntOrNull()
-                                                }.maxOrNull() ?: 0
-                                                var nextRoll = maxExisting + 1
+                                                var nextRoll = 1
                                                 studentGroup.sortedBy { it.name.lowercase() }.forEach { st ->
-                                                    if (st.rollNo.isBlank()) {
-                                                        database.studentDao().insertStudent(st.copy(rollNo = nextRoll.toString()))
-                                                        nextRoll++
-                                                    }
+                                                    val currentRoll = st.rollNo.ifBlank { nextRoll.toString() }
+                                                    database.studentDao().insertStudent(st.copy(rollNo = currentRoll))
+                                                    nextRoll++
                                                 }
+                                                try {
+                                                    FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                                } catch (_: Exception) {}
                                             }
                                         }
                                     ) {
@@ -130,156 +205,532 @@ fun StudentListScreen(
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
-                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                                         )
                                     }
                                 }
                             }
                         }
-                    }
 
-                    items(studentGroup) { student ->
-                        Surface(
-                            shape = RoundedCornerShape(14.dp),
-                            color = colors.bgCard,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(modifier = Modifier.padding(14.dp)) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
+                        items(studentGroup) { student ->
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = colors.bgCard,
+                                border = BorderStroke(1.dp, colors.borderCard),
+                                shadowElevation = 2.dp,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { selectedProfileStudent = student }
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    // Top Row: Avatar + Name/Badges + Fee Pill
                                     Row(
+                                        modifier = Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.weight(1f)
+                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        ProfileAvatar(
-                                            photoBase64 = student.photoBase64,
-                                            name = student.name,
-                                            fallbackEmoji = "🎓",
-                                            size = 40.dp,
-                                            cornerRadius = 10.dp
-                                        )
-                                        Column {
-                                            Text(student.name, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                                modifier = Modifier.padding(top = 2.dp)
-                                            ) {
-                                                Surface(
-                                                    shape = RoundedCornerShape(6.dp),
-                                                    color = colors.brandPrimary.copy(alpha = 0.12f),
-                                                    modifier = Modifier.clickable {
-                                                        editingRollStudent = student
-                                                        editRollInput = student.rollNo
-                                                        editSectionInput = student.section
-                                                    }
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            ProfileAvatar(
+                                                photoBase64 = student.photoBase64,
+                                                name = student.name,
+                                                fallbackEmoji = "🎓",
+                                                size = 54.dp,
+                                                cornerRadius = 14.dp,
+                                                showEditBadge = true,
+                                                onClick = { selectedProfileStudent = student }
+                                            )
+                                            Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                                                Text(
+                                                    text = student.name,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    fontSize = 16.sp,
+                                                    color = colors.textPrimary
+                                                )
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                                                 ) {
-                                                    Text(
-                                                        text = if (student.rollNo.isEmpty()) "Roll: Set ✎" else "Roll #${student.rollNo} ✎",
-                                                        fontSize = 11.sp,
-                                                        fontWeight = FontWeight.Bold,
-                                                        color = colors.brandPrimary,
-                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                                    )
+                                                    Surface(
+                                                        shape = RoundedCornerShape(6.dp),
+                                                        color = colors.brandPrimary.copy(alpha = 0.14f),
+                                                        modifier = Modifier.clickable {
+                                                            editingRollStudent = student
+                                                            editRollInput = student.rollNo
+                                                            editSectionInput = student.section
+                                                        }
+                                                    ) {
+                                                        Text(
+                                                            text = if (student.rollNo.isEmpty()) "Roll: Set ✎" else "Roll #${student.rollNo} ✎",
+                                                            fontSize = 11.sp,
+                                                            fontWeight = FontWeight.Bold,
+                                                            color = colors.brandPrimary,
+                                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                        )
+                                                    }
+                                                    Surface(
+                                                        shape = RoundedCornerShape(6.dp),
+                                                        color = colors.borderCard.copy(alpha = 0.5f)
+                                                    ) {
+                                                        Text(
+                                                            text = "${student.gradeClass}${if (student.section.isNotEmpty()) " • Sec ${student.section}" else ""}",
+                                                            fontSize = 11.sp,
+                                                            fontWeight = FontWeight.SemiBold,
+                                                            color = colors.textSecondary,
+                                                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                                        )
+                                                    }
                                                 }
-                                                if (student.section.isNotEmpty()) {
-                                                    Text("Sec: ${student.section}", fontSize = 11.sp, color = colors.textSecondary, fontWeight = FontWeight.Medium)
+                                            }
+                                        }
+
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = colors.success.copy(alpha = 0.14f)
+                                            ) {
+                                                Text(
+                                                    text = "₹${student.monthlyFee.toInt()}/mo",
+                                                    fontSize = 12.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = colors.success,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                                )
+                                            }
+                                            if (student.admissionFee > 0) {
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "Due: ₹${student.admissionFee.toInt()}",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colors.error
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                    HorizontalDivider(color = colors.borderCard.copy(alpha = 0.6f))
+                                    Spacer(modifier = Modifier.height(8.dp))
+
+                                    // Details Row
+                                    val guardianDisplay = student.fatherName.ifBlank { student.guardianName }.ifBlank { "N/A" }
+                                    Text(
+                                        text = "👨 Guardian: $guardianDisplay   •   🎂 DOB: ${student.dob.ifEmpty { "N/A" }}",
+                                        fontSize = 12.sp,
+                                        color = colors.textSecondary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = "📱 Phone: ${student.phone.ifEmpty { "N/A" }}   •   🚻 ${student.gender}   •   📍 ${student.address.ifEmpty { "N/A" }}",
+                                        fontSize = 12.sp,
+                                        color = colors.textSecondary
+                                    )
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    // Action Bar: Call + WhatsApp + Edit Profile + Remove
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        ContactQuickActions(
+                                            phone = student.phone,
+                                            whatsapp = student.whatsapp.ifBlank { student.phone },
+                                            messageText = "Hello Parents of ${student.name} (Class ${student.gradeClass}, Roll #${student.rollNo}),"
+                                        )
+
+                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = colors.brandPrimary.copy(alpha = 0.12f),
+                                                modifier = Modifier
+                                                    .height(30.dp)
+                                                    .clickable { selectedProfileStudent = student }
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                                    Text("✏️ Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                                }
+                                            }
+
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = colors.error.copy(alpha = 0.14f),
+                                                modifier = Modifier
+                                                    .height(30.dp)
+                                                    .clickable {
+                                                        scope.launch { database.studentDao().deleteStudent(student) }
+                                                    }
+                                            ) {
+                                                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
+                                                    Text("Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
                                                 }
                                             }
                                         }
                                     }
-                                    Text("Admission Fee: ₹" + student.admissionFee.toInt(), color = colors.brandPrimary, fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-                                }
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text("Phone: " + student.phone + "  •  Gender: " + student.gender + "  •  DOB: " + student.dob.ifEmpty { "N/A" }, fontSize = 12.sp, color = colors.textSecondary)
-                                Text("Monthly Tuition: ₹" + student.monthlyFee.toInt() + "/mo", fontSize = 12.sp, color = colors.success, fontWeight = FontWeight.Bold)
-
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                    Button(
-                                        onClick = { scope.launch { database.studentDao().deleteStudent(student) } },
-                                        colors = ButtonDefaults.buttonColors(containerColor = colors.error.copy(alpha = 0.15f), contentColor = colors.error),
-                                        shape = RoundedCornerShape(8.dp),
-                                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                        modifier = Modifier.height(28.dp)
-                                    ) {
-                                        Text("Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                    }
                                 }
                             }
                         }
+
+                        item { Spacer(modifier = Modifier.height(4.dp)) }
                     }
 
-                    item { Spacer(modifier = Modifier.height(4.dp)) }
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
-
-                item { Spacer(modifier = Modifier.height(20.dp)) }
             }
         }
     }
 
-        if (editingRollStudent != null) {
-            val targetSt = editingRollStudent!!
-            AlertDialog(
-                onDismissRequest = { editingRollStudent = null },
-                containerColor = colors.bgCard,
-                title = {
-                    Text("Update Roll Number", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = colors.textPrimary)
-                },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Student: ${targetSt.name} (${targetSt.gradeClass})", fontSize = 13.sp, color = colors.textSecondary)
-                        OutlinedTextField(
-                            value = editRollInput,
-                            onValueChange = { editRollInput = it },
-                            label = { Text("Roll Number (e.g. 1, 2, 15)") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        OutlinedTextField(
-                            value = editSectionInput,
-                            onValueChange = { editSectionInput = it },
-                            label = { Text("Section (Optional, e.g. A, B)") },
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                database.studentDao().insertStudent(
-                                    targetSt.copy(
-                                        rollNo = editRollInput.trim(),
-                                        section = editSectionInput.trim()
-                                    )
-                                )
-                                editingRollStudent = null
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+    // Quick Roll Number Dialog
+    if (editingRollStudent != null) {
+        val targetSt = editingRollStudent!!
+        AlertDialog(
+            onDismissRequest = { editingRollStudent = null },
+            containerColor = colors.bgCard,
+            title = {
+                Text("Update Roll Number", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = colors.textPrimary)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Student: ${targetSt.name} (${targetSt.gradeClass})", fontSize = 13.sp, color = colors.textSecondary)
+                    OutlinedTextField(
+                        value = editRollInput,
+                        onValueChange = { editRollInput = it },
+                        label = { Text("Roll Number (e.g. 1, 2, 15)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(10.dp)
+                    )
+                    OutlinedTextField(
+                        value = editSectionInput,
+                        onValueChange = { editSectionInput = it },
+                        label = { Text("Section (Optional, e.g. A, B)") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            database.studentDao().insertStudent(
+                                targetSt.copy(
+                                    rollNo = editRollInput.trim(),
+                                    section = editSectionInput.trim()
+                                )
+                            )
+                            try {
+                                FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                            } catch (_: Exception) {}
+                            editingRollStudent = null
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Save Roll No")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingRollStudent = null }) {
+                    Text("Cancel", color = colors.textSecondary)
+                }
+            }
+        )
+    }
+
+    // Full Student Profile & Edit Modal
+    if (selectedProfileStudent != null) {
+        val st = selectedProfileStudent!!
+        var editPhoto by remember(st) { mutableStateOf(st.photoBase64) }
+        val pickProfilePhoto = rememberPhotoPickerLauncher { editPhoto = it }
+
+        var editRoll by remember(st) { mutableStateOf(st.rollNo) }
+        var editName by remember(st) { mutableStateOf(st.name) }
+        var editClass by remember(st) { mutableStateOf(st.gradeClass) }
+        var editSec by remember(st) { mutableStateOf(st.section) }
+        var editFather by remember(st) { mutableStateOf(st.fatherName.ifBlank { st.guardianName }) }
+        var editMother by remember(st) { mutableStateOf(st.motherName) }
+        var editPhone by remember(st) { mutableStateOf(st.phone) }
+        var editWhatsapp by remember(st) { mutableStateOf(st.whatsapp.ifBlank { st.phone }) }
+        var editMonthlyFee by remember(st) { mutableStateOf(st.monthlyFee.toInt().toString()) }
+        var editPendingDue by remember(st) { mutableStateOf(st.admissionFee.toInt().toString()) }
+        var editGender by remember(st) { mutableStateOf(st.gender.ifBlank { "Male" }) }
+        var editDob by remember(st) { mutableStateOf(st.dob) }
+        var editAdmDate by remember(st) { mutableStateOf(st.admissionDate) }
+        var editCaste by remember(st) { mutableStateOf(st.caste) }
+        var editAddress by remember(st) { mutableStateOf(st.address) }
+
+        Dialog(onDismissRequest = { selectedProfileStudent = null }) {
+            Surface(
+                shape = RoundedCornerShape(22.dp),
+                color = colors.bgCard,
+                border = BorderStroke(1.dp, colors.borderCard),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.9f)
+            ) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Header
+                    Surface(
+                        color = colors.brandPrimary.copy(alpha = 0.1f),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Save Roll No")
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("Student Profile", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, color = colors.brandPrimary)
+                                TextButton(onClick = { selectedProfileStudent = null }) {
+                                    Text("✕ Close", fontWeight = FontWeight.Bold, color = colors.textSecondary)
+                                }
+                            }
+                            ProfileAvatar(
+                                photoBase64 = editPhoto,
+                                name = editName,
+                                size = 82.dp,
+                                showEditBadge = true,
+                                onClick = { pickProfilePhoto() }
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Tap photo to upload / change picture",
+                                fontSize = 11.sp,
+                                color = colors.brandPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.clickable { pickProfilePhoto() }
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            ContactQuickActions(
+                                phone = editPhone,
+                                whatsapp = editWhatsapp,
+                                messageText = "Hello Parents of $editName,"
+                            )
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { editingRollStudent = null }) {
-                        Text("Cancel", color = colors.textSecondary)
+
+                    // Scrollable Form Fields
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .verticalScroll(rememberScrollState())
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editRoll,
+                                onValueChange = { editRoll = it },
+                                label = { Text("Roll No") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editClass,
+                                onValueChange = { editClass = it },
+                                label = { Text("Class") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1.3f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editSec,
+                                onValueChange = { editSec = it },
+                                label = { Text("Section") },
+                                singleLine = true,
+                                modifier = Modifier.weight(0.9f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = editName,
+                            onValueChange = { editName = it },
+                            label = { Text("Student Full Name") },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editFather,
+                                onValueChange = { editFather = it },
+                                label = { Text("Father / Guardian") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editMother,
+                                onValueChange = { editMother = it },
+                                label = { Text("Mother Name") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editPhone,
+                                onValueChange = { editPhone = it },
+                                label = { Text("Phone Number") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editWhatsapp,
+                                onValueChange = { editWhatsapp = it },
+                                label = { Text("WhatsApp No") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editMonthlyFee,
+                                onValueChange = { editMonthlyFee = it },
+                                label = { Text("Monthly Tuition (₹)") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editPendingDue,
+                                onValueChange = { editPendingDue = it },
+                                label = { Text("Pending Due (₹)") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editGender,
+                                onValueChange = { editGender = it },
+                                label = { Text("Gender") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editCaste,
+                                onValueChange = { editCaste = it },
+                                label = { Text("Caste / Category") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedTextField(
+                                value = editDob,
+                                onValueChange = { editDob = it },
+                                label = { Text("DOB (DD/MM/YYYY)") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            OutlinedTextField(
+                                value = editAdmDate,
+                                onValueChange = { editAdmDate = it },
+                                label = { Text("Admission Date") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                        }
+
+                        OutlinedTextField(
+                            value = editAddress,
+                            onValueChange = { editAddress = it },
+                            label = { Text("Residential Address / Village") },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp)
+                        )
+                    }
+
+                    // Bottom Save Button
+                    Surface(
+                        color = colors.bgCard,
+                        border = BorderStroke(1.dp, colors.borderCard),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { selectedProfileStudent = null },
+                                modifier = Modifier.weight(1f).height(46.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Cancel")
+                            }
+                            Button(
+                                onClick = {
+                                    if (editName.isNotBlank()) {
+                                        scope.launch {
+                                            val updatedStudent = st.copy(
+                                                rollNo = editRoll.trim(),
+                                                name = editName.trim(),
+                                                gradeClass = editClass.trim().ifEmpty { st.gradeClass },
+                                                section = editSec.trim(),
+                                                guardianName = editFather.trim(),
+                                                fatherName = editFather.trim(),
+                                                motherName = editMother.trim(),
+                                                phone = editPhone.trim(),
+                                                whatsapp = editWhatsapp.trim().ifEmpty { editPhone.trim() },
+                                                monthlyFee = editMonthlyFee.toDoubleOrNull() ?: st.monthlyFee,
+                                                admissionFee = editPendingDue.toDoubleOrNull() ?: st.admissionFee,
+                                                gender = editGender.trim().ifEmpty { "Male" },
+                                                dob = editDob.trim(),
+                                                admissionDate = editAdmDate.trim().ifEmpty { st.admissionDate },
+                                                caste = editCaste.trim(),
+                                                address = editAddress.trim(),
+                                                photoBase64 = editPhoto
+                                            )
+                                            database.studentDao().insertStudent(updatedStudent)
+                                            try {
+                                                FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                            } catch (_: Exception) {}
+                                            selectedProfileStudent = null
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.weight(1.5f).height(46.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                            ) {
+                                Text("💾 Update Profile", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
-            )
+            }
         }
-
+    }
 }
+
 
 @Composable
 fun AddStudentScreen(
