@@ -248,6 +248,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 try {
                     val studentDocs = schoolRef.collection("students").get().documents
                     for (doc in studentDocs) {
+                        val deletionMarker = schoolRef
+                            .collection("deletedStudents")
+                            .document(doc.id)
+                            .get()
+                        if (deletionMarker.exists) continue
+
                         val id = doc.id.toLongOrNull() ?: 0L
                         val rollNo = getSafeStr(doc, "rollNo")
                         val name = getSafeStr(doc, "name")
@@ -302,6 +308,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 try {
                     val staffDocs = schoolRef.collection("staff").get().documents
                     for (doc in staffDocs) {
+                        val deletionMarker = schoolRef
+                            .collection("deletedStaff")
+                            .document(doc.id)
+                            .get()
+                        if (deletionMarker.exists) continue
+
                         val id = doc.id.toLongOrNull() ?: 0L
                         val name = getSafeStr(doc, "name")
                         val role = getSafeStr(doc, "role").ifBlank { "Teacher" }
@@ -375,6 +387,88 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    /**
+     * A tombstone prevents a deleted student from being recreated by
+     * background synchronization or cloud restoration.
+     */
+    suspend fun deleteStudentRecord(
+        schoolCode: String,
+        student: StudentEntity
+    ): Boolean {
+        if (schoolCode.isBlank() || student.schoolCode != schoolCode) {
+            return false
+        }
+
+        return try {
+            val schoolRef = firestore.collection("schools").document(schoolCode)
+            schoolRef.collection("deletedStudents")
+                .document(student.id.toString())
+                .set(
+                    mapOf(
+                        "id" to student.id.toString(),
+                        "deleted" to true
+                    )
+                )
+
+            // The marker is already saved. A failed cloud-document deletion
+            // must not allow this record to be restored or uploaded again.
+            try {
+                schoolRef.collection("students")
+                    .document(student.id.toString())
+                    .delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            database.studentDao().deleteStudent(student)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    /**
+     * A tombstone prevents a deleted staff member from being recreated by
+     * background synchronization or cloud restoration.
+     */
+    suspend fun deleteStaffRecord(
+        schoolCode: String,
+        staff: StaffEntity
+    ): Boolean {
+        if (schoolCode.isBlank() || staff.schoolCode != schoolCode) {
+            return false
+        }
+
+        return try {
+            val schoolRef = firestore.collection("schools").document(schoolCode)
+            schoolRef.collection("deletedStaff")
+                .document(staff.id.toString())
+                .set(
+                    mapOf(
+                        "id" to staff.id.toString(),
+                        "deleted" to true
+                    )
+                )
+
+            // The marker is already saved, so a cloud deletion error cannot
+            // cause this record to be restored or uploaded again.
+            try {
+                schoolRef.collection("staff")
+                    .document(staff.id.toString())
+                    .delete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            database.staffDao().deleteStaff(staff)
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
 
@@ -407,6 +501,13 @@ class FirestoreSyncService(private val database: AppDatabase) {
             database.studentDao().getStudentsBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
                     try {
+                        val deletionMarker = firestore.collection("schools")
+                            .document(schoolCode)
+                            .collection("deletedStudents")
+                            .document(item.id.toString())
+                            .get()
+                        if (deletionMarker.exists) continue
+
                         firestore.collection("schools").document(schoolCode)
                             .collection("students").document(item.id.toString())
                             .set(
@@ -433,6 +534,21 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "photoBase64" to item.photoBase64
                                 )
                             )
+
+                        // Recheck after upload to handle a concurrent deletion.
+                        val markerAfterUpload = firestore.collection("schools")
+                            .document(schoolCode)
+                            .collection("deletedStudents")
+                            .document(item.id.toString())
+                            .get()
+
+                        if (markerAfterUpload.exists) {
+                            firestore.collection("schools")
+                                .document(schoolCode)
+                                .collection("students")
+                                .document(item.id.toString())
+                                .delete()
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }
@@ -444,6 +560,13 @@ class FirestoreSyncService(private val database: AppDatabase) {
             database.staffDao().getStaffBySchool(schoolCode).collectLatest { list ->
                 for (item in list) {
                     try {
+                        val deletionMarker = firestore.collection("schools")
+                            .document(schoolCode)
+                            .collection("deletedStaff")
+                            .document(item.id.toString())
+                            .get()
+                        if (deletionMarker.exists) continue
+
                         firestore.collection("schools").document(schoolCode)
                             .collection("staff").document(item.id.toString())
                             .set(
@@ -463,6 +586,21 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "joinDate" to item.joinDate
                                 )
                             )
+
+                        // Recheck after upload to handle a concurrent deletion.
+                        val markerAfterUpload = firestore.collection("schools")
+                            .document(schoolCode)
+                            .collection("deletedStaff")
+                            .document(item.id.toString())
+                            .get()
+
+                        if (markerAfterUpload.exists) {
+                            firestore.collection("schools")
+                                .document(schoolCode)
+                                .collection("staff")
+                                .document(item.id.toString())
+                                .delete()
+                        }
                     } catch (e: Exception) {
                         e.printStackTrace()
                     }

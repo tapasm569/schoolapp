@@ -240,21 +240,24 @@ fun DashboardScreen(
 
     val dashboardRefreshConnection = remember(schoolCode, dashboardRefreshThreshold) {
         object : NestedScrollConnection {
-            override fun onPostScroll(
-                consumed: Offset,
+            override fun onPreScroll(
                 available: Offset,
                 source: NestedScrollSource
             ): Offset {
                 val atTop = dashboardListState.firstVisibleItemIndex == 0 &&
                     dashboardListState.firstVisibleItemScrollOffset == 0
 
-                if (source == NestedScrollSource.Drag && atTop &&
-                    available.y > 0f && !isRefreshingDashboard
+                if (source == NestedScrollSource.Drag &&
+                    atTop &&
+                    available.y > 0f &&
+                    !isRefreshingDashboard
                 ) {
                     dashboardPullDistance += available.y
+
                     if (dashboardPullDistance >= dashboardRefreshThreshold) {
                         dashboardPullDistance = 0f
                         isRefreshingDashboard = true
+
                         scope.launch {
                             try {
                                 FirestoreSyncService(database)
@@ -264,9 +267,15 @@ fun DashboardScreen(
                             }
                         }
                     }
-                } else if (available.y < 0f || !atTop) {
+
+                    // Consume the downward drag while pulling to refresh.
+                    return Offset(0f, available.y)
+                }
+
+                if (available.y < 0f || !atTop) {
                     dashboardPullDistance = 0f
                 }
+
                 return Offset.Zero
             }
         }

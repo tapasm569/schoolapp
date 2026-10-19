@@ -334,10 +334,9 @@ fun StudentListScreen(
                                     Spacer(modifier = Modifier.height(10.dp))
 
                                     // Action Bar: Call + WhatsApp + Edit Profile + Remove
-                                    Row(
+                                    Column(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {
                                         ContactQuickActions(
                                             phone = student.phone,
@@ -345,30 +344,32 @@ fun StudentListScreen(
                                             messageText = "Hello Parents of ${student.name} (Class ${student.gradeClass}, Roll #${student.rollNo}),"
                                         )
 
-                                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
                                             Surface(
                                                 shape = RoundedCornerShape(8.dp),
                                                 color = colors.brandPrimary.copy(alpha = 0.12f),
-                                                modifier = Modifier
-                                                    .height(30.dp)
-                                                    .clickable { selectedProfileStudent = student }
+                                                modifier = Modifier.weight(1f).height(36.dp).clickable { selectedProfileStudent = student }
                                             ) {
-                                                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
-                                                    Text("✏️ Profile", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                                    Text("✏️ Profile", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
                                                 }
                                             }
 
                                             Surface(
                                                 shape = RoundedCornerShape(8.dp),
                                                 color = colors.error.copy(alpha = 0.14f),
-                                                modifier = Modifier
-                                                    .height(30.dp)
-                                                    .clickable {
-                                                        scope.launch { database.studentDao().deleteStudent(student) }
-                                                    }
+                                                modifier = Modifier.weight(1f).height(36.dp).clickable {
+                                                    scope.launch {
+            FirestoreSyncService(database).deleteStudentRecord(schoolCode, student)
+        }
+                                                }
                                             ) {
-                                                Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 10.dp)) {
-                                                    Text("Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
+                                                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                                    Text("Remove", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.error)
                                                 }
                                             }
                                         }
