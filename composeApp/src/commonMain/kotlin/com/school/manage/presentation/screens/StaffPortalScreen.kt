@@ -43,6 +43,8 @@ fun StaffPortalScreen(
     val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
+
+    var staff by remember { mutableStateOf<StaffEntity?>(null) }
     val photoPicker = rememberPhotoPickerLauncher { base64 ->
         val currentStaff = staff
         if (currentStaff != null && base64.isNotBlank()) {
@@ -56,8 +58,6 @@ fun StaffPortalScreen(
             }
         }
     }
-
-    var staff by remember { mutableStateOf<StaffEntity?>(null) }
     var school by remember { mutableStateOf<SchoolEntity?>(null) }
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val announcements by database.announcementDao().getAnnouncementsBySchool(schoolCode).collectAsState(initial = emptyList())
@@ -131,7 +131,7 @@ fun StaffPortalScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(64.dp)
-                                        .clickable { photoPicker.launch() },
+                                        .clickable { photoPicker() },
                                     contentAlignment = Alignment.BottomEnd
                                 ) {
                                     ProfileAvatar(

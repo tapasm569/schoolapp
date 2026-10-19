@@ -42,6 +42,8 @@ fun StudentPortalScreen(
     val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
+
+    var student by remember { mutableStateOf<StudentEntity?>(null) }
     val photoPicker = rememberPhotoPickerLauncher { base64 ->
         val currentStudent = student
         if (currentStudent != null && base64.isNotBlank()) {
@@ -55,8 +57,6 @@ fun StudentPortalScreen(
             }
         }
     }
-
-    var student by remember { mutableStateOf<StudentEntity?>(null) }
     var school by remember { mutableStateOf<SchoolEntity?>(null) }
 
     val attendanceList by database.attendanceDao().getAttendanceByStudent(studentId).collectAsState(initial = emptyList())
@@ -173,12 +173,25 @@ fun StudentPortalScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Box(
                                     modifier = Modifier
-                                        .size(50.dp)
-                                        .clip(CircleShape)
-                                        .background(Color.White.copy(alpha = 0.22f)),
-                                    contentAlignment = Alignment.Center
+                                        .size(62.dp)
+                                        .clickable { photoPicker() },
+                                    contentAlignment = Alignment.BottomEnd
                                 ) {
-                                    Text("🎓", fontSize = 26.sp)
+                                    ProfileAvatar(
+                                        name = studentName,
+                                        photoBase64 = student?.photoBase64 ?: "",
+                                        size = 58.dp
+                                    )
+                                    Surface(
+                                        shape = CircleShape,
+                                        color = Color.White,
+                                        shadowElevation = 3.dp,
+                                        modifier = Modifier.size(22.dp)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text("📷", fontSize = 11.sp)
+                                        }
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column {
