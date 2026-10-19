@@ -94,7 +94,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "batchName" to item.batchName,
                             "defaultMonthlyTuition" to item.defaultMonthlyTuition.toString(),
                             "subjects" to item.subjects,
-                            "sections" to item.sections
+                            "sections" to item.sections,
+                            "feeTemplateRaw" to item.feeTemplateRaw,
+                            "collectTuitionAtAdmission" to item.collectTuitionAtAdmission
                         )
                     )
                 } catch (e: Exception) {
@@ -129,7 +131,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "dob" to item.dob,
                             "caste" to item.caste,
                             "gender" to item.gender,
-                            "address" to item.address
+                            "address" to item.address,
+                            "aadharNumber" to item.aadharNumber,
+                            "photoBase64" to item.photoBase64
                         )
                     )
                 } catch (e: Exception) {
@@ -158,7 +162,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "salaryType" to item.salaryType,
                             "joinDate" to item.joinDate,
                             "gender" to item.gender,
-                            "address" to item.address
+                            "address" to item.address,
+                            "photoBase64" to item.photoBase64
                         )
                     )
                 } catch (e: Exception) {
@@ -180,6 +185,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "schoolCode" to item.schoolCode,
                             "studentId" to item.studentId.toString(),
                             "studentName" to item.studentName,
+                            "gradeClass" to item.gradeClass,
+                            "feeMonth" to item.feeMonth,
                             "amountPaid" to item.amountPaid.toString(),
                             "paymentDate" to item.paymentDate,
                             "paymentMode" to item.paymentMode,
@@ -209,6 +216,16 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         val feeStr = getSafeStr(doc, "defaultMonthlyTuition")
                         val subjects = getSafeStr(doc, "subjects")
                         val sections = getSafeStr(doc, "sections")
+                        val feeTemplateRaw = getSafeStr(doc, "feeTemplateRaw")
+                        val collectTuitionAtAdmission = try {
+                            if (doc.contains("collectTuitionAtAdmission")) {
+                                doc.get<Boolean?>("collectTuitionAtAdmission") ?: true
+                            } else {
+                                true
+                            }
+                        } catch (e: Exception) {
+                            true
+                        }
                         if (batchName.isNotBlank()) {
                             database.batchDao().insertBatch(
                                 BatchEntity(
@@ -217,7 +234,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     batchName = batchName,
                                     defaultMonthlyTuition = feeStr.toDoubleOrNull() ?: 0.0,
                                     subjects = subjects,
-                                    sections = sections
+                                    sections = sections,
+                                    feeTemplateRaw = feeTemplateRaw,
+                                    collectTuitionAtAdmission = collectTuitionAtAdmission
                                 )
                             )
                         }
@@ -246,6 +265,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         val caste = getSafeStr(doc, "caste")
                         val gender = getSafeStr(doc, "gender").ifBlank { "Male" }
                         val address = getSafeStr(doc, "address")
+                        val aadharNumber = getSafeStr(doc, "aadharNumber")
+                        val photoBase64 = getSafeStr(doc, "photoBase64")
 
                         if (name.isNotBlank()) {
                             database.studentDao().insertStudent(
@@ -267,7 +288,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     dob = dob,
                                     caste = caste,
                                     gender = gender,
-                                    address = address
+                                    address = address,
+                                    aadharNumber = aadharNumber,
+                                    photoBase64 = photoBase64
                                 )
                             )
                         }
@@ -285,6 +308,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         val phone = getSafeStr(doc, "phone")
                         val salStr = getSafeStr(doc, "salary")
                         val joinDate = getSafeStr(doc, "joinDate")
+                        val qualification = getSafeStr(doc, "qualification")
+                        val whatsapp = getSafeStr(doc, "whatsapp").ifBlank { phone }
+                        val salaryType = getSafeStr(doc, "salaryType").ifBlank { "Monthly" }
+                        val gender = getSafeStr(doc, "gender").ifBlank { "Male" }
+                        val address = getSafeStr(doc, "address")
+                        val photoBase64 = getSafeStr(doc, "photoBase64")
                         if (name.isNotBlank()) {
                             database.staffDao().insertStaff(
                                 StaffEntity(
@@ -295,6 +324,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     phone = phone,
                                     salary = salStr.toDoubleOrNull() ?: 0.0,
                                     joinDate = joinDate,
+                                    gender = gender,
+                                    whatsapp = whatsapp,
+                                    address = address,
+                                    qualification = qualification,
+                                    salaryType = salaryType,
+                                    photoBase64 = photoBase64,
                                     password = phone
                                 )
                             )
@@ -310,6 +345,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         val id = doc.id.toLongOrNull() ?: 0L
                         val studentId = getSafeStr(doc, "studentId").toLongOrNull() ?: 0L
                         val studentName = getSafeStr(doc, "studentName")
+                        val gradeClass = getSafeStr(doc, "gradeClass")
+                        val feeMonth = getSafeStr(doc, "feeMonth")
                         val amountStr = getSafeStr(doc, "amountPaid")
                         val paymentDate = getSafeStr(doc, "paymentDate")
                         val paymentMode = getSafeStr(doc, "paymentMode").ifBlank { "Cash" }
@@ -319,6 +356,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                 id = id,
                                 studentId = studentId,
                                 studentName = studentName,
+                                gradeClass = gradeClass,
+                                feeMonth = feeMonth,
                                 schoolCode = schoolCode,
                                 amountPaid = amountStr.toDoubleOrNull() ?: 0.0,
                                 paymentDate = paymentDate,
@@ -352,7 +391,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "batchName" to item.batchName,
                                     "defaultMonthlyTuition" to item.defaultMonthlyTuition.toString(),
                                     "subjects" to item.subjects,
-                                    "sections" to item.sections
+                                    "sections" to item.sections,
+                                    "feeTemplateRaw" to item.feeTemplateRaw,
+                                    "collectTuitionAtAdmission" to item.collectTuitionAtAdmission
                                 )
                             )
                     } catch (e: Exception) {
@@ -387,7 +428,9 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "dob" to item.dob,
                                     "caste" to item.caste,
                                     "gender" to item.gender,
-                                    "address" to item.address
+                                    "address" to item.address,
+                                    "aadharNumber" to item.aadharNumber,
+                                    "photoBase64" to item.photoBase64
                                 )
                             )
                     } catch (e: Exception) {
@@ -411,6 +454,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "role" to item.role,
                                     "phone" to item.phone,
                                     "salary" to item.salary.toString(),
+                                    "qualification" to item.qualification,
+                                    "whatsapp" to item.whatsapp,
+                                    "salaryType" to item.salaryType,
+                                    "gender" to item.gender,
+                                    "address" to item.address,
+                                    "photoBase64" to item.photoBase64,
                                     "joinDate" to item.joinDate
                                 )
                             )
@@ -433,6 +482,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                                     "schoolCode" to item.schoolCode,
                                     "studentId" to item.studentId.toString(),
                                     "studentName" to item.studentName,
+                                    "gradeClass" to item.gradeClass,
+                                    "feeMonth" to item.feeMonth,
                                     "amountPaid" to item.amountPaid.toString(),
                                     "paymentDate" to item.paymentDate,
                                     "paymentMode" to item.paymentMode,

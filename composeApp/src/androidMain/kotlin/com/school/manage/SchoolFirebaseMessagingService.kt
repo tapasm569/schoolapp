@@ -14,12 +14,12 @@ class SchoolFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        android.util.Log.d("FCM_TEST", "NEW TOKEN RECEIVED: $token")
+        // Token deliberately not logged; it is a sensitive registration identifier.
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
-        android.util.Log.d("FCM_TEST", "PUSH RECEIVED! from: ${remoteMessage.from}, data: ${remoteMessage.data}")
+        // Do not log message payloads; they may contain private school information.
 
         val title = remoteMessage.notification?.title 
             ?: remoteMessage.data["title"] 

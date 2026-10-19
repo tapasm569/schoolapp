@@ -52,22 +52,9 @@ class MainActivity : ComponentActivity() {
             manager.createNotificationChannel(channel)
         }
 
-        com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("all_schools")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    android.util.Log.d("FCM_TEST", "Successfully subscribed to all_schools")
-                } else {
-                    android.util.Log.e("FCM_TEST", "Topic subscription failed", task.exception)
-                }
-            }
-
-        val fcm = com.google.firebase.messaging.FirebaseMessaging.getInstance()
-        fcm.token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                android.util.Log.d("FCM_TEST", "FCM Token active: ${task.result}")
-            }
-        }
-        fcm.subscribeToTopic("school_announcements")
+        // Do not subscribe every installation to global topics. School-specific
+        // subscriptions must be managed after authenticated school selection.
+        // Do not log FCM registration tokens.
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -77,7 +64,6 @@ class MainActivity : ComponentActivity() {
             AppDatabase::class.java,
             "school_management.db"
         )
-            .fallbackToDestructiveMigration()
             .build()
 
         setContent {

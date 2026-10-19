@@ -788,6 +788,7 @@ fun AddStudentScreen(
                                     schoolCode = schoolCode,
                                     rollNo = rollNo.trim(),
                                     name = name.trim(),
+                                    photoBase64 = photoBase64,
                                     phone = phone.trim(),
                                     fatherName = fatherName.trim(),
                                     motherName = motherName.trim(),
@@ -1076,7 +1077,10 @@ fun AssignBatchScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            val targetClass = selectedBatch.ifEmpty { "General Class" }
+                            if (selectedBatch.isBlank()) {
+                                return@launch
+                            }
+                            val targetClass = selectedBatch
                             val existing = database.studentDao().getStudentById(studentId)
                             if (existing != null) {
                                 database.studentDao().insertStudent(
@@ -1111,6 +1115,12 @@ fun AssignBatchScreen(
                                         )
                                     )
                                 }
+                            }
+                            try {
+                                com.school.manage.core.firebase.FirestoreSyncService(database)
+                                    .pushAllLocalDataToCloud(schoolCode)
+                            } catch (_: Exception) {
+                                // Local records remain saved if cloud sync is unavailable.
                             }
                             onBatchAssigned()
                         }
