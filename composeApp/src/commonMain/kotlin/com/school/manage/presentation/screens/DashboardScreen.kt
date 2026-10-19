@@ -189,6 +189,7 @@ fun DashboardScreen(
     val teacherPct = if (teacherTotalMarked > 0) (teacherPresent * 100 / teacherTotalMarked) else 0
 
     var showAddNewBottomSheet by remember { mutableStateOf(false) }
+    var showSetAdmissionFeeDialog by remember { mutableStateOf(false) }
     var showManageSubjectsDialog by remember { mutableStateOf(false) }
 
     // Navigation Drawer / Hamburger Menu State
@@ -819,7 +820,16 @@ fun DashboardScreen(
                     HorizontalDivider(color = colors.borderCard.copy(alpha = 0.6f))
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    AddNewOptionItem(
+                                        AddNewOptionItem(
+                        title = "Set Admission Fee",
+                        subtitle = "Configure class fee breakdown & tuition rules",
+                        icon = "💳",
+                        onClick = {
+                            showAddNewBottomSheet = false
+                            showSetAdmissionFeeDialog = true
+                        }
+                    )
+AddNewOptionItem(
                         title = "Student",
                         subtitle = "You can add new student here",
                         icon = "👨‍🎓",
@@ -1832,4 +1842,265 @@ fun ProfileDetailRow(
             }
         }
     }
+
+        // ================= SET ADMISSION FEE DIALOG =================
+        if (showSetAdmissionFeeDialog) {
+            var selectedBatchName by remember { mutableStateOf(batches.firstOrNull()?.batchName ?: "") }
+            var currentBatch by remember(selectedBatchName, batches) {
+                mutableStateOf(batches.find { it.batchName.equals(selectedBatchName, ignoreCase = true) } ?: batches.firstOrNull())
+            }
+            var tuitionInput by remember(currentBatch) {
+                mutableStateOf(if ((currentBatch?.defaultMonthlyTuition ?: 0.0) > 0.0) currentBatch?.defaultMonthlyTuition?.toInt().toString() else "")
+            }
+            var feeParts by remember(currentBatch) {
+                mutableStateOf(parseFeeTemplate(currentBatch?.feeTemplateRaw ?: ""))
+            }
+            var collectTuitionNow by remember(currentBatch) {
+                mutableStateOf(currentBatch?.collectTuitionAtAdmission ?: true)
+            }
+            var newPartName by remember { mutableStateOf("") }
+            var newPartAmount by remember { mutableStateOf("") }
+
+            Dialog(onDismissRequest = { showSetAdmissionFeeDialog = false }) {
+                Surface(
+                    shape = RoundedCornerShape(22.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.88f)
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Header
+                        Surface(
+                            color = colors.brandPrimary.copy(alpha = 0.1f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("Set Admission Fee", fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, color = colors.brandPrimary)
+                                    Text("Rules prefill automatically when assigning students", fontSize = 11.sp, color = colors.textSecondary)
+                                }
+                                TextButton(onClick = { showSetAdmissionFeeDialog = false }) {
+                                    Text("✕", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = colors.textSecondary)
+                                }
+                            }
+                        }
+
+                        // Scrollable Body
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .verticalScroll(rememberScrollState())
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text("1. Select Class to Configure:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = colors.textPrimary)
+
+                            androidx.compose.foundation.lazy.LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(batches) { b ->
+                                    val isSelected = b.batchName.equals(selectedBatchName, ignoreCase = true)
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) colors.brandPrimary else colors.bgApp,
+                                        border = BorderStroke(1.dp, if (isSelected) colors.brandPrimary else colors.borderCard),
+                                        modifier = Modifier.clickable {
+                                            selectedBatchName = b.batchName
+                                        }
+                                    ) {
+                                        Text(
+                                            text = b.batchName,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = if (isSelected) Color.White else colors.textPrimary,
+                                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("2. Default Monthly Tuition (₹):", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = colors.textPrimary)
+                            OutlinedTextField(
+                                value = tuitionInput,
+                                onValueChange = { tuitionInput = it },
+                                label = { Text("Monthly Tuition (e.g. 400)") },
+                                singleLine = true,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp)
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Collect 1st month tuition at admission?", fontSize = 13.sp, color = colors.textPrimary)
+                                Checkbox(
+                                    checked = collectTuitionNow,
+                                    onCheckedChange = { collectTuitionNow = it },
+                                    colors = CheckboxDefaults.colors(checkedColor = colors.brandPrimary)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("3. Admission Fee Breakdown Items:", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = colors.textPrimary)
+
+                            feeParts.forEachIndexed { index, part ->
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = colors.bgApp,
+                                    border = BorderStroke(1.dp, colors.borderCard),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Checkbox(
+                                                checked = part.isSelected,
+                                                onCheckedChange = { isChecked ->
+                                                    feeParts = feeParts.toMutableList().also {
+                                                        it[index] = it[index].copy(isSelected = isChecked)
+                                                    }
+                                                },
+                                                colors = CheckboxDefaults.colors(checkedColor = colors.brandPrimary)
+                                            )
+                                            Text(part.name, fontWeight = FontWeight.SemiBold, fontSize = 13.sp, color = colors.textPrimary)
+                                        }
+
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                        ) {
+                                            OutlinedTextField(
+                                                value = if (part.amount > 0) part.amount.toInt().toString() else "",
+                                                onValueChange = { newVal ->
+                                                    val parsed = newVal.toDoubleOrNull() ?: 0.0
+                                                    feeParts = feeParts.toMutableList().also {
+                                                        it[index] = it[index].copy(amount = parsed)
+                                                    }
+                                                },
+                                                placeholder = { Text("₹") },
+                                                singleLine = true,
+                                                modifier = Modifier.width(90.dp).height(50.dp),
+                                                shape = RoundedCornerShape(8.dp)
+                                            )
+                                            IconButton(
+                                                onClick = {
+                                                    feeParts = feeParts.toMutableList().also { it.removeAt(index) }
+                                                }
+                                            ) {
+                                                Text("✕", color = colors.error, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Add new item row
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = newPartName,
+                                    onValueChange = { newPartName = it },
+                                    label = { Text("New Fee Head") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1.4f),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                OutlinedTextField(
+                                    value = newPartAmount,
+                                    onValueChange = { newPartAmount = it },
+                                    label = { Text("₹") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(0.8f),
+                                    shape = RoundedCornerShape(10.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        if (newPartName.isNotBlank()) {
+                                            feeParts = feeParts + AdmissionFeePart(
+                                                name = newPartName.trim(),
+                                                amount = newPartAmount.toDoubleOrNull() ?: 0.0,
+                                                isSelected = true
+                                            )
+                                            newPartName = ""
+                                            newPartAmount = ""
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("+")
+                                }
+                            }
+                        }
+
+                        // Bottom Save Footer
+                        Surface(
+                            color = colors.bgCard,
+                            border = BorderStroke(1.dp, colors.borderCard),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                OutlinedButton(
+                                    onClick = { showSetAdmissionFeeDialog = false },
+                                    modifier = Modifier.weight(1f).height(46.dp),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Text("Cancel")
+                                }
+                                Button(
+                                    onClick = {
+                                        if (currentBatch != null) {
+                                            scope.launch {
+                                                val rawTemplate = feeParts.joinToString(";") {
+                                                    "${it.name}:${it.amount}:${if (it.isSelected) "1" else "0"}"
+                                                }
+                                                val updatedBatch = currentBatch!!.copy(
+                                                    defaultMonthlyTuition = tuitionInput.toDoubleOrNull() ?: currentBatch!!.defaultMonthlyTuition,
+                                                    feeTemplateRaw = rawTemplate,
+                                                    collectTuitionAtAdmission = collectTuitionNow
+                                                )
+                                                database.batchDao().insertBatch(updatedBatch)
+                                                try {
+                                                    FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                                } catch (_: Exception) {}
+                                                showSetAdmissionFeeDialog = false
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1.6f).height(46.dp),
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                                ) {
+                                    Text("💾 Save Fee Rules", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
 }

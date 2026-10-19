@@ -1018,7 +1018,7 @@ fun AssignBatchScreen(
 
     var selectedBatch by remember { mutableStateOf("") }
     var showBatchMenu by remember { mutableStateOf(false) }
-    var showTemplateDialog by remember { mutableStateOf(false) }
+    
 
     // Starts empty until a class template is loaded or items are manually added
     var feeParts by remember { mutableStateOf<List<AdmissionFeePart>>(emptyList()) }
