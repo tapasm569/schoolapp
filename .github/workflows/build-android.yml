@@ -8,10 +8,9 @@ workflow_dispatch:
 jobs:
 build:
 runs-on: ubuntu-latest
-
 steps:
-  - name: Checkout Code
-    uses: actions/checkout@v4
+- name: Checkout Code
+uses: actions/checkout@v4
 
   - name: Set up Java 17
     uses: actions/setup-java@v4
