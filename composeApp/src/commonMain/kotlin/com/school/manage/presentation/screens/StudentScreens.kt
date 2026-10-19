@@ -801,7 +801,10 @@ fun AddStudentScreen(
                                     admissionDate = "02/10/2026"
                                 )
                             )
-                            onStudentSaved(newId, name.trim())
+                            try {
+                                    com.school.manage.core.firebase.FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                } catch (_: Exception) {}
+                                onStudentSaved(newId, name.trim())
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
