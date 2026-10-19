@@ -992,7 +992,7 @@ fun parseFeeTemplate(raw: String): List<AdmissionFeePart> {
     }
 }
 
-private fun encodeFeeTemplate(items: List<AdmissionFeePart>): String {
+fun encodeFeeTemplate(items: List<AdmissionFeePart>): String {
     return items.joinToString("|") { "${it.name.replace("|", "").replace(":", "")}:${it.amount}" }
 }
 
