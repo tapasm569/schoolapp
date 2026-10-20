@@ -86,12 +86,6 @@ fun StudentPortalScreen(
             it.targetAudience.uppercase() in listOf("ALL", "BOTH", "STUDENT", "STUDENTS")
         }
     }
-    val allAnnouncements by database.announcementDao().getAnnouncementsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val studentAnnouncements = remember(allAnnouncements) {
-        allAnnouncements.filter {
-            it.targetAudience.uppercase() in listOf("ALL", "BOTH", "STUDENT", "STUDENTS")
-        }
-    }
 
     // Filter by student class
     val studentHomework = homeworkList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
