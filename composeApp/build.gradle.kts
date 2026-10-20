@@ -10,27 +10,30 @@ plugins {
 
 kotlin {
     androidTarget {
-    compilerOptions {
-        jvmTarget.set(
-            org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
-        )
+        compilerOptions {
+            jvmTarget.set(
+                org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
+            )
+        }
     }
-}
-    }
+
     sourceSets {
         commonMain.dependencies {
             implementation("dev.gitlive:firebase-firestore:2.5.0")
             implementation("dev.gitlive:firebase-database:2.5.0")
+
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
             implementation(compose.components.resources)
+
             implementation(libs.androidx.room.runtime)
             implementation(libs.sqlite.bundled)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.navigation.compose)
         }
+
         androidMain.dependencies {
             implementation("com.google.firebase:firebase-messaging:24.0.0")
             implementation(libs.androidx.activity.compose)
@@ -39,6 +42,17 @@ kotlin {
 }
 
 android {
+    namespace = "com.school.manage"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.school.manage"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+
     signingConfigs {
         getByName("debug") {
             storeFile = file("debug.keystore")
@@ -52,21 +66,12 @@ android {
         getByName("debug") {
             signingConfig = signingConfigs.getByName("debug")
         }
+
         getByName("release") {
             isMinifyEnabled = false
         }
     }
 
-
-    namespace = "com.school.manage"
-    compileSdk = 34
-    defaultConfig {
-        applicationId = "com.school.manage"
-        minSdk = 24
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
