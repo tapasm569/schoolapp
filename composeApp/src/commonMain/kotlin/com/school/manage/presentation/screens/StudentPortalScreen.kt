@@ -52,7 +52,7 @@ fun StudentPortalScreen(
                 database.studentDao().insertStudent(updated)
                 student = updated
                 try {
-                    FirestoreSyncService(database).pushAllLocalDataToCloud(currentStudent.schoolCode)
+                    FirestoreSyncService(database).pushStudentRecord(currentStudent.schoolCode, updated)
                 } catch (_: Exception) {}
             }
         }

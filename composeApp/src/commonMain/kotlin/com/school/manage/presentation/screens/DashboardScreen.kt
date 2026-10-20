@@ -1083,8 +1083,8 @@ AddNewOptionItem(
                                 cloudSyncStatusMessage = "Syncing with cloud..."
                                 scope.launch {
                                     try {
-                                        FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
-                                        cloudSyncStatusMessage = "✓ Cloud sync complete!"
+                                        FirestoreSyncService(database).restoreAllFromCloud(schoolCode)
+                                        cloudSyncStatusMessage = "✓ Cloud data refreshed!"
                                     } catch (e: Exception) {
                                         cloudSyncStatusMessage = "Sync error: ${e.message}"
                                     } finally {

@@ -188,15 +188,29 @@ fun StudentListScreen(
                                         color = colors.brandPrimary,
                                         modifier = Modifier.clickable {
                                             scope.launch {
+                                                val syncService = FirestoreSyncService(database)
+
                                                 var nextRoll = 1
+
                                                 studentGroup.sortedBy { it.name.lowercase() }.forEach { st ->
-                                                    val currentRoll = st.rollNo.ifBlank { nextRoll.toString() }
-                                                    database.studentDao().insertStudent(st.copy(rollNo = currentRoll))
+
+                                                    val updatedStudent = st.copy(
+
+                                                        rollNo = st.rollNo.ifBlank { nextRoll.toString() }
+
+                                                    )
+
+                                                    database.studentDao().insertStudent(updatedStudent)
+
+                                                    try {
+
+                                                        syncService.pushStudentRecord(schoolCode, updatedStudent)
+
+                                                    } catch (e: Exception) { e.printStackTrace() }
+
                                                     nextRoll++
+
                                                 }
-                                                try {
-                                                    FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
-                                                } catch (_: Exception) {}
                                             }
                                         }
                                     ) {
@@ -394,15 +408,14 @@ fun StudentListScreen(
                 Button(
                     onClick = {
                         scope.launch {
-                            database.studentDao().insertStudent(
-                                targetSt.copy(
-                                    rollNo = editRollInput.trim(),
-                                    section = editSectionInput.trim()
-                                )
+                            val updatedStudent = targetSt.copy(
+                                rollNo = editRollInput.trim(),
+                                section = editSectionInput.trim()
                             )
+                            database.studentDao().insertStudent(updatedStudent)
                             try {
-                                FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
-                            } catch (_: Exception) {}
+                                FirestoreSyncService(database).pushStudentRecord(schoolCode, updatedStudent)
+                            } catch (e: Exception) { e.printStackTrace() }
                             editingRollStudent = null
                         }
                     },
@@ -685,7 +698,7 @@ fun StudentListScreen(
                                             )
                                             database.studentDao().insertStudent(updatedStudent)
                                             try {
-                                                FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                                FirestoreSyncService(database).pushStudentRecord(schoolCode, updatedStudent)
                                             } catch (_: Exception) {}
                                             selectedProfileStudent = null
                                         }
@@ -963,8 +976,8 @@ fun AssignBatchScreen(
 
     var selectedBatch by remember { mutableStateOf("") }
     var showBatchMenu by remember { mutableStateOf(false) }
-    
-    
+
+
 
     // Starts empty until a class template is loaded or items are manually added
     var feeParts by remember { mutableStateOf<List<AdmissionFeePart>>(emptyList()) }
@@ -1032,15 +1045,18 @@ fun AssignBatchScreen(
                                 return@launch
                             }
                             val targetClass = selectedBatch
+                            val syncService = FirestoreSyncService(database)
                             val existing = database.studentDao().getStudentById(studentId)
                             if (existing != null) {
-                                database.studentDao().insertStudent(
-                                    existing.copy(
-                                        gradeClass = targetClass,
-                                        admissionFee = admissionFeeTotal,
-                                        monthlyFee = monthlyTuition
-                                    )
+                                val updatedStudent = existing.copy(
+                                    gradeClass = targetClass,
+                                    admissionFee = admissionFeeTotal,
+                                    monthlyFee = monthlyTuition
                                 )
+                                database.studentDao().insertStudent(updatedStudent)
+                                try {
+                                    syncService.pushStudentRecord(schoolCode, updatedStudent)
+                                } catch (e: Exception) { e.printStackTrace() }
                                 if (totalInitialPayable > 0.0) {
                                     val selectedItemsDesc = feeParts
                                         .filter { it.isSelected }
@@ -1052,27 +1068,24 @@ fun AssignBatchScreen(
                                     }
                                     val monthYearStr = "${(sysToday.monthIndex + 1).toString().padStart(2, '0')}/${sysToday.year}"
 
-                                    database.feeDao().insertFeeRecord(
-                                        FeeRecordEntity(
-                                            schoolCode = schoolCode,
-                                            studentId = studentId,
-                                            studentName = currentStudentName,
-                                            gradeClass = targetClass,
-                                            amountPaid = totalInitialPayable,
-                                            paymentDate = sysToday.formatted,
-                                            feeMonth = monthYearStr,
-                                            paymentMode = "CASH",
-                                            remarks = (selectedItemsDesc + tuitionRemark).take(220)
-                                        )
+                                    val feeRecord = FeeRecordEntity(
+                                        schoolCode = schoolCode,
+                                        studentId = studentId,
+                                        studentName = currentStudentName,
+                                        gradeClass = targetClass,
+                                        amountPaid = totalInitialPayable,
+                                        paymentDate = sysToday.formatted,
+                                        feeMonth = monthYearStr,
+                                        paymentMode = "CASH",
+                                        remarks = (selectedItemsDesc + tuitionRemark).take(220)
                                     )
+                                    val feeId = database.feeDao().insertFeeRecord(feeRecord)
+                                    try {
+                                        syncService.pushFeeRecord(schoolCode, feeRecord.copy(id = feeId))
+                                    } catch (e: Exception) { e.printStackTrace() }
                                 }
                             }
-                            try {
-                                com.school.manage.core.firebase.FirestoreSyncService(database)
-                                    .pushAllLocalDataToCloud(schoolCode)
-                            } catch (_: Exception) {
-                                // Local records remain saved if cloud sync is unavailable.
-                            }
+
                             onBatchAssigned()
                         }
                     },
@@ -1494,6 +1507,6 @@ fun AssignBatchScreen(
     }
 
     // Modal Dialog to Configure & Save Class-Wise Admission Fee Template (Manual Amounts)
-    
+
 }
 

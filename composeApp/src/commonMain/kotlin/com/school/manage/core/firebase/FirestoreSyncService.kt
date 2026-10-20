@@ -8,153 +8,29 @@ import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.database.entity.StudentEntity
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.database.database
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class FirestoreSyncService(private val database: AppDatabase) {
 
     private val rtdb = Firebase.database
     private val scope = CoroutineScope(Dispatchers.Default)
+    private val syncJobs = mutableMapOf<String, Job>()
 
     /**
      * Pushes all local SQLite data directly to Firebase Realtime Database.
      */
+    /**
+     * Legacy compatibility method.
+     * Refreshes local data from Firebase without overwriting cloud collections.
+     */
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
-        if (schoolCode.isBlank()) return
-        println("===> [RTDB SYNC] Pushing all local data to Realtime Database for school: $schoolCode")
-
-        val schoolRef = rtdb.reference("schools").child(schoolCode)
-
-        // 1. School Info
-        try {
-            val school = database.schoolDao().getSchoolByCode(schoolCode)
-            if (school != null) {
-                schoolRef.child("info").setValue(
-                    mapOf(
-                        "schoolCode" to school.schoolCode,
-                        "schoolName" to school.schoolName,
-                        "password" to school.password,
-                        "email" to school.email,
-                        "phone" to school.phone,
-                        "address" to school.address,
-                        "photoBase64" to school.photoBase64
-                    )
-                )
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 2. Batches
-        try {
-            val batches = database.batchDao().getBatchesBySchool(schoolCode).first()
-            val batchMap = mutableMapOf<String, Any>()
-            for (item in batches) {
-                batchMap[item.id.toString()] = mapOf(
-                    "id" to item.id.toString(),
-                    "schoolCode" to item.schoolCode,
-                    "batchName" to item.batchName,
-                    "subjects" to item.subjects,
-                    "sections" to item.sections,
-                    "feeTemplateRaw" to item.feeTemplateRaw,
-                    "defaultMonthlyTuition" to item.defaultMonthlyTuition.toString(),
-                    "collectTuitionAtAdmission" to item.collectTuitionAtAdmission.toString()
-                )
-            }
-            if (batchMap.isNotEmpty()) {
-                schoolRef.child("batches").setValue(batchMap)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 3. Students
-        try {
-            val students = database.studentDao().getStudentsBySchool(schoolCode).first()
-            val studentMap = mutableMapOf<String, Any>()
-            for (item in students) {
-                studentMap[item.id.toString()] = mapOf(
-                    "id" to item.id.toString(),
-                    "schoolCode" to item.schoolCode,
-                    "rollNo" to item.rollNo,
-                    "name" to item.name,
-                    "gradeClass" to item.gradeClass,
-                    "section" to item.section,
-                    "guardianName" to item.guardianName,
-                    "fatherName" to item.fatherName,
-                    "motherName" to item.motherName,
-                    "phone" to item.phone,
-                    "whatsapp" to item.whatsapp,
-                    "address" to item.address,
-                    "dob" to item.dob,
-                    "gender" to item.gender,
-                    "caste" to item.caste,
-                    "admissionDate" to item.admissionDate,
-                    "photoBase64" to item.photoBase64
-                )
-            }
-            if (studentMap.isNotEmpty()) {
-                schoolRef.child("students").setValue(studentMap)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 4. Staff
-        try {
-            val staffList = database.staffDao().getStaffBySchool(schoolCode).first()
-            val staffMap = mutableMapOf<String, Any>()
-            for (item in staffList) {
-                staffMap[item.id.toString()] = mapOf(
-                    "id" to item.id.toString(),
-                    "schoolCode" to item.schoolCode,
-                    "name" to item.name,
-                    "role" to item.role,
-                    "phone" to item.phone,
-                    "whatsapp" to item.whatsapp,
-                    "salary" to item.salary.toString(),
-                    "qualification" to item.qualification,
-                    "joinDate" to item.joinDate,
-                    "gender" to item.gender,
-                    "address" to item.address,
-                    "photoBase64" to item.photoBase64
-                )
-            }
-            if (staffMap.isNotEmpty()) {
-                schoolRef.child("staff").setValue(staffMap)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 5. Fees
-        try {
-            val fees = database.feeDao().getFeeRecordsBySchool(schoolCode).first()
-            val feeMap = mutableMapOf<String, Any>()
-            for (item in fees) {
-                feeMap[item.id.toString()] = mapOf(
-                    "id" to item.id.toString(),
-                    "schoolCode" to item.schoolCode,
-                    "studentId" to item.studentId.toString(),
-                    "studentName" to item.studentName,
-                    "gradeClass" to item.gradeClass,
-                    "amountPaid" to item.amountPaid.toString(),
-                    "paymentDate" to item.paymentDate,
-                    "feeMonth" to item.feeMonth,
-                    "paymentMode" to item.paymentMode,
-                    "remarks" to item.remarks
-                )
-            }
-            if (feeMap.isNotEmpty()) {
-                schoolRef.child("fees").setValue(feeMap)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        restoreAllFromCloud(schoolCode)
     }
-
     /**
      * Compatibility wrapper for AuthScreens: restores all records from RTDB into local SQLite.
      */
@@ -186,36 +62,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             email = em,
                             address = addr,
                             photoBase64 = p64
-                        )
-                    )
-                }
-            }
-
-            // RESTORE BATCHES FROM FIREBASE
-            val batchesNode = snapshot.child("batches")
-            if (batchesNode.exists) {
-                for (child in batchesNode.children) {
-                    val map = child.value as? Map<*, *> ?: continue
-                    val batchId = map["id"]?.toString()?.toLongOrNull()
-                        ?: child.key?.toLongOrNull()
-                        ?: 0L
-                    val batchSchoolCode = map["schoolCode"]?.toString() ?: schoolCode
-                    val batchName = map["batchName"]?.toString() ?: ""
-                    if (batchName.isBlank()) continue
-
-                    database.batchDao().insertBatch(
-                        BatchEntity(
-                            id = batchId,
-                            schoolCode = batchSchoolCode,
-                            batchName = batchName,
-                            subjects = map["subjects"]?.toString() ?: "",
-                            sections = map["sections"]?.toString() ?: "",
-                            feeTemplateRaw = map["feeTemplateRaw"]?.toString() ?: "",
-                            defaultMonthlyTuition =
-                                map["defaultMonthlyTuition"]?.toString()?.toDoubleOrNull() ?: 0.0,
-                            collectTuitionAtAdmission =
-                                map["collectTuitionAtAdmission"]?.toString()?.toBooleanStrictOrNull()
-                                    ?: true
                         )
                     )
                 }
@@ -304,6 +150,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     )
                 }
             }
+            // Firebase is authoritative after a successful root fetch.
+            // Reconcile all collections, including collections that are absent remotely.
+            syncCollectionFromSnapshot(schoolCode, "batches", snapshot.child("batches"))
+            syncCollectionFromSnapshot(schoolCode, "students", snapshot.child("students"))
+            syncCollectionFromSnapshot(schoolCode, "staff", snapshot.child("staff"))
+            syncCollectionFromSnapshot(schoolCode, "fees", snapshot.child("fees"))
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -394,39 +246,48 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     fun pushStudent(schoolCode: String, student: StudentEntity) {
-        val targetSchool = schoolCode.ifBlank { student.schoolCode }
-        if (targetSchool.isBlank()) return
         scope.launch {
             try {
-                rtdb.reference("schools")
-                    .child(targetSchool)
-                    .child("students")
-                    .child(student.id.toString())
-                    .setValue(
-                        mapOf(
-                            "id" to student.id.toString(),
-                            "schoolCode" to targetSchool,
-                            "rollNo" to student.rollNo,
-                            "name" to student.name,
-                            "gradeClass" to student.gradeClass,
-                            "section" to student.section,
-                            "guardianName" to student.guardianName,
-                            "fatherName" to student.fatherName,
-                            "motherName" to student.motherName,
-                            "phone" to student.phone,
-                            "whatsapp" to student.whatsapp,
-                            "address" to student.address,
-                            "dob" to student.dob,
-                            "gender" to student.gender,
-                            "caste" to student.caste,
-                            "admissionDate" to student.admissionDate,
-                            "photoBase64" to student.photoBase64
-                        )
-                    )
+                pushStudentRecord(schoolCode, student)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+
+    suspend fun pushStudentRecord(schoolCode: String, student: StudentEntity) {
+        val targetSchool = schoolCode.ifBlank { student.schoolCode }
+        require(targetSchool.isNotBlank()) { "School code is required" }
+        require(student.id > 0L) { "Student ID must be positive" }
+
+        rtdb.reference("schools")
+            .child(targetSchool)
+            .child("students")
+            .child(student.id.toString())
+            .setValue(
+                mapOf(
+                    "id" to student.id.toString(),
+                    "schoolCode" to targetSchool,
+                    "rollNo" to student.rollNo,
+                    "name" to student.name,
+                    "gradeClass" to student.gradeClass,
+                    "section" to student.section,
+                    "guardianName" to student.guardianName,
+                    "fatherName" to student.fatherName,
+                    "motherName" to student.motherName,
+                    "phone" to student.phone,
+                    "whatsapp" to student.whatsapp,
+                    "address" to student.address,
+                    "dob" to student.dob,
+                    "gender" to student.gender,
+                    "caste" to student.caste,
+                    "admissionDate" to student.admissionDate,
+                    "monthlyFee" to student.monthlyFee.toString(),
+                    "admissionFee" to student.admissionFee.toString(),
+                    "aadharNumber" to student.aadharNumber,
+                    "photoBase64" to student.photoBase64
+                )
+            )
     }
 
     fun pushStaff(schoolCode: String, staff: StaffEntity) {
@@ -447,6 +308,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "phone" to staff.phone,
                             "whatsapp" to staff.whatsapp,
                             "salary" to staff.salary.toString(),
+                            "salaryType" to staff.salaryType,
+                            "password" to staff.password,
                             "qualification" to staff.qualification,
                             "joinDate" to staff.joinDate,
                             "gender" to staff.gender,
@@ -460,52 +323,279 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    suspend fun pushFeeRecord(schoolCode: String, fee: FeeRecordEntity) {
+        val targetSchool = schoolCode.ifBlank { fee.schoolCode }
+        require(targetSchool.isNotBlank()) { "School code is required" }
+        require(fee.id > 0L) { "Fee record ID must be positive" }
+
+        rtdb.reference("schools")
+            .child(targetSchool)
+            .child("fees")
+            .child(fee.id.toString())
+            .setValue(
+                mapOf(
+                    "id" to fee.id.toString(),
+                    "schoolCode" to targetSchool,
+                    "studentId" to fee.studentId.toString(),
+                    "studentName" to fee.studentName,
+                    "gradeClass" to fee.gradeClass,
+                    "amountPaid" to fee.amountPaid.toString(),
+                    "paymentDate" to fee.paymentDate,
+                    "feeMonth" to fee.feeMonth,
+                    "paymentMode" to fee.paymentMode,
+                    "remarks" to fee.remarks
+                )
+            )
+    }
+
+    suspend fun deleteBatchRecord(schoolCode: String, batch: BatchEntity) {
+        val targetSchool = schoolCode.ifBlank { batch.schoolCode }
+        require(targetSchool.isNotBlank()) { "School code is required" }
+        require(batch.id > 0L) { "Class ID must be positive" }
+
+        // Remove from Firebase first. If this fails, retain the local record.
+        rtdb.reference("schools")
+            .child(targetSchool)
+            .child("batches")
+            .child(batch.id.toString())
+            .removeValue()
+
+        database.batchDao().deleteBatch(batch)
+    }
+
     suspend fun deleteStudentRecord(schoolCode: String, student: StudentEntity): Boolean {
         val targetSchool = schoolCode.ifBlank { student.schoolCode }
-        try {
-            database.studentDao().deleteStudent(student)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        if (targetSchool.isNotBlank()) {
-            scope.launch {
-                try {
-                    rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        require(targetSchool.isNotBlank()) { "School code is required" }
+        require(student.id > 0L) { "Student ID must be positive" }
+
+        // Await the cloud deletion before touching Room. If Firebase fails, keep
+        // the local record so the UI does not report a false successful delete.
+        rtdb.reference("schools")
+            .child(targetSchool)
+            .child("students")
+            .child(student.id.toString())
+            .removeValue()
+
+        database.studentDao().deleteStudent(student)
         return true
     }
 
     suspend fun deleteStaffRecord(schoolCode: String, staff: StaffEntity): Boolean {
         val targetSchool = schoolCode.ifBlank { staff.schoolCode }
-        try {
-            database.staffDao().deleteStaff(staff)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        if (targetSchool.isNotBlank()) {
-            scope.launch {
-                try {
-                    rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
+        require(targetSchool.isNotBlank()) { "School code is required" }
+        require(staff.id > 0L) { "Staff ID must be positive" }
+
+        // Await the cloud deletion before touching Room. If Firebase fails, keep
+        // the local record so the UI does not report a false successful delete.
+        rtdb.reference("schools")
+            .child(targetSchool)
+            .child("staff")
+            .child(staff.id.toString())
+            .removeValue()
+
+        database.staffDao().deleteStaff(staff)
         return true
     }
 
-    fun startSync(schoolCode: String) {
-        if (schoolCode.isBlank()) return
-        scope.launch {
-            try {
-                pushAllLocalDataToCloud(schoolCode)
-            } catch (e: Exception) {
-                e.printStackTrace()
+    /**
+     * Reconcile one complete Firebase collection with its local Room records.
+     * Records missing from Firebase are removed locally.
+     */
+    private suspend fun syncCollectionFromSnapshot(
+        schoolCode: String,
+        collection: String,
+        snapshot: dev.gitlive.firebase.database.DataSnapshot
+    ) {
+        // Never delete local records when Firebase has no collection
+        // or when its snapshot is empty. Preserve existing local data.
+        if (!snapshot.exists) return
+
+        val children = snapshot.children.toList()
+        if (children.isEmpty()) return
+
+        val remoteKeys = children.mapNotNull { it.key }.toSet()
+
+        when (collection) {
+            "batches" -> {
+                val local = database.batchDao()
+                    .getBatchesBySchool(schoolCode).first()
+
+            // Preserve local classes missing from a Firebase snapshot.
+            // Explicit class deletion is handled by deleteBatchRecord().
+
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull()
+                        ?: child.key?.toLongOrNull()
+                        ?: continue
+                    val name = map["batchName"]?.toString() ?: ""
+                    if (id <= 0L || name.isBlank()) continue
+
+                    database.batchDao().insertBatch(
+                        BatchEntity(
+                            id = id,
+                            // The Firebase path identifies the authoritative school.
+                            // Do not let an outdated record field hide this class
+                            // from the school's Room query after relogin.
+                            schoolCode = schoolCode,
+                            batchName = name,
+                            subjects = map["subjects"]?.toString() ?: "",
+                            sections = map["sections"]?.toString() ?: "",
+                            feeTemplateRaw = map["feeTemplateRaw"]?.toString() ?: "",
+                            defaultMonthlyTuition =
+                                map["defaultMonthlyTuition"]?.toString()
+                                    ?.toDoubleOrNull() ?: 0.0,
+                            collectTuitionAtAdmission =
+                                map["collectTuitionAtAdmission"]?.toString()
+                                    ?.toBooleanStrictOrNull() ?: true
+                        )
+                    )
+                }
+            }
+
+            "students" -> {
+                val local = database.studentDao()
+                    .getStudentsBySchool(schoolCode).first()
+
+                // Preserve local records missing from a Firebase snapshot.
+                // Explicit deletion is handled by the corresponding delete function.
+
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull()
+                        ?: child.key?.toLongOrNull()
+                        ?: continue
+                    if (id <= 0L) continue
+
+                    database.studentDao().insertStudent(
+                        StudentEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            rollNo = map["rollNo"]?.toString() ?: "",
+                            name = map["name"]?.toString() ?: "",
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            section = map["section"]?.toString() ?: "",
+                            guardianName = map["guardianName"]?.toString() ?: "",
+                            fatherName = map["fatherName"]?.toString() ?: "",
+                            motherName = map["motherName"]?.toString() ?: "",
+                            phone = map["phone"]?.toString() ?: "",
+                            monthlyFee = map["monthlyFee"]?.toString()?.toDoubleOrNull() ?: 0.0,
+                            admissionFee = map["admissionFee"]?.toString()?.toDoubleOrNull() ?: 0.0,
+                            aadharNumber = map["aadharNumber"]?.toString() ?: "",
+                            whatsapp = map["whatsapp"]?.toString() ?: "",
+                            address = map["address"]?.toString() ?: "",
+                            dob = map["dob"]?.toString() ?: "",
+                            gender = map["gender"]?.toString() ?: "",
+                            caste = map["caste"]?.toString() ?: "",
+                            admissionDate = map["admissionDate"]?.toString() ?: "",
+                            photoBase64 = map["photoBase64"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "staff" -> {
+                val local = database.staffDao()
+                    .getStaffBySchool(schoolCode).first()
+
+                // Preserve local records missing from a Firebase snapshot.
+                // Explicit deletion is handled by the corresponding delete function.
+
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull()
+                        ?: child.key?.toLongOrNull()
+                        ?: continue
+                    if (id <= 0L) continue
+
+                    database.staffDao().insertStaff(
+                        StaffEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            name = map["name"]?.toString() ?: "",
+                            role = map["role"]?.toString() ?: "",
+                            phone = map["phone"]?.toString() ?: "",
+                            whatsapp = map["whatsapp"]?.toString() ?: "",
+                            salary = map["salary"]?.toString()?.toDoubleOrNull() ?: 0.0,
+                            salaryType = map["salaryType"]?.toString() ?: "Monthly",
+                            password = map["password"]?.toString() ?: "",
+                            qualification = map["qualification"]?.toString() ?: "",
+                            joinDate = map["joinDate"]?.toString() ?: "",
+                            gender = map["gender"]?.toString() ?: "",
+                            address = map["address"]?.toString() ?: "",
+                            photoBase64 = map["photoBase64"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "fees" -> {
+                val local = database.feeDao()
+                    .getFeeRecordsBySchool(schoolCode).first()
+
+                // Preserve local records missing from a Firebase snapshot.
+                // Explicit deletion is handled by the corresponding delete function.
+
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull()
+                        ?: child.key?.toLongOrNull()
+                        ?: continue
+                    if (id <= 0L) continue
+
+                    database.feeDao().insertFeeRecord(
+                        FeeRecordEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            studentId = map["studentId"]?.toString()
+                                ?.toLongOrNull() ?: 0L,
+                            studentName = map["studentName"]?.toString() ?: "",
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            amountPaid = map["amountPaid"]?.toString()
+                                ?.toDoubleOrNull() ?: 0.0,
+                            paymentDate = map["paymentDate"]?.toString() ?: "",
+                            feeMonth = map["feeMonth"]?.toString() ?: "",
+                            paymentMode = map["paymentMode"]?.toString() ?: "",
+                            remarks = map["remarks"]?.toString() ?: ""
+                        )
+                    )
+                }
             }
         }
     }
+
+    /**
+     * Keep local Room data synchronized with Firebase changes.
+     * Do not upload the entire local database here: doing so could recreate
+     * records that were intentionally deleted from Firebase.
+     */
+    fun startSync(schoolCode: String) {
+        if (schoolCode.isBlank()) return
+        if (syncJobs[schoolCode]?.isActive == true) return
+
+        syncJobs[schoolCode] = scope.launch {
+            val schoolRef = rtdb.reference("schools").child(schoolCode)
+
+            for (collection in listOf("batches", "students", "staff", "fees")) {
+                launch {
+                    try {
+                        schoolRef.child(collection).valueEvents.collect { snapshot ->
+                            try {
+                                syncCollectionFromSnapshot(
+                                    schoolCode,
+                                    collection,
+                                    snapshot
+                                )
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+        }
+    }
+
 }

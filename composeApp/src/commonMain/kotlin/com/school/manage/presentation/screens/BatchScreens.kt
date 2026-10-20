@@ -230,7 +230,13 @@ fun BatchListScreen(
                                     modifier = Modifier
                                         .height(30.dp)
                                         .clickable {
-                                            scope.launch { database.batchDao().deleteBatch(batch) }
+                                            scope.launch {
+                                                try {
+                                                    FirestoreSyncService(database).deleteBatchRecord(schoolCode, batch)
+                                                } catch (e: Exception) {
+                                                    e.printStackTrace()
+                                                }
+                                            }
                                         }
                                 ) {
                                     Box(contentAlignment = Alignment.Center, modifier = Modifier.padding(horizontal = 12.dp)) {
@@ -405,7 +411,7 @@ fun BatchListScreen(
                                             )
                                             database.batchDao().insertBatch(updatedBatch)
                                             try {
-                                                FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                                FirestoreSyncService(database).pushBatch(schoolCode, updatedBatch)
                                             } catch (_: Exception) {}
                                             selectedBatchForEdit = null
                                         }
