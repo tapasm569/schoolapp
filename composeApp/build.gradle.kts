@@ -43,7 +43,7 @@ kotlin {
 
 android {
     namespace = "com.school.manage"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.school.manage"
