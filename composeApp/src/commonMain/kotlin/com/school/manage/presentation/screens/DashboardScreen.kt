@@ -889,6 +889,16 @@ fun DashboardScreen(
             )
         }
 
+        if (showAttendanceCalendar) {
+            ModernDatePickerDialog(
+                currentDate = selectedAttendanceDate,
+                onDateSelected = { picked ->
+                    selectedAttendanceDate = normalizeDateStr(picked)
+                },
+                onDismiss = { showAttendanceCalendar = false }
+            )
+        }
+
         // 7. Modal Bottom Sheet
         if (showAddNewBottomSheet) {
             ModalBottomSheet(
