@@ -162,7 +162,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         if (schoolCode.isBlank()) return
         try {
             val snapshot = rtdb.reference("schools").child(schoolCode).get()
-            if (!snapshot.exists()) return
+            if (!snapshot.exists) return
 
             // Restore School Info
             val infoMap = snapshot.child("info").value as? Map<*, *>
@@ -193,7 +193,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
 
             // Restore Students
             val studentsNode = snapshot.child("students")
-            if (studentsNode.exists()) {
+            if (studentsNode.exists) {
                 for (child in studentsNode.children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val sId = map["id"]?.toString()?.toLongOrNull() ?: 0L
@@ -240,7 +240,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
 
             // Restore Staff
             val staffNode = snapshot.child("staff")
-            if (staffNode.exists()) {
+            if (staffNode.exists) {
                 for (child in staffNode.children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val stId = map["id"]?.toString()?.toLongOrNull() ?: 0L
@@ -286,7 +286,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         if (schoolCode.isBlank()) return null
         return try {
             val snapshot = rtdb.reference("schools").child(schoolCode).child("info").get()
-            if (!snapshot.exists()) return null
+            if (!snapshot.exists) return null
             val map = snapshot.value as? Map<*, *> ?: return null
             val sCode = map["schoolCode"]?.toString() ?: schoolCode
             val sName = map["schoolName"]?.toString() ?: ""
