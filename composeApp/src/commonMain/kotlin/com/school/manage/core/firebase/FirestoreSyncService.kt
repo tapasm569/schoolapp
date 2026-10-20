@@ -1,6 +1,8 @@
 package com.school.manage.core.firebase
 
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.core.database.entity.BatchEntity
+import com.school.manage.core.database.entity.FeeRecordEntity
 import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.database.entity.StudentEntity
 import dev.gitlive.firebase.Firebase
@@ -53,13 +55,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     "id" to item.id.toString(),
                     "schoolCode" to item.schoolCode,
                     "batchName" to item.batchName,
-                    "className" to item.className,
-                    "section" to item.section,
-                    "monthlyFee" to item.monthlyFee.toString(),
-                    "admissionFee" to item.admissionFee.toString(),
                     "subjects" to item.subjects,
-                    "startDate" to item.startDate,
-                    "endDate" to item.endDate
+                    "sections" to item.sections,
+                    "feeTemplateRaw" to item.feeTemplateRaw,
+                    "defaultMonthlyTuition" to item.defaultMonthlyTuition.toString(),
+                    "collectTuitionAtAdmission" to item.collectTuitionAtAdmission.toString()
                 )
             }
             if (batchMap.isNotEmpty()) {
@@ -128,19 +128,21 @@ class FirestoreSyncService(private val database: AppDatabase) {
             e.printStackTrace()
         }
 
-        // 5. Fees
+        // 5. Fees (FeeRecordEntity)
         try {
-            val fees = database.feeDao().getFeesBySchool(schoolCode).first()
+            val fees = database.feeDao().getFeeRecordsBySchool(schoolCode).first()
             val feeMap = mutableMapOf<String, Any>()
             for (item in fees) {
                 feeMap[item.id.toString()] = mapOf(
                     "id" to item.id.toString(),
                     "schoolCode" to item.schoolCode,
                     "studentId" to item.studentId.toString(),
-                    "monthYear" to item.monthYear,
-                    "amount" to item.amount.toString(),
-                    "status" to item.status,
-                    "paidDate" to item.paidDate,
+                    "studentName" to item.studentName,
+                    "gradeClass" to item.gradeClass,
+                    "amountPaid" to item.amountPaid.toString(),
+                    "paymentDate" to item.paymentDate,
+                    "feeMonth" to item.feeMonth,
+                    "paymentMode" to item.paymentMode,
                     "remarks" to item.remarks
                 )
             }
@@ -155,8 +157,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     /**
-     * Single-Record Delta Sync:
-     * Only updates or inserts the specific student record that was edited/created.
+     * Single-Record Delta Sync: Only updates or inserts the specific student record.
      */
     fun pushStudent(schoolCode: String, student: StudentEntity) {
         val targetSchool = schoolCode.ifBlank { student.schoolCode }
@@ -196,8 +197,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     /**
-     * Single-Record Delta Sync:
-     * Only updates or inserts the specific staff member that was edited/created.
+     * Single-Record Delta Sync: Only updates or inserts the specific staff member.
      */
     fun pushStaff(schoolCode: String, staff: StaffEntity) {
         val targetSchool = schoolCode.ifBlank { staff.schoolCode }
