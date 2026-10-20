@@ -480,15 +480,27 @@ fun AddBatchScreen(
                     onClick = {
                         if (batchName.isNotBlank()) {
                             scope.launch {
-                                database.batchDao().insertBatch(
-                                    BatchEntity(
-                                        schoolCode = schoolCode,
-                                        batchName = batchName.trim(),
-                                        subjects = subjects.joinToString(", "),
-                                        sections = "A, B"
-                                    )
+                                val newBatch = BatchEntity(
+                                    schoolCode = schoolCode,
+                                    batchName = batchName.trim(),
+                                    subjects = subjects.joinToString(", "),
+                                    sections = "A, B"
                                 )
-                                onNavigateBack()
+                                val insertedId = database.batchDao().insertBatch(newBatch)
+
+                                if (insertedId > 0L) {
+                                    try {
+                                        FirestoreSyncService(database).pushBatch(
+                                            schoolCode,
+                                            newBatch.copy(id = insertedId)
+                                        )
+                                        onNavigateBack()
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        // Keep the locally saved class and remain on this screen
+                                        // so the user can retry instead of silently losing the upload.
+                                    }
+                                }
                             }
                         }
                     },

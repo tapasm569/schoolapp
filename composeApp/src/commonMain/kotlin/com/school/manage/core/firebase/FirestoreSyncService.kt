@@ -191,6 +191,36 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 }
             }
 
+            // RESTORE BATCHES FROM FIREBASE
+            val batchesNode = snapshot.child("batches")
+            if (batchesNode.exists) {
+                for (child in batchesNode.children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val batchId = map["id"]?.toString()?.toLongOrNull()
+                        ?: child.key?.toLongOrNull()
+                        ?: 0L
+                    val batchSchoolCode = map["schoolCode"]?.toString() ?: schoolCode
+                    val batchName = map["batchName"]?.toString() ?: ""
+                    if (batchName.isBlank()) continue
+
+                    database.batchDao().insertBatch(
+                        BatchEntity(
+                            id = batchId,
+                            schoolCode = batchSchoolCode,
+                            batchName = batchName,
+                            subjects = map["subjects"]?.toString() ?: "",
+                            sections = map["sections"]?.toString() ?: "",
+                            feeTemplateRaw = map["feeTemplateRaw"]?.toString() ?: "",
+                            defaultMonthlyTuition =
+                                map["defaultMonthlyTuition"]?.toString()?.toDoubleOrNull() ?: 0.0,
+                            collectTuitionAtAdmission =
+                                map["collectTuitionAtAdmission"]?.toString()?.toBooleanStrictOrNull()
+                                    ?: true
+                        )
+                    )
+                }
+            }
+
             // Restore Students
             val studentsNode = snapshot.child("students")
             if (studentsNode.exists) {
@@ -334,6 +364,33 @@ class FirestoreSyncService(private val database: AppDatabase) {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    /**
+     * Saves one class to Firebase without replacing other classes.
+     */
+    suspend fun pushBatch(schoolCode: String, batch: BatchEntity) {
+        val targetSchool = schoolCode.ifBlank { batch.schoolCode }
+        if (targetSchool.isBlank() || batch.id <= 0L || batch.batchName.isBlank()) {
+            throw IllegalArgumentException("Invalid school code or class details")
+        }
+
+        rtdb.reference("schools")
+            .child(targetSchool)
+            .child("batches")
+            .child(batch.id.toString())
+            .setValue(
+                mapOf(
+                    "id" to batch.id.toString(),
+                    "schoolCode" to targetSchool,
+                    "batchName" to batch.batchName,
+                    "subjects" to batch.subjects,
+                    "sections" to batch.sections,
+                    "feeTemplateRaw" to batch.feeTemplateRaw,
+                    "defaultMonthlyTuition" to batch.defaultMonthlyTuition.toString(),
+                    "collectTuitionAtAdmission" to batch.collectTuitionAtAdmission.toString()
+                )
+            )
     }
 
     fun pushStudent(schoolCode: String, student: StudentEntity) {
