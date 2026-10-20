@@ -3,6 +3,7 @@ package com.school.manage.core.firebase
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.BatchEntity
 import com.school.manage.core.database.entity.FeeRecordEntity
+import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.database.entity.StudentEntity
 import dev.gitlive.firebase.Firebase
@@ -19,7 +20,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
 
     /**
      * Pushes all local SQLite data directly to Firebase Realtime Database.
-     * RTDB has NO daily 20,000 operation write cap, so this is safe for bulk sync.
      */
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
         if (schoolCode.isBlank()) return
@@ -35,6 +35,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     mapOf(
                         "schoolCode" to school.schoolCode,
                         "schoolName" to school.schoolName,
+                        "password" to school.password,
                         "email" to school.email,
                         "phone" to school.phone,
                         "address" to school.address,
@@ -128,7 +129,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             e.printStackTrace()
         }
 
-        // 5. Fees (FeeRecordEntity)
+        // 5. Fees
         try {
             val fees = database.feeDao().getFeeRecordsBySchool(schoolCode).first()
             val feeMap = mutableMapOf<String, Any>()
@@ -152,13 +153,189 @@ class FirestoreSyncService(private val database: AppDatabase) {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
-        println("===> [RTDB SYNC] Finished pushing all collections to Realtime Database successfully!")
     }
 
     /**
-     * Single-Record Delta Sync: Only updates or inserts the specific student record.
+     * Compatibility wrapper for AuthScreens: restores all records from RTDB into local SQLite.
      */
+    suspend fun restoreAllFromCloud(schoolCode: String) {
+        if (schoolCode.isBlank()) return
+        try {
+            val snapshot = rtdb.reference("schools").child(schoolCode).get()
+            if (!snapshot.exists()) return
+
+            // Restore School Info
+            val infoMap = snapshot.child("info").value as? Map<*, *>
+            if (infoMap != null) {
+                val sCode = infoMap["schoolCode"]?.toString() ?: schoolCode
+                val sName = infoMap["schoolName"]?.toString() ?: ""
+                val pass = infoMap["password"]?.toString() ?: ""
+                val ph = infoMap["phone"]?.toString() ?: ""
+                val em = infoMap["email"]?.toString() ?: ""
+                val addr = infoMap["address"]?.toString() ?: ""
+                val p64 = infoMap["photoBase64"]?.toString() ?: ""
+
+                val existing = database.schoolDao().getSchoolByCode(sCode)
+                if (existing == null) {
+                    database.schoolDao().registerSchool(
+                        SchoolEntity(
+                            schoolCode = sCode,
+                            schoolName = sName,
+                            password = pass,
+                            phone = ph,
+                            email = em,
+                            address = addr,
+                            photoBase64 = p64
+                        )
+                    )
+                }
+            }
+
+            // Restore Students
+            val studentsNode = snapshot.child("students")
+            if (studentsNode.exists()) {
+                for (child in studentsNode.children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val sId = map["id"]?.toString()?.toLongOrNull() ?: 0L
+                    val sCode = map["schoolCode"]?.toString() ?: schoolCode
+                    val roll = map["rollNo"]?.toString() ?: ""
+                    val name = map["name"]?.toString() ?: ""
+                    val grade = map["gradeClass"]?.toString() ?: ""
+                    val sec = map["section"]?.toString() ?: ""
+                    val guard = map["guardianName"]?.toString() ?: ""
+                    val fName = map["fatherName"]?.toString() ?: ""
+                    val mName = map["motherName"]?.toString() ?: ""
+                    val phone = map["phone"]?.toString() ?: ""
+                    val whatsapp = map["whatsapp"]?.toString() ?: ""
+                    val addr = map["address"]?.toString() ?: ""
+                    val dob = map["dob"]?.toString() ?: ""
+                    val gender = map["gender"]?.toString() ?: ""
+                    val caste = map["caste"]?.toString() ?: ""
+                    val admDate = map["admissionDate"]?.toString() ?: ""
+                    val photo = map["photoBase64"]?.toString() ?: ""
+
+                    database.studentDao().insertStudent(
+                        StudentEntity(
+                            id = if (sId > 0) sId else 0L,
+                            schoolCode = sCode,
+                            rollNo = roll,
+                            name = name,
+                            gradeClass = grade,
+                            section = sec,
+                            guardianName = guard,
+                            fatherName = fName,
+                            motherName = mName,
+                            phone = phone,
+                            whatsapp = whatsapp,
+                            address = addr,
+                            dob = dob,
+                            gender = gender,
+                            caste = caste,
+                            admissionDate = admDate,
+                            photoBase64 = photo
+                        )
+                    )
+                }
+            }
+
+            // Restore Staff
+            val staffNode = snapshot.child("staff")
+            if (staffNode.exists()) {
+                for (child in staffNode.children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val stId = map["id"]?.toString()?.toLongOrNull() ?: 0L
+                    val sCode = map["schoolCode"]?.toString() ?: schoolCode
+                    val name = map["name"]?.toString() ?: ""
+                    val role = map["role"]?.toString() ?: ""
+                    val phone = map["phone"]?.toString() ?: ""
+                    val whatsapp = map["whatsapp"]?.toString() ?: ""
+                    val salary = map["salary"]?.toString()?.toDoubleOrNull() ?: 0.0
+                    val qual = map["qualification"]?.toString() ?: ""
+                    val join = map["joinDate"]?.toString() ?: ""
+                    val gender = map["gender"]?.toString() ?: ""
+                    val addr = map["address"]?.toString() ?: ""
+                    val photo = map["photoBase64"]?.toString() ?: ""
+
+                    database.staffDao().insertStaff(
+                        StaffEntity(
+                            id = if (stId > 0) stId else 0L,
+                            schoolCode = sCode,
+                            name = name,
+                            role = role,
+                            phone = phone,
+                            whatsapp = whatsapp,
+                            salary = salary,
+                            qualification = qual,
+                            joinDate = join,
+                            gender = gender,
+                            address = addr,
+                            photoBase64 = photo
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Restores a single school entity from cloud by schoolCode.
+     */
+    suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
+        if (schoolCode.isBlank()) return null
+        return try {
+            val snapshot = rtdb.reference("schools").child(schoolCode).child("info").get()
+            if (!snapshot.exists()) return null
+            val map = snapshot.value as? Map<*, *> ?: return null
+            val sCode = map["schoolCode"]?.toString() ?: schoolCode
+            val sName = map["schoolName"]?.toString() ?: ""
+            val pass = map["password"]?.toString() ?: ""
+            val ph = map["phone"]?.toString() ?: ""
+            val em = map["email"]?.toString() ?: ""
+            val addr = map["address"]?.toString() ?: ""
+            val p64 = map["photoBase64"]?.toString() ?: ""
+
+            val school = SchoolEntity(
+                schoolCode = sCode,
+                schoolName = sName,
+                password = pass,
+                phone = ph,
+                email = em,
+                address = addr,
+                photoBase64 = p64
+            )
+            // Cache locally
+            database.schoolDao().registerSchool(school)
+            school
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    /**
+     * Saves newly registered school to cloud.
+     */
+    suspend fun saveSchoolToCloud(school: SchoolEntity) {
+        if (school.schoolCode.isBlank()) return
+        try {
+            rtdb.reference("schools").child(school.schoolCode).child("info").setValue(
+                mapOf(
+                    "schoolCode" to school.schoolCode,
+                    "schoolName" to school.schoolName,
+                    "password" to school.password,
+                    "phone" to school.phone,
+                    "email" to school.email,
+                    "address" to school.address,
+                    "photoBase64" to school.photoBase64
+                )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     fun pushStudent(schoolCode: String, student: StudentEntity) {
         val targetSchool = schoolCode.ifBlank { student.schoolCode }
         if (targetSchool.isBlank()) return
@@ -189,16 +366,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "photoBase64" to student.photoBase64
                         )
                     )
-                println("✓ [Delta Sync] Synced single student: ${student.name} (ID: ${student.id})")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
-    /**
-     * Single-Record Delta Sync: Only updates or inserts the specific staff member.
-     */
     fun pushStaff(schoolCode: String, staff: StaffEntity) {
         val targetSchool = schoolCode.ifBlank { staff.schoolCode }
         if (targetSchool.isBlank()) return
@@ -224,7 +397,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             "photoBase64" to staff.photoBase64
                         )
                     )
-                println("✓ [Delta Sync] Synced single staff member: ${staff.name} (ID: ${staff.id})")
             } catch (e: Exception) {
                 e.printStackTrace()
             }
