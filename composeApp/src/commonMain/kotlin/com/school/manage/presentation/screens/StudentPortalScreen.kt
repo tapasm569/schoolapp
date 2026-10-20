@@ -80,6 +80,12 @@ fun StudentPortalScreen(
     val examList by database.examDao().getExamsBySchool(schoolCode).collectAsState(initial = emptyList())
     val onlineClasses by database.onlineClassDao().getOnlineClassesBySchool(schoolCode).collectAsState(initial = emptyList())
     val leaves by database.leaveDao().getLeavesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allAnnouncements by database.announcementDao().getAnnouncementsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val studentAnnouncements = remember(allAnnouncements) {
+        allAnnouncements.filter {
+            it.targetAudience.uppercase() in listOf("ALL", "BOTH", "STUDENT", "STUDENTS")
+        }
+    }
 
     // Filter by student class
     val studentHomework = homeworkList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
@@ -220,6 +226,43 @@ fun StudentPortalScreen(
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            // 1B. Student Announcements Banner (Filtered for Students or Both)
+            val latestStudentNotice = studentAnnouncements.firstOrNull()
+            if (latestStudentNotice != null) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { activeModal = "ANNOUNCEMENTS" },
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("📢", fontSize = 22.sp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    latestStudentNotice.title,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = Color(0xFF92400E)
+                                )
+                                Text(
+                                    latestStudentNotice.message,
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF78350F),
+                                    maxLines = 2
+                                )
+                            }
+                            Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
                         }
                     }
                 }
@@ -640,6 +683,41 @@ fun StudentPortalScreen(
             }
         }
 
+        if (activeModal == "ANNOUNCEMENTS") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Announcements & Notices", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        items(studentAnnouncements) { ann ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Text(ann.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(ann.message, fontSize = 13.sp, color = Color(0xFF334155))
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text("📅 ${ann.date}", fontSize = 11.sp, color = Color.Gray)
+                                }
+                            }
+                        }
+                    }
+                    Button(onClick = { activeModal = null }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
         // 6. LEAVE REQUEST MODAL
         if (activeModal == "LEAVE") {
             ModalBottomSheet(
@@ -738,7 +816,11 @@ fun StudentPortalScreen(
                                             l.status,
                                             fontSize = 11.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = if (l.status == "APPROVED") Color(0xFF16A34A) else Color(0xFFEAB308)
+                                            color = when (l.status) {
+                                                "APPROVED" -> Color(0xFF16A34A)
+                                                "REJECTED" -> Color(0xFFDC2626)
+                                                else -> Color(0xFFD97706)
+                                            }
                                         )
                                     }
                                 }

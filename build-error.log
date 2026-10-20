@@ -1,0 +1,1381 @@
+
+> Configure project :composeApp
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:39:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:41:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:41:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:42:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:42:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:18: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:19: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:25: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:26: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:43:28: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:13: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:23: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:25: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:30: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:31: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:45: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:44:46: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:45:13: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:45:27: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:45:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:45:30: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:45:37: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:46:13: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:46:22: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:46:24: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:46:25: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:46:40: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:47:13: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:47:25: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:47:27: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:47:28: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:47:35: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:48:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:49:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:51:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:51:16: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:18: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:19: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:25: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:26: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:52:28: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:13: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:27: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:43: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:44: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:53: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:54: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:55: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:60: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:53:61: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:54:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:18: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:19: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:27: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:28: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:55:30: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:56:13: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:56:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:56:31: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:57:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:58:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:61:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:61:15: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:61:17: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:61:18: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:61:35: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:62:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:62:16: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:62:18: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:63:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:63:19: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:64:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:64:23: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:64:25: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:64:26: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:64:43: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:65:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:65:16: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:65:18: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:66:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:66:19: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:66:21: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:67:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:67:21: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:67:23: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:68:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:68:21: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:68:23: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:68:24: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:68:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:69:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:70:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:70:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:71:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:71:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:71:31: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:71:42: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:71:43: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:72:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:72:29: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:72:31: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:72:42: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:72:43: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:73:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:74:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:76:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:76:6: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:21: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:22: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:23: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:33: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:41: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:77:42: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:78:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:80:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:80:14: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:8: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:10: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:31: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:32: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:34: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:38: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:39: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:47: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:48: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:52: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:53: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:81:61: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:5: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:8: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:9: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:10: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:20: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:21: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:23: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:27: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:28: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:36: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:37: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:41: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:42: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:82:50: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:83:1: Unexpected symbol
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:21:9: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public val NamedDomainObjectContainer<KotlinSourceSet>.commonMain: NamedDomainObjectProvider<KotlinSourceSet> defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:22:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:23:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:24:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:24:36: Unresolved reference: runtime
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:25:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:25:36: Unresolved reference: foundation
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:26:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:26:36: Unresolved reference: material3
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:27:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:27:36: Unresolved reference: ui
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:28:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:28:36: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public val TaskContainer.components: TaskProvider<ComponentReport> defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:29:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:30:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:31:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:32:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:34:9: Unresolved reference: androidMain
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:35:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+e: file:///data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts:36:13: Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+w: [33m[1m⚠️ Missing `androidTarget()` in Kotlin Multiplatform Project[0m[0m
+Missing `androidTarget()` Kotlin target in multiplatform project 'composeApp (:composeApp)'.
+The Android Gradle plugin was applied without creating a corresponding `androidTarget()` Kotlin Target
+[38;5;214mplugins {[0m
+[38;5;214m    id("com.android.application")[0m
+[38;5;214m    kotlin("multiplatform")[0m
+[38;5;214m}[0m
+[38;5;214m[0m
+[38;5;214mkotlin {[0m
+[38;5;214m    androidTarget() // <-- please register this Android target[0m
+[38;5;214m}[0m
+[32m[1mSolution:[0m[0m
+[32m[3mPlease register the Android target.[0m[0m
+
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Build file '/data/data/com.termux/files/home/school-management-app/composeApp/build.gradle.kts' line: 21
+
+* What went wrong:
+Script compilation errors:
+
+  Line 21:         commonMain.dependencies {
+                   ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                       public val NamedDomainObjectContainer<KotlinSourceSet>.commonMain: NamedDomainObjectProvider<KotlinSourceSet> defined in org.gradle.kotlin.dsl
+
+  Line 22:             implementation("dev.gitlive:firebase-firestore:2.5.0")
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 23:             implementation("dev.gitlive:firebase-database:2.5.0")
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 24:             implementation(compose.runtime)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 24:             implementation(compose.runtime)
+                                              ^ Unresolved reference: runtime
+
+  Line 25:             implementation(compose.foundation)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 25:             implementation(compose.foundation)
+                                              ^ Unresolved reference: foundation
+
+  Line 26:             implementation(compose.material3)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 26:             implementation(compose.material3)
+                                              ^ Unresolved reference: material3
+
+  Line 27:             implementation(compose.ui)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 27:             implementation(compose.ui)
+                                              ^ Unresolved reference: ui
+
+  Line 28:             implementation(compose.components.resources)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 28:             implementation(compose.components.resources)
+                                              ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                                                  public val TaskContainer.components: TaskProvider<ComponentReport> defined in org.gradle.kotlin.dsl
+
+  Line 29:             implementation(libs.androidx.room.runtime)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 30:             implementation(libs.sqlite.bundled)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 31:             implementation(libs.kotlinx.coroutines.core)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 32:             implementation(libs.navigation.compose)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 34:         androidMain.dependencies {
+                   ^ Unresolved reference: androidMain
+
+  Line 35:             implementation("com.google.firebase:firebase-messaging:24.0.0")
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 36:             implementation(libs.androidx.activity.compose)
+                       ^ Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+                           public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+                           public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+                           public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+
+  Line 39: }
+           ^ Unexpected symbol
+
+  Line 41: android {
+           ^ Unexpected symbol
+
+  Line 41: android {
+                   ^ Unexpected symbol
+
+  Line 42:     signingConfigs {
+               ^ Unexpected symbol
+
+  Line 42:     signingConfigs {
+                              ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                   ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                            ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                             ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                              ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                                   ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                                    ^ Unexpected symbol
+
+  Line 43:         getByName("debug") {
+                                      ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                       ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                 ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                   ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                       ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                        ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                         ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                                       ^ Unexpected symbol
+
+  Line 44:             storeFile = file("debug.keystore")
+                                                        ^ Unexpected symbol
+
+  Line 45:             storePassword = "android"
+                       ^ Unexpected symbol
+
+  Line 45:             storePassword = "android"
+                                     ^ Unexpected symbol
+
+  Line 45:             storePassword = "android"
+                                       ^ Unexpected symbol
+
+  Line 45:             storePassword = "android"
+                                        ^ Unexpected symbol
+
+  Line 45:             storePassword = "android"
+                                               ^ Unexpected symbol
+
+  Line 46:             keyAlias = "androiddebugkey"
+                       ^ Unexpected symbol
+
+  Line 46:             keyAlias = "androiddebugkey"
+                                ^ Unexpected symbol
+
+  Line 46:             keyAlias = "androiddebugkey"
+                                  ^ Unexpected symbol
+
+  Line 46:             keyAlias = "androiddebugkey"
+                                   ^ Unexpected symbol
+
+  Line 46:             keyAlias = "androiddebugkey"
+                                                  ^ Unexpected symbol
+
+  Line 47:             keyPassword = "android"
+                       ^ Unexpected symbol
+
+  Line 47:             keyPassword = "android"
+                                   ^ Unexpected symbol
+
+  Line 47:             keyPassword = "android"
+                                     ^ Unexpected symbol
+
+  Line 47:             keyPassword = "android"
+                                      ^ Unexpected symbol
+
+  Line 47:             keyPassword = "android"
+                                             ^ Unexpected symbol
+
+  Line 48:         }
+                   ^ Unexpected symbol
+
+  Line 49:     }
+               ^ Unexpected symbol
+
+  Line 51:     buildTypes {
+               ^ Unexpected symbol
+
+  Line 51:     buildTypes {
+                          ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                   ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                            ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                             ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                              ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                                   ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                                    ^ Unexpected symbol
+
+  Line 52:         getByName("debug") {
+                                      ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                       ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                     ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                       ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                     ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                      ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                               ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                                ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                                 ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                                      ^ Unexpected symbol
+
+  Line 53:             signingConfig = signingConfigs.getByName("debug")
+                                                                       ^ Unexpected symbol
+
+  Line 54:         }
+                   ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                   ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                            ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                             ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                              ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                                     ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                                      ^ Unexpected symbol
+
+  Line 55:         getByName("release") {
+                                        ^ Unexpected symbol
+
+  Line 56:             isMinifyEnabled = false
+                       ^ Unexpected symbol
+
+  Line 56:             isMinifyEnabled = false
+                                       ^ Unexpected symbol
+
+  Line 56:             isMinifyEnabled = false
+                                         ^ Unexpected symbol
+
+  Line 57:         }
+                   ^ Unexpected symbol
+
+  Line 58:     }
+               ^ Unexpected symbol
+
+  Line 61:     namespace = "com.school.manage"
+               ^ Unexpected symbol
+
+  Line 61:     namespace = "com.school.manage"
+                         ^ Unexpected symbol
+
+  Line 61:     namespace = "com.school.manage"
+                           ^ Unexpected symbol
+
+  Line 61:     namespace = "com.school.manage"
+                            ^ Unexpected symbol
+
+  Line 61:     namespace = "com.school.manage"
+                                             ^ Unexpected symbol
+
+  Line 62:     compileSdk = 34
+               ^ Unexpected symbol
+
+  Line 62:     compileSdk = 34
+                          ^ Unexpected symbol
+
+  Line 62:     compileSdk = 34
+                            ^ Unexpected symbol
+
+  Line 63:     defaultConfig {
+               ^ Unexpected symbol
+
+  Line 63:     defaultConfig {
+                             ^ Unexpected symbol
+
+  Line 64:         applicationId = "com.school.manage"
+                   ^ Unexpected symbol
+
+  Line 64:         applicationId = "com.school.manage"
+                                 ^ Unexpected symbol
+
+  Line 64:         applicationId = "com.school.manage"
+                                   ^ Unexpected symbol
+
+  Line 64:         applicationId = "com.school.manage"
+                                    ^ Unexpected symbol
+
+  Line 64:         applicationId = "com.school.manage"
+                                                     ^ Unexpected symbol
+
+  Line 65:         minSdk = 24
+                   ^ Unexpected symbol
+
+  Line 65:         minSdk = 24
+                          ^ Unexpected symbol
+
+  Line 65:         minSdk = 24
+                            ^ Unexpected symbol
+
+  Line 66:         targetSdk = 34
+                   ^ Unexpected symbol
+
+  Line 66:         targetSdk = 34
+                             ^ Unexpected symbol
+
+  Line 66:         targetSdk = 34
+                               ^ Unexpected symbol
+
+  Line 67:         versionCode = 1
+                   ^ Unexpected symbol
+
+  Line 67:         versionCode = 1
+                               ^ Unexpected symbol
+
+  Line 67:         versionCode = 1
+                                 ^ Unexpected symbol
+
+  Line 68:         versionName = "1.0.0"
+                   ^ Unexpected symbol
+
+  Line 68:         versionName = "1.0.0"
+                               ^ Unexpected symbol
+
+  Line 68:         versionName = "1.0.0"
+                                 ^ Unexpected symbol
+
+  Line 68:         versionName = "1.0.0"
+                                  ^ Unexpected symbol
+
+  Line 68:         versionName = "1.0.0"
+                                       ^ Unexpected symbol
+
+  Line 69:     }
+               ^ Unexpected symbol
+
+  Line 70:     compileOptions {
+               ^ Unexpected symbol
+
+  Line 70:     compileOptions {
+                              ^ Unexpected symbol
+
+  Line 71:         sourceCompatibility = JavaVersion.VERSION_17
+                   ^ Unexpected symbol
+
+  Line 71:         sourceCompatibility = JavaVersion.VERSION_17
+                                       ^ Unexpected symbol
+
+  Line 71:         sourceCompatibility = JavaVersion.VERSION_17
+                                         ^ Unexpected symbol
+
+  Line 71:         sourceCompatibility = JavaVersion.VERSION_17
+                                                    ^ Unexpected symbol
+
+  Line 71:         sourceCompatibility = JavaVersion.VERSION_17
+                                                     ^ Unexpected symbol
+
+  Line 72:         targetCompatibility = JavaVersion.VERSION_17
+                   ^ Unexpected symbol
+
+  Line 72:         targetCompatibility = JavaVersion.VERSION_17
+                                       ^ Unexpected symbol
+
+  Line 72:         targetCompatibility = JavaVersion.VERSION_17
+                                         ^ Unexpected symbol
+
+  Line 72:         targetCompatibility = JavaVersion.VERSION_17
+                                                    ^ Unexpected symbol
+
+  Line 72:         targetCompatibility = JavaVersion.VERSION_17
+                                                     ^ Unexpected symbol
+
+  Line 73:     }
+               ^ Unexpected symbol
+
+  Line 74: }
+           ^ Unexpected symbol
+
+  Line 76: room {
+           ^ Unexpected symbol
+
+  Line 76: room {
+                ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+               ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                              ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                               ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                                ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                                 ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                                           ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                                                   ^ Unexpected symbol
+
+  Line 77:     schemaDirectory("$projectDir/schemas")
+                                                    ^ Unexpected symbol
+
+  Line 78: }
+           ^ Unexpected symbol
+
+  Line 80: dependencies {
+           ^ Unexpected symbol
+
+  Line 80: dependencies {
+                        ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+               ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                  ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                   ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                    ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                         ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                          ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                            ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                 ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                         ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                          ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                              ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                               ^ Unexpected symbol
+
+  Line 81:     add("kspCommonMainMetadata", libs.androidx.room.compiler)
+                                                                       ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+               ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                  ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                   ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                    ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                              ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                               ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                 ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                     ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                      ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                              ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                               ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                                   ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                                    ^ Unexpected symbol
+
+  Line 82:     add("kspAndroid", libs.androidx.room.compiler)
+                                                            ^ Unexpected symbol
+
+  Line 83: }
+           ^ Unexpected symbol
+
+175 errors
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+ScriptCompilationException(scriptCompilationErrors=[ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (39:1)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (41:1)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (41:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (42:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (42:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:18)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:19)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:25)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:26)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (43:28)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:13)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:23)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:25)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:30)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:31)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:45)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (44:46)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (45:13)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (45:27)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (45:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (45:30)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (45:37)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (46:13)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (46:22)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (46:24)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (46:25)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (46:40)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (47:13)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (47:25)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (47:27)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (47:28)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (47:35)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (48:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (49:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (51:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (51:16)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:18)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:19)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:25)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:26)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (52:28)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:13)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:27)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:43)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:44)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:53)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:54)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:55)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:60)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (53:61)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (54:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:18)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:19)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:27)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:28)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (55:30)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (56:13)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (56:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (56:31)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (57:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (58:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (61:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (61:15)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (61:17)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (61:18)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (61:35)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (62:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (62:16)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (62:18)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (63:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (63:19)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (64:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (64:23)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (64:25)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (64:26)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (64:43)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (65:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (65:16)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (65:18)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (66:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (66:19)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (66:21)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (67:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (67:21)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (67:23)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (68:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (68:21)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (68:23)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (68:24)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (68:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (69:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (70:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (70:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (71:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (71:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (71:31)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (71:42)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (71:43)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (72:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (72:29)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (72:31)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (72:42)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (72:43)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (73:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (74:1)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (76:1)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (76:6)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:21)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:22)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:23)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:33)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:41)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (77:42)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (78:1)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (80:1)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (80:14)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:8)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:10)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:31)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:32)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:34)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:38)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:39)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:47)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:48)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:52)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:53)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (81:61)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:5)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:8)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:9)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:10)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:20)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:21)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:23)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:27)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:28)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:36)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:37)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:41)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:42)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (82:50)), ScriptCompilationError(message=Unexpected symbol, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (83:1)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public val NamedDomainObjectContainer<KotlinSourceSet>.commonMain: NamedDomainObjectProvider<KotlinSourceSet> defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (21:9)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (22:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (23:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (24:13)), ScriptCompilationError(message=Unresolved reference: runtime, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (24:36)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (25:13)), ScriptCompilationError(message=Unresolved reference: foundation, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (25:36)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (26:13)), ScriptCompilationError(message=Unresolved reference: material3, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (26:36)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (27:13)), ScriptCompilationError(message=Unresolved reference: ui, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (27:36)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (28:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public val TaskContainer.components: TaskProvider<ComponentReport> defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (28:36)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (29:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (30:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (31:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (32:13)), ScriptCompilationError(message=Unresolved reference: androidMain, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (34:9)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (35:13)), ScriptCompilationError(message=Unresolved reference. None of the following candidates is applicable because of receiver type mismatch: 
+public fun ArtifactHandler.implementation(artifactNotation: Any): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun ArtifactHandler.implementation(artifactNotation: Any, configureAction: Action<ConfigurablePublishArtifact>): PublishArtifact defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun DependencyConstraintHandler.implementation(constraintNotation: Any, block: Action<DependencyConstraint>): DependencyConstraint defined in org.gradle.kotlin.dsl
+public fun <T : Dependency?> DependencyHandler.implementation(dependency: TypeVariable(T), action: Action<TypeVariable(T)>): TypeVariable(T) defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Any): Dependency? defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(group: String?, name: String?, version: String? = ..., configuration: String? = ..., classifier: String? = ..., ext: String? = ..., dependencyConfiguration: Action<ExternalModuleDependency>? = ...): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: String?, dependencyConfiguration: Action<ExternalModuleDependency>): ExternalModuleDependency defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: Provider<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl
+public fun DependencyHandler.implementation(dependencyNotation: ProviderConvertible<*>, dependencyConfiguration: Action<ExternalModuleDependency>): Unit defined in org.gradle.kotlin.dsl, location=/data/data/com.termux/files/home/.gradle/.tmp/gradle-kotlin-dsl-7302031537859092609.tmp/build.gradle.kts (36:13))])
+	at org.gradle.kotlin.dsl.support.KotlinCompilerKt.compileKotlinScriptModuleTo(KotlinCompiler.kt:190)
+	at org.gradle.kotlin.dsl.support.KotlinCompilerKt.compileKotlinScriptToDirectory(KotlinCompiler.kt:148)
+	at org.gradle.kotlin.dsl.execution.ResidualProgramCompiler$compileScript$1.invoke(ResidualProgramCompiler.kt:712)
+	at org.gradle.kotlin.dsl.execution.ResidualProgramCompiler$compileScript$1.invoke(ResidualProgramCompiler.kt:711)
+	at org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator$InterpreterHost$runCompileBuildOperation$1.call(KotlinScriptEvaluator.kt:186)
+	at org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator$InterpreterHost$runCompileBuildOperation$1.call(KotlinScriptEvaluator.kt:183)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator$InterpreterHost.runCompileBuildOperation(KotlinScriptEvaluator.kt:183)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost$compileSecondStageOf$cacheDir$1$1$1$1$1.invoke(Interpreter.kt:490)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost$compileSecondStageOf$cacheDir$1$1$1$1$1.invoke(Interpreter.kt:490)
+	at org.gradle.kotlin.dsl.execution.ResidualProgramCompiler.compileScript-C5AE47M(ResidualProgramCompiler.kt:711)
+	at org.gradle.kotlin.dsl.execution.ResidualProgramCompiler.compileScript-C5AE47M$default(ResidualProgramCompiler.kt:704)
+	at org.gradle.kotlin.dsl.execution.ResidualProgramCompiler.emitStage2ProgramFor(ResidualProgramCompiler.kt:363)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost$compileSecondStageOf$cacheDir$1.invoke(Interpreter.kt:491)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost$compileSecondStageOf$cacheDir$1.invoke(Interpreter.kt:467)
+	at org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator$KotlinScriptCompilationAndInstrumentation.compile(KotlinScriptEvaluator.kt:408)
+	at org.gradle.internal.scripts.BuildScriptCompilationAndInstrumentation.execute(BuildScriptCompilationAndInstrumentation.java:95)
+	at org.gradle.internal.execution.steps.ExecuteStep.executeInternal(ExecuteStep.java:105)
+	at org.gradle.internal.execution.steps.ExecuteStep.access$000(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:59)
+	at org.gradle.internal.execution.steps.ExecuteStep$1.call(ExecuteStep.java:56)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:56)
+	at org.gradle.internal.execution.steps.ExecuteStep.execute(ExecuteStep.java:44)
+	at org.gradle.internal.execution.steps.CancelExecutionStep.execute(CancelExecutionStep.java:42)
+	at org.gradle.internal.execution.steps.TimeoutStep.executeWithoutTimeout(TimeoutStep.java:75)
+	at org.gradle.internal.execution.steps.TimeoutStep.execute(TimeoutStep.java:55)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:50)
+	at org.gradle.internal.execution.steps.PreCreateOutputParentsStep.execute(PreCreateOutputParentsStep.java:28)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:61)
+	at org.gradle.internal.execution.steps.BroadcastChangingOutputsStep.execute(BroadcastChangingOutputsStep.java:26)
+	at org.gradle.internal.execution.steps.NoInputChangesStep.execute(NoInputChangesStep.java:30)
+	at org.gradle.internal.execution.steps.NoInputChangesStep.execute(NoInputChangesStep.java:21)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:69)
+	at org.gradle.internal.execution.steps.CaptureOutputsAfterExecutionStep.execute(CaptureOutputsAfterExecutionStep.java:46)
+	at org.gradle.internal.execution.steps.BuildCacheStep.executeWithoutCache(BuildCacheStep.java:189)
+	at org.gradle.internal.execution.steps.BuildCacheStep.lambda$execute$1(BuildCacheStep.java:75)
+	at org.gradle.internal.Either$Right.fold(Either.java:175)
+	at org.gradle.internal.execution.caching.CachingState.fold(CachingState.java:62)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:73)
+	at org.gradle.internal.execution.steps.BuildCacheStep.execute(BuildCacheStep.java:48)
+	at org.gradle.internal.execution.steps.NeverUpToDateStep.execute(NeverUpToDateStep.java:34)
+	at org.gradle.internal.execution.steps.NeverUpToDateStep.execute(NeverUpToDateStep.java:22)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:37)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinishedStep.execute(MarkSnapshottingInputsFinishedStep.java:27)
+	at org.gradle.internal.execution.steps.ResolveNonIncrementalCachingStateStep.executeDelegate(ResolveNonIncrementalCachingStateStep.java:50)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:71)
+	at org.gradle.internal.execution.steps.AbstractResolveCachingStateStep.execute(AbstractResolveCachingStateStep.java:39)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:105)
+	at org.gradle.internal.execution.steps.ValidateStep.execute(ValidateStep.java:54)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:64)
+	at org.gradle.internal.execution.steps.AbstractCaptureStateBeforeExecutionStep.execute(AbstractCaptureStateBeforeExecutionStep.java:43)
+	at org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep.execute(MarkSnapshottingInputsStartedStep.java:38)
+	at org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.lambda$executeInTemporaryWorkspace$3(AssignImmutableWorkspaceStep.java:209)
+	at org.gradle.internal.execution.workspace.impl.CacheBasedImmutableWorkspaceProvider$1.withTemporaryWorkspace(CacheBasedImmutableWorkspaceProvider.java:119)
+	at org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.executeInTemporaryWorkspace(AssignImmutableWorkspaceStep.java:199)
+	at org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.lambda$execute$0(AssignImmutableWorkspaceStep.java:121)
+	at org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.execute(AssignImmutableWorkspaceStep.java:121)
+	at org.gradle.internal.execution.steps.AssignImmutableWorkspaceStep.execute(AssignImmutableWorkspaceStep.java:90)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:38)
+	at org.gradle.internal.execution.steps.ChoosePipelineStep.execute(ChoosePipelineStep.java:23)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.lambda$execute$2(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:67)
+	at org.gradle.internal.execution.steps.ExecuteWorkBuildOperationFiringStep.execute(ExecuteWorkBuildOperationFiringStep.java:39)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:46)
+	at org.gradle.internal.execution.steps.IdentityCacheStep.execute(IdentityCacheStep.java:34)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:48)
+	at org.gradle.internal.execution.steps.IdentifyStep.execute(IdentifyStep.java:35)
+	at org.gradle.internal.execution.impl.DefaultExecutionEngine$1.execute(DefaultExecutionEngine.java:61)
+	at org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator$InterpreterHost.cachedDirFor(KotlinScriptEvaluator.kt:278)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost.compileSecondStageOf(Interpreter.kt:467)
+	at Program.loadSecondStageFor(Unknown Source)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost.evaluateSecondStageOf(Interpreter.kt:431)
+	at Program.execute(Unknown Source)
+	at org.gradle.kotlin.dsl.execution.Interpreter$ProgramHost.eval(Interpreter.kt:514)
+	at org.gradle.kotlin.dsl.execution.Interpreter.eval(Interpreter.kt:193)
+	at org.gradle.kotlin.dsl.provider.StandardKotlinScriptEvaluator.evaluate(KotlinScriptEvaluator.kt:124)
+	at org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory$create$1.invoke(KotlinScriptPluginFactory.kt:51)
+	at org.gradle.kotlin.dsl.provider.KotlinScriptPluginFactory$create$1.invoke(KotlinScriptPluginFactory.kt:48)
+	at org.gradle.kotlin.dsl.provider.KotlinScriptPlugin.apply(KotlinScriptPlugin.kt:35)
+	at org.gradle.configuration.BuildOperationScriptPlugin$1.run(BuildOperationScriptPlugin.java:68)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.configuration.BuildOperationScriptPlugin.lambda$apply$0(BuildOperationScriptPlugin.java:65)
+	at org.gradle.internal.code.DefaultUserCodeApplicationContext.apply(DefaultUserCodeApplicationContext.java:44)
+	at org.gradle.configuration.BuildOperationScriptPlugin.apply(BuildOperationScriptPlugin.java:65)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.lambda$applyToMutableState$1(DefaultProjectStateRegistry.java:407)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.fromMutableState(DefaultProjectStateRegistry.java:425)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.applyToMutableState(DefaultProjectStateRegistry.java:406)
+	at org.gradle.configuration.project.BuildScriptProcessor.execute(BuildScriptProcessor.java:46)
+	at org.gradle.configuration.project.BuildScriptProcessor.execute(BuildScriptProcessor.java:27)
+	at org.gradle.configuration.project.ConfigureActionsProjectEvaluator.evaluate(ConfigureActionsProjectEvaluator.java:35)
+	at org.gradle.configuration.project.LifecycleProjectEvaluator$EvaluateProject.lambda$run$0(LifecycleProjectEvaluator.java:109)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.lambda$applyToMutableState$1(DefaultProjectStateRegistry.java:407)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.lambda$fromMutableState$2(DefaultProjectStateRegistry.java:430)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withReplacedLocks(DefaultWorkerLeaseService.java:363)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.fromMutableState(DefaultProjectStateRegistry.java:430)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.applyToMutableState(DefaultProjectStateRegistry.java:406)
+	at org.gradle.configuration.project.LifecycleProjectEvaluator$EvaluateProject.run(LifecycleProjectEvaluator.java:100)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.configuration.project.LifecycleProjectEvaluator.evaluate(LifecycleProjectEvaluator.java:72)
+	at org.gradle.api.internal.project.DefaultProject.evaluate(DefaultProject.java:756)
+	at org.gradle.api.internal.project.DefaultProject.evaluate(DefaultProject.java:157)
+	at org.gradle.api.internal.project.ProjectLifecycleController.lambda$ensureSelfConfigured$2(ProjectLifecycleController.java:84)
+	at org.gradle.internal.model.StateTransitionController.lambda$doTransition$14(StateTransitionController.java:255)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:254)
+	at org.gradle.internal.model.StateTransitionController.lambda$maybeTransitionIfNotCurrentlyTransitioning$10(StateTransitionController.java:199)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:34)
+	at org.gradle.internal.model.StateTransitionController.maybeTransitionIfNotCurrentlyTransitioning(StateTransitionController.java:195)
+	at org.gradle.api.internal.project.ProjectLifecycleController.ensureSelfConfigured(ProjectLifecycleController.java:84)
+	at org.gradle.api.internal.project.DefaultProjectStateRegistry$ProjectStateImpl.ensureConfigured(DefaultProjectStateRegistry.java:381)
+	at org.gradle.execution.TaskPathProjectEvaluator.configure(TaskPathProjectEvaluator.java:34)
+	at org.gradle.execution.TaskPathProjectEvaluator.configureHierarchy(TaskPathProjectEvaluator.java:50)
+	at org.gradle.configuration.DefaultProjectsPreparer.prepareProjects(DefaultProjectsPreparer.java:42)
+	at org.gradle.configuration.BuildTreePreparingProjectsPreparer.prepareProjects(BuildTreePreparingProjectsPreparer.java:65)
+	at org.gradle.configuration.BuildOperationFiringProjectsPreparer$ConfigureBuild.run(BuildOperationFiringProjectsPreparer.java:52)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:29)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$1.execute(DefaultBuildOperationRunner.java:26)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.run(DefaultBuildOperationRunner.java:47)
+	at org.gradle.configuration.BuildOperationFiringProjectsPreparer.prepareProjects(BuildOperationFiringProjectsPreparer.java:40)
+	at org.gradle.initialization.VintageBuildModelController.lambda$prepareProjects$2(VintageBuildModelController.java:84)
+	at org.gradle.internal.model.StateTransitionController.lambda$doTransition$14(StateTransitionController.java:255)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:254)
+	at org.gradle.internal.model.StateTransitionController.lambda$transitionIfNotPreviously$11(StateTransitionController.java:213)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:34)
+	at org.gradle.internal.model.StateTransitionController.transitionIfNotPreviously(StateTransitionController.java:209)
+	at org.gradle.initialization.VintageBuildModelController.prepareProjects(VintageBuildModelController.java:84)
+	at org.gradle.initialization.VintageBuildModelController.prepareToScheduleTasks(VintageBuildModelController.java:71)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.lambda$prepareToScheduleTasks$6(DefaultBuildLifecycleController.java:175)
+	at org.gradle.internal.model.StateTransitionController.lambda$doTransition$14(StateTransitionController.java:255)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:254)
+	at org.gradle.internal.model.StateTransitionController.lambda$maybeTransition$9(StateTransitionController.java:190)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:34)
+	at org.gradle.internal.model.StateTransitionController.maybeTransition(StateTransitionController.java:186)
+	at org.gradle.internal.build.DefaultBuildLifecycleController.prepareToScheduleTasks(DefaultBuildLifecycleController.java:173)
+	at org.gradle.internal.buildtree.DefaultBuildTreeWorkPreparer.scheduleRequestedTasks(DefaultBuildTreeWorkPreparer.java:36)
+	at org.gradle.internal.cc.impl.VintageBuildTreeWorkController$scheduleAndRunRequestedTasks$1.apply(VintageBuildTreeWorkController.kt:36)
+	at org.gradle.internal.cc.impl.VintageBuildTreeWorkController$scheduleAndRunRequestedTasks$1.apply(VintageBuildTreeWorkController.kt:35)
+	at org.gradle.composite.internal.DefaultIncludedBuildTaskGraph.withNewWorkGraph(DefaultIncludedBuildTaskGraph.java:112)
+	at org.gradle.internal.cc.impl.VintageBuildTreeWorkController.scheduleAndRunRequestedTasks(VintageBuildTreeWorkController.kt:35)
+	at org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController.lambda$scheduleAndRunTasks$1(DefaultBuildTreeLifecycleController.java:77)
+	at org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController.lambda$runBuild$4(DefaultBuildTreeLifecycleController.java:120)
+	at org.gradle.internal.model.StateTransitionController.lambda$transition$6(StateTransitionController.java:169)
+	at org.gradle.internal.model.StateTransitionController.doTransition(StateTransitionController.java:266)
+	at org.gradle.internal.model.StateTransitionController.lambda$transition$7(StateTransitionController.java:169)
+	at org.gradle.internal.work.DefaultSynchronizer.withLock(DefaultSynchronizer.java:44)
+	at org.gradle.internal.model.StateTransitionController.transition(StateTransitionController.java:169)
+	at org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController.runBuild(DefaultBuildTreeLifecycleController.java:117)
+	at org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController.scheduleAndRunTasks(DefaultBuildTreeLifecycleController.java:77)
+	at org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController.scheduleAndRunTasks(DefaultBuildTreeLifecycleController.java:72)
+	at org.gradle.tooling.internal.provider.ExecuteBuildActionRunner.run(ExecuteBuildActionRunner.java:31)
+	at org.gradle.launcher.exec.ChainingBuildActionRunner.run(ChainingBuildActionRunner.java:35)
+	at org.gradle.internal.buildtree.ProblemReportingBuildActionRunner.run(ProblemReportingBuildActionRunner.java:49)
+	at org.gradle.launcher.exec.BuildOutcomeReportingBuildActionRunner.run(BuildOutcomeReportingBuildActionRunner.java:65)
+	at org.gradle.tooling.internal.provider.FileSystemWatchingBuildActionRunner.run(FileSystemWatchingBuildActionRunner.java:140)
+	at org.gradle.launcher.exec.BuildCompletionNotifyingBuildActionRunner.run(BuildCompletionNotifyingBuildActionRunner.java:41)
+	at org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor.lambda$execute$0(RootBuildLifecycleBuildActionExecutor.java:40)
+	at org.gradle.composite.internal.DefaultRootBuildState.run(DefaultRootBuildState.java:130)
+	at org.gradle.launcher.exec.RootBuildLifecycleBuildActionExecutor.execute(RootBuildLifecycleBuildActionExecutor.java:40)
+	at org.gradle.internal.buildtree.InitDeprecationLoggingActionExecutor.execute(InitDeprecationLoggingActionExecutor.java:62)
+	at org.gradle.internal.buildtree.InitProblems.execute(InitProblems.java:36)
+	at org.gradle.internal.buildtree.DefaultBuildTreeContext.execute(DefaultBuildTreeContext.java:40)
+	at org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor.lambda$execute$0(BuildTreeLifecycleBuildActionExecutor.java:71)
+	at org.gradle.internal.buildtree.BuildTreeState.run(BuildTreeState.java:60)
+	at org.gradle.launcher.exec.BuildTreeLifecycleBuildActionExecutor.execute(BuildTreeLifecycleBuildActionExecutor.java:71)
+	at org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor$3.call(RunAsBuildOperationBuildActionExecutor.java:61)
+	at org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor$3.call(RunAsBuildOperationBuildActionExecutor.java:57)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:209)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$CallableBuildOperationWorker.execute(DefaultBuildOperationRunner.java:204)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:66)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner$2.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:166)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.execute(DefaultBuildOperationRunner.java:59)
+	at org.gradle.internal.operations.DefaultBuildOperationRunner.call(DefaultBuildOperationRunner.java:53)
+	at org.gradle.launcher.exec.RunAsBuildOperationBuildActionExecutor.execute(RunAsBuildOperationBuildActionExecutor.java:57)
+	at org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor.lambda$execute$0(RunAsWorkerThreadBuildActionExecutor.java:36)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.withLocks(DefaultWorkerLeaseService.java:267)
+	at org.gradle.internal.work.DefaultWorkerLeaseService.runAsWorkerThread(DefaultWorkerLeaseService.java:131)
+	at org.gradle.launcher.exec.RunAsWorkerThreadBuildActionExecutor.execute(RunAsWorkerThreadBuildActionExecutor.java:36)
+	at org.gradle.tooling.internal.provider.continuous.ContinuousBuildActionExecutor.execute(ContinuousBuildActionExecutor.java:110)
+	at org.gradle.tooling.internal.provider.SubscribableBuildActionExecutor.execute(SubscribableBuildActionExecutor.java:64)
+	at org.gradle.internal.session.DefaultBuildSessionContext.execute(DefaultBuildSessionContext.java:46)
+	at org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor$ActionImpl.apply(BuildSessionLifecycleBuildActionExecutor.java:92)
+	at org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor$ActionImpl.apply(BuildSessionLifecycleBuildActionExecutor.java:80)
+	at org.gradle.internal.session.BuildSessionState.run(BuildSessionState.java:71)
+	at org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor.execute(BuildSessionLifecycleBuildActionExecutor.java:62)
+	at org.gradle.internal.buildprocess.execution.BuildSessionLifecycleBuildActionExecutor.execute(BuildSessionLifecycleBuildActionExecutor.java:41)
+	at org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExecutor.execute(StartParamsValidatingActionExecutor.java:64)
+	at org.gradle.internal.buildprocess.execution.StartParamsValidatingActionExecutor.execute(StartParamsValidatingActionExecutor.java:32)
+	at org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecutor.execute(SessionFailureReportingActionExecutor.java:51)
+	at org.gradle.internal.buildprocess.execution.SessionFailureReportingActionExecutor.execute(SessionFailureReportingActionExecutor.java:39)
+	at org.gradle.internal.buildprocess.execution.SetupLoggingActionExecutor.execute(SetupLoggingActionExecutor.java:47)
+	at org.gradle.internal.buildprocess.execution.SetupLoggingActionExecutor.execute(SetupLoggingActionExecutor.java:31)
+	at org.gradle.launcher.daemon.server.exec.ExecuteBuild.doBuild(ExecuteBuild.java:70)
+	at org.gradle.launcher.daemon.server.exec.BuildCommandOnly.execute(BuildCommandOnly.java:37)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.WatchForDisconnection.execute(WatchForDisconnection.java:39)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.ResetDeprecationLogger.execute(ResetDeprecationLogger.java:29)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.RequestStopIfSingleUsedDaemon.execute(RequestStopIfSingleUsedDaemon.java:35)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.ForwardClientInput.lambda$execute$0(ForwardClientInput.java:40)
+	at org.gradle.internal.daemon.clientinput.ClientInputForwarder.forwardInput(ClientInputForwarder.java:80)
+	at org.gradle.launcher.daemon.server.exec.ForwardClientInput.execute(ForwardClientInput.java:37)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.LogAndCheckHealth.execute(LogAndCheckHealth.java:64)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.LogToClient.doBuild(LogToClient.java:63)
+	at org.gradle.launcher.daemon.server.exec.BuildCommandOnly.execute(BuildCommandOnly.java:37)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.EstablishBuildEnvironment.doBuild(EstablishBuildEnvironment.java:84)
+	at org.gradle.launcher.daemon.server.exec.BuildCommandOnly.execute(BuildCommandOnly.java:37)
+	at org.gradle.launcher.daemon.server.api.DaemonCommandExecution.proceed(DaemonCommandExecution.java:104)
+	at org.gradle.launcher.daemon.server.exec.StartBuildOrRespondWithBusy$1.run(StartBuildOrRespondWithBusy.java:52)
+	at org.gradle.launcher.daemon.server.DaemonStateCoordinator.lambda$runCommand$0(DaemonStateCoordinator.java:320)
+	at org.gradle.internal.concurrent.ExecutorPolicy$CatchAndRecordFailures.onExecute(ExecutorPolicy.java:64)
+	at org.gradle.internal.concurrent.AbstractManagedExecutor$1.run(AbstractManagedExecutor.java:48)
+
+
+BUILD FAILED in 4s

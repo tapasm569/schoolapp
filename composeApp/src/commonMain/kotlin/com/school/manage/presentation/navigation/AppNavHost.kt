@@ -189,7 +189,8 @@ fun AppNavHost(database: AppDatabase) {
                 StaffScreen(
                     database = database,
                     schoolCode = currentSchoolCode,
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateAdd = { navController.navigate("add_staff") }
                 )
             }
             composable("add_staff") {

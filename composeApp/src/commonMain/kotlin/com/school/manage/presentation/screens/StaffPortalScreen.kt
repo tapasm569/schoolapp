@@ -1,5 +1,6 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -9,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,10 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.database.AppDatabase
+import com.school.manage.core.database.entity.LeaveRequestEntity
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StaffEntity
 import com.school.manage.core.database.entity.StudentEntity
 import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.getSystemCurrentDate
 import com.school.manage.core.utils.rememberPhotoPickerLauncher
 import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
@@ -43,6 +45,7 @@ fun StaffPortalScreen(
     val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
+    val todayDate = remember { getSystemCurrentDate().formatted }
 
     var staff by remember { mutableStateOf<StaffEntity?>(null) }
     val photoPicker = rememberPhotoPickerLauncher { base64 ->
@@ -53,20 +56,38 @@ fun StaffPortalScreen(
                 database.staffDao().insertStaff(updated)
                 staff = updated
                 try {
-                    FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                    FirestoreSyncService(database).pushStaff(schoolCode, updated)
                 } catch (_: Exception) {}
             }
         }
     }
     var school by remember { mutableStateOf<SchoolEntity?>(null) }
     val students by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
-    val announcements by database.announcementDao().getAnnouncementsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allAnnouncements by database.announcementDao().getAnnouncementsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allLeaves by database.leaveDao().getLeavesBySchool(schoolCode).collectAsState(initial = emptyList())
 
-    // WhatsApp Connect State
+    // Filter announcements for Teachers or Both (ALL)
+    val teacherAnnouncements = remember(allAnnouncements) {
+        allAnnouncements.filter {
+            it.targetAudience.uppercase() in listOf("ALL", "BOTH", "TEACHER", "TEACHERS", "STAFF")
+        }
+    }
+
+    // Modals State
     var showWhatsAppDialog by remember { mutableStateOf(false) }
     var selectedStudentForWhatsApp by remember { mutableStateOf<StudentEntity?>(null) }
     var customMessage by remember { mutableStateOf("") }
     var searchQuery by remember { mutableStateOf("") }
+
+    var showTeacherLeaveModal by remember { mutableStateOf(false) }
+    var showAnnouncementsModal by remember { mutableStateOf(false) }
+
+    var leaveStartDate by remember { mutableStateOf(todayDate) }
+    var leaveEndDate by remember { mutableStateOf(todayDate) }
+    var showLeaveStartPicker by remember { mutableStateOf(false) }
+    var showLeaveEndPicker by remember { mutableStateOf(false) }
+    var leaveReason by remember { mutableStateOf("") }
+    var leaveSuccessMsg by remember { mutableStateOf("") }
 
     LaunchedEffect(staffId) {
         staff = database.staffDao().getStaffById(staffId)
@@ -76,6 +97,10 @@ fun StaffPortalScreen(
     val teacherName = staff?.name ?: "Faculty Member"
     val teacherRole = staff?.role ?: "Teacher"
     val schoolTitle = school?.schoolName ?: schoolCode
+    val myLeaves = allLeaves.filter {
+        it.applicantName.equals(teacherName, ignoreCase = true) &&
+        it.applicantType.equals("STAFF", ignoreCase = true)
+    }
 
     Scaffold(
         topBar = {
@@ -88,7 +113,6 @@ fun StaffPortalScreen(
                         color = Color.White
                     )
                 },
-
                 actions = {
                     IconButton(onClick = onLogout) {
                         Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color(0xFFFFCDD2))
@@ -203,14 +227,14 @@ fun StaffPortalScreen(
                 }
             }
 
-            // 2. School Circulars / Announcements Banner
-            val latestNotice = announcements.firstOrNull()
+            // 2. Filtered Teacher Announcements Banner
+            val latestNotice = teacherAnnouncements.firstOrNull()
             if (latestNotice != null) {
                 item {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onNavigate("announcements") },
+                            .clickable { showAnnouncementsModal = true },
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
                     ) {
@@ -240,7 +264,6 @@ fun StaffPortalScreen(
                 }
             }
 
-            // Section Label
             item {
                 Text(
                     "TEACHER WORKSPACE",
@@ -317,7 +340,7 @@ fun StaffPortalScreen(
                 }
             }
 
-            // Row 4: Question Bank & Leave Application
+            // Row 4: Question Bank & Teacher Leave Application
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     FacultyTile(
@@ -330,16 +353,200 @@ fun StaffPortalScreen(
                     )
                     FacultyTile(
                         title = "Leave\nApplication",
-                        subtitle = "Apply & Track",
+                        subtitle = "Apply & Track Status",
                         icon = "➖",
                         badgeColor = Color(0xFFFEE2E2),
                         modifier = Modifier.weight(1f),
-                        onClick = { onNavigate("leave_management") }
+                        onClick = {
+                            leaveSuccessMsg = ""
+                            showTeacherLeaveModal = true
+                        }
                     )
                 }
             }
 
             item { Spacer(modifier = Modifier.height(28.dp)) }
+        }
+
+        // TEACHER LEAVE APPLICATION MODAL
+        if (showTeacherLeaveModal) {
+            ModalBottomSheet(
+                onDismissRequest = {
+                    showTeacherLeaveModal = false
+                    leaveSuccessMsg = ""
+                },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("Apply for Leave (Teacher)", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    Text("Applicant: $teacherName • Sent to Admin for verification", fontSize = 12.sp, color = Color(0xFF64748B))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+                        Surface(
+                            onClick = { showLeaveStartPicker = true },
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFF8FAFC),
+                            border = BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text("From Date 📅", fontSize = 11.sp, color = Color.Gray)
+                                Text(leaveStartDate, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF1E293B))
+                            }
+                        }
+                        Surface(
+                            onClick = { showLeaveEndPicker = true },
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFF8FAFC),
+                            border = BorderStroke(1.dp, Color(0xFFCBD5E1)),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text("To Date 📅", fontSize = 11.sp, color = Color.Gray)
+                                Text(leaveEndDate, fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF1E293B))
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = leaveReason,
+                        onValueChange = { leaveReason = it },
+                        label = { Text("Reason for Leave") },
+                        modifier = Modifier.fillMaxWidth().height(80.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+
+                    if (leaveSuccessMsg.isNotBlank()) {
+                        Text(leaveSuccessMsg, color = Color(0xFF16A34A), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+
+                    Button(
+                        onClick = {
+                            if (leaveReason.isNotBlank()) {
+                                scope.launch {
+                                    database.leaveDao().insertLeave(
+                                        LeaveRequestEntity(
+                                            schoolCode = schoolCode,
+                                            applicantName = teacherName,
+                                            applicantType = "STAFF",
+                                            startDate = leaveStartDate,
+                                            endDate = leaveEndDate,
+                                            reason = leaveReason.trim(),
+                                            status = "PENDING"
+                                        )
+                                    )
+                                    leaveReason = ""
+                                    leaveSuccessMsg = "✓ Leave request submitted for Admin verification!"
+                                }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth().height(46.dp),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Submit Leave Request", fontWeight = FontWeight.Bold)
+                    }
+
+                    if (myLeaves.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("MY LEAVE APPLICATIONS (${myLeaves.size})", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
+                        LazyColumn(modifier = Modifier.heightIn(max = 160.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(myLeaves) { l ->
+                                val badgeColor = when (l.status) {
+                                    "APPROVED" -> Color(0xFF16A34A)
+                                    "REJECTED" -> Color(0xFFDC2626)
+                                    else -> Color(0xFFD97706)
+                                }
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text("📅 ${l.startDate} to ${l.endDate}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E293B))
+                                            Text(l.reason, fontSize = 11.sp, color = Color.Gray)
+                                        }
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = badgeColor.copy(alpha = 0.15f)
+                                        ) {
+                                            Text(
+                                                text = l.status,
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = badgeColor,
+                                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (showLeaveStartPicker) {
+            ModernDatePickerDialog(
+                currentDate = leaveStartDate,
+                onDateSelected = { leaveStartDate = it },
+                onDismiss = { showLeaveStartPicker = false }
+            )
+        }
+
+        if (showLeaveEndPicker) {
+            ModernDatePickerDialog(
+                currentDate = leaveEndDate,
+                onDateSelected = { leaveEndDate = it },
+                onDismiss = { showLeaveEndPicker = false }
+            )
+        }
+
+        // TEACHER ANNOUNCEMENTS VIEWER MODAL
+        if (showAnnouncementsModal) {
+            ModalBottomSheet(
+                onDismissRequest = { showAnnouncementsModal = false },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text("School Announcements", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                    LazyColumn(modifier = Modifier.heightIn(max = 320.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        items(teacherAnnouncements) { ann ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(14.dp)) {
+                                    Text(ann.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = Color(0xFF1E293B))
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(ann.message, fontSize = 13.sp, color = Color(0xFF334155))
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text("📅 ${ann.date}", fontSize = 11.sp, color = Color.Gray)
+                                }
+                            }
+                        }
+                    }
+                    Button(onClick = { showAnnouncementsModal = false }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(10.dp)) {
+                        Text("Close")
+                    }
+                }
+            }
         }
 
         // WhatsApp Parent Communication Dialog
@@ -366,11 +573,7 @@ fun StaffPortalScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         if (selectedStudentForWhatsApp == null) {
-                            Text(
-                                "Select a student to message their parent:",
-                                fontSize = 13.sp,
-                                color = Color.Gray
-                            )
+                            Text("Select a student to message their parent:", fontSize = 13.sp, color = Color.Gray)
                             OutlinedTextField(
                                 value = searchQuery,
                                 onValueChange = { searchQuery = it.uppercase() },
@@ -411,12 +614,7 @@ fun StaffPortalScreen(
                             }
                         } else {
                             val student = selectedStudentForWhatsApp!!
-                            Text(
-                                "To parent of ${student.name} (${student.gradeClass}):",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
-                            )
-
+                            Text("To parent of ${student.name} (${student.gradeClass}):", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                             Text("QUICK TEMPLATES", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 item {
@@ -441,7 +639,7 @@ fun StaffPortalScreen(
                                     FilterChip(
                                         selected = false,
                                         onClick = {
-                                            customMessage = "Dear Parent, proud to inform you that ${student.name} performed exceptionally well in class class today! - $teacherName"
+                                            customMessage = "Dear Parent, proud to inform you that ${student.name} performed exceptionally well in class today! - $teacherName"
                                         },
                                         label = { Text("Appreciation") }
                                     )
@@ -452,9 +650,7 @@ fun StaffPortalScreen(
                                 value = customMessage,
                                 onValueChange = { customMessage = it.uppercase() },
                                 label = { Text("Message") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(110.dp),
+                                modifier = Modifier.fillMaxWidth().height(110.dp),
                                 shape = RoundedCornerShape(12.dp)
                             )
                         }

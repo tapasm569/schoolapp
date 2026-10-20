@@ -34,35 +34,30 @@ fun LeaveManagementScreen(
     val scope = rememberCoroutineScope()
     val leaves by database.leaveDao().getLeavesBySchool(schoolCode).collectAsState(initial = emptyList())
 
-    var selectedFilter by remember { mutableStateOf("ALL") }
-    var showAddDialog by remember { mutableStateOf(false) }
+    var selectedStatusFilter by remember { mutableStateOf("ALL") }
+    var selectedRoleFilter by remember { mutableStateOf("ALL") }
 
-    var applicantName by remember { mutableStateOf("") }
-    var applicantType by remember { mutableStateOf("STUDENT") }
-    var startDate by remember { mutableStateOf("03/10/2026") }
-    var endDate by remember { mutableStateOf("04/10/2026") }
-    var reason by remember { mutableStateOf("") }
-
-    val filtered = if (selectedFilter == "ALL") leaves else leaves.filter { it.status == selectedFilter }
+    val pendingCount = leaves.count { it.status == "PENDING" }
+    val filtered = leaves.filter { lv ->
+        (selectedStatusFilter == "ALL" || lv.status.equals(selectedStatusFilter, ignoreCase = true)) &&
+        (selectedRoleFilter == "ALL" || lv.applicantType.equals(selectedRoleFilter, ignoreCase = true))
+    }
 
     Scaffold(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Leave Management (" + leaves.size + ")", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
+                title = {
+                    Column {
+                        Text("Leave Verification (${leaves.size})", fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                        Text("Verify Student & Teacher leave applications", fontSize = 11.sp, color = colors.textSecondary)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showAddDialog = true },
-                containerColor = colors.brandPrimary,
-                contentColor = Color.White,
-                shape = RoundedCornerShape(16.dp)
-            ) { Text("+", fontSize = 28.sp) }
         }
     ) { padding ->
         LazyColumn(
@@ -72,15 +67,61 @@ fun LeaveManagementScreen(
             item { Spacer(modifier = Modifier.height(4.dp)) }
 
             item {
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = if (pendingCount > 0) Color(0xFFFEF3C7) else Color(0xFFDCFCE7),
+                    border = BorderStroke(1.dp, if (pendingCount > 0) Color(0xFFF59E0B) else Color(0xFF22C55E)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = if (pendingCount > 0) "⏳ $pendingCount Pending Leave Applications" else "✓ All Leave Requests Verified",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 14.sp,
+                                color = if (pendingCount > 0) Color(0xFF92400E) else Color(0xFF166534)
+                            )
+                            Text(
+                                text = "Students and Teachers submit leave from their portals for Admin verification.",
+                                fontSize = 11.sp,
+                                color = if (pendingCount > 0) Color(0xFF78350F) else Color(0xFF15803D)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Role Filter: ALL / STUDENT / STAFF
+            item {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("ALL" to "All Roles", "STUDENT" to "🎓 Students", "STAFF" to "👨‍🏫 Teachers").forEach { (roleKey, label) ->
+                        Surface(
+                            onClick = { selectedRoleFilter = roleKey },
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (selectedRoleFilter == roleKey) colors.brandPrimary else colors.bgCardHover,
+                            border = BorderStroke(1.dp, if (selectedRoleFilter == roleKey) colors.brandPrimary else colors.borderCard)
+                        ) {
+                            Text(label, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (selectedRoleFilter == roleKey) Color.White else colors.textPrimary, modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp))
+                        }
+                    }
+                }
+            }
+
+            // Status Filter: ALL / PENDING / APPROVED / REJECTED
+            item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("ALL", "PENDING", "APPROVED", "REJECTED").forEach { st ->
                         Surface(
-                            onClick = { selectedFilter = st },
+                            onClick = { selectedStatusFilter = st },
                             shape = RoundedCornerShape(8.dp),
-                            color = if (selectedFilter == st) colors.brandPrimary else colors.bgCardHover,
-                            border = BorderStroke(1.dp, if (selectedFilter == st) colors.brandPrimary else colors.borderCard)
+                            color = if (selectedStatusFilter == st) colors.brandPrimary.copy(alpha = 0.16f) else colors.bgCardHover,
+                            border = BorderStroke(1.dp, if (selectedStatusFilter == st) colors.brandPrimary else colors.borderCard)
                         ) {
-                            Text(st, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (selectedFilter == st) Color.White else colors.textPrimary, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
+                            Text(st, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (selectedStatusFilter == st) colors.brandPrimary else colors.textSecondary, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
                         }
                     }
                 }
@@ -89,7 +130,7 @@ fun LeaveManagementScreen(
             if (filtered.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                        Text("No leave requests in this category.", color = colors.textSecondary)
+                        Text("No leave applications in this category.", color = colors.textSecondary)
                     }
                 }
             } else {
@@ -106,17 +147,22 @@ fun LeaveManagementScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Column {
                                     Text(lv.applicantName, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                                    Text("Role: " + lv.applicantType, fontSize = 11.sp, color = colors.textSecondary)
+                                    Text(
+                                        text = if (lv.applicantType.equals("STAFF", ignoreCase = true)) "👨‍🏫 Teacher / Staff" else "🎓 Student",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = colors.brandPrimary
+                                    )
                                 }
                                 Surface(shape = RoundedCornerShape(6.dp), color = statusColor.copy(alpha = 0.15f)) {
                                     Text(lv.status, color = statusColor, fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                                 }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text("Duration: " + lv.startDate + " to " + lv.endDate, fontSize = 12.sp, color = colors.brandPrimary, fontWeight = FontWeight.SemiBold)
+                            Text("📅 Duration: " + lv.startDate + " to " + lv.endDate, fontSize = 12.sp, color = colors.brandPrimary, fontWeight = FontWeight.SemiBold)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text("Reason: " + lv.reason, fontSize = 12.sp, color = colors.textPrimary)
                             Spacer(modifier = Modifier.height(10.dp))
@@ -127,22 +173,22 @@ fun LeaveManagementScreen(
                                             onClick = { scope.launch { database.leaveDao().insertLeave(lv.copy(status = "APPROVED")) } },
                                             colors = ButtonDefaults.buttonColors(containerColor = colors.success, contentColor = Color.White),
                                             shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                            modifier = Modifier.height(30.dp)
-                                        ) { Text("Approve", fontSize = 11.sp) }
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(32.dp)
+                                        ) { Text("✓ Approve", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                                     }
                                     if (lv.status != "REJECTED") {
                                         Button(
                                             onClick = { scope.launch { database.leaveDao().insertLeave(lv.copy(status = "REJECTED")) } },
                                             colors = ButtonDefaults.buttonColors(containerColor = colors.error, contentColor = Color.White),
                                             shape = RoundedCornerShape(8.dp),
-                                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
-                                            modifier = Modifier.height(30.dp)
-                                        ) { Text("Reject", fontSize = 11.sp) }
+                                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+                                            modifier = Modifier.height(32.dp)
+                                        ) { Text("✕ Reject", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                                     }
                                 }
                                 TextButton(onClick = { scope.launch { database.leaveDao().deleteLeave(lv) } }) {
-                                    Text("Remove", color = colors.error, fontSize = 11.sp)
+                                    Text("Delete", color = colors.error, fontSize = 11.sp)
                                 }
                             }
                         }
@@ -150,60 +196,6 @@ fun LeaveManagementScreen(
                 }
             }
             item { Spacer(modifier = Modifier.height(20.dp)) }
-        }
-
-        if (showAddDialog) {
-            AlertDialog(
-                onDismissRequest = { showAddDialog = false },
-                containerColor = colors.bgCard,
-                title = { Text("Submit Leave Request", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
-                text = {
-                    Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        CustomRoundedInput(value = applicantName, onValueChange = { applicantName = it }, placeholder = "Applicant Name")
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("STUDENT", "STAFF").forEach { role ->
-                                Surface(
-                                    onClick = { applicantType = role },
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = if (applicantType == role) colors.brandPrimary else colors.bgCardHover
-                                ) {
-                                    Text(role, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (applicantType == role) Color.White else colors.textPrimary, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
-                                }
-                            }
-                        }
-                        CustomRoundedInput(value = startDate, onValueChange = { startDate = it }, placeholder = "Start Date (DD/MM/YYYY)")
-                        CustomRoundedInput(value = endDate, onValueChange = { endDate = it }, placeholder = "End Date (DD/MM/YYYY)")
-                        CustomRoundedInput(value = reason, onValueChange = { reason = it }, placeholder = "Reason for Leave")
-                    }
-                },
-                confirmButton = {
-                    Button(
-                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                        onClick = {
-                            if (applicantName.isNotBlank() && reason.isNotBlank()) {
-                                scope.launch {
-                                    database.leaveDao().insertLeave(
-                                        LeaveRequestEntity(
-                                            schoolCode = schoolCode,
-                                            applicantName = applicantName.trim(),
-                                            applicantType = applicantType,
-                                            startDate = startDate.trim(),
-                                            endDate = endDate.trim(),
-                                            reason = reason.trim()
-                                        )
-                                    )
-                                    applicantName = ""
-                                    reason = ""
-                                    showAddDialog = false
-                                }
-                            }
-                        }
-                    ) { Text("Submit") }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
-                }
-            )
         }
     }
 }

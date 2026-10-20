@@ -125,7 +125,10 @@ fun DashboardScreen(
     var selectedYear by remember { mutableStateOf(today.year) }
 
     var selectedAttendanceDay by remember { mutableStateOf<Int?>(today.day) }
+    var selectedAttendanceDate by remember { mutableStateOf(today.formatted) }
+    var showAttendanceCalendar by remember { mutableStateOf(false) }
     var selectedStatusFilter by remember { mutableStateOf("ALL") }
+    var selectedClassAttendanceFilter by remember { mutableStateOf("ALL") }
 
     val currentMonthLabel = monthsList[selectedMonthIndex] + "-" + selectedYear
     val monthNumVal = selectedMonthIndex + 1
@@ -171,15 +174,14 @@ fun DashboardScreen(
         }
     }
 
-    val activeAttendanceRecords = remember(selectedAttendanceDay, studentMonthAttendance, selectedMonthIndex, selectedYear) {
-        if (selectedAttendanceDay == null) {
-            studentMonthAttendance
-        } else {
-            val dStr = if (selectedAttendanceDay!! < 10) "0" + selectedAttendanceDay else selectedAttendanceDay.toString()
-            val fullTargetDate = dStr + "/" + monthNumberStr + "/" + selectedYear
-            val altTargetDate = selectedAttendanceDay.toString() + "/" + monthNumberStr + "/" + selectedYear
-            studentMonthAttendance.filter { it.date == fullTargetDate || it.date == altTargetDate }
-        }
+    fun normalizeDateStr(raw: String): String {
+        val p = raw.trim().split("/")
+        return if (p.size == 3) "${p[0].padStart(2, '0')}/${p[1].padStart(2, '0')}/${p[2]}" else raw.trim()
+    }
+
+    val activeAttendanceRecords = remember(selectedAttendanceDate, attendanceList) {
+        val targetNorm = normalizeDateStr(selectedAttendanceDate)
+        attendanceList.filter { it.userType == "STUDENT" && normalizeDateStr(it.date) == targetNorm }
     }
 
     val presentCount = activeAttendanceRecords.count { it.status == "PRESENT" }
@@ -372,7 +374,7 @@ fun DashboardScreen(
                 }
             }
 
-            // 3. Attendance Summary (Scrollable Timeline + Dynamic Tiles)
+            // 3. Attendance Summary (Current Date + Calendar Picker + Horizontal Class-Wise Tiles)
             item {
                 Surface(
                     shape = RoundedCornerShape(18.dp),
@@ -386,119 +388,202 @@ fun DashboardScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text("Attendance Summary", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
                                 Text(
-                                    text = if (selectedAttendanceDay == null) "Today: " + today.formatted + " (All Month)" else "Date: " + (if (selectedAttendanceDay!! < 10) "0" + selectedAttendanceDay else selectedAttendanceDay.toString()) + "/" + monthNumberStr + "/" + selectedYear,
+                                    text = if (normalizeDateStr(selectedAttendanceDate) == normalizeDateStr(today.formatted))
+                                        "Today: ${today.formatted}"
+                                    else
+                                        "Selected Date: $selectedAttendanceDate",
                                     fontSize = 11.sp,
                                     color = colors.textSecondary,
-                                    fontWeight = FontWeight.Medium
+                                    fontWeight = FontWeight.SemiBold
                                 )
                             }
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "‹",
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = colors.brandPrimary,
-                                    modifier = Modifier.clickable {
-                                        if (selectedMonthIndex > 0) selectedMonthIndex -= 1 else { selectedMonthIndex = 11; selectedYear -= 1 }
-                                        selectedAttendanceDay = if (selectedMonthIndex == today.monthIndex && selectedYear == today.year) today.day else null
-                                    }.padding(horizontal = 6.dp)
-                                )
-                                Text(currentMonthLabel, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-                                Text(
-                                    text = "›",
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = colors.brandPrimary,
-                                    modifier = Modifier.clickable {
-                                        if (selectedMonthIndex < 11) selectedMonthIndex += 1 else { selectedMonthIndex = 0; selectedYear += 1 }
-                                        selectedAttendanceDay = if (selectedMonthIndex == today.monthIndex && selectedYear == today.year) today.day else null
-                                    }.padding(horizontal = 6.dp)
-                                )
-                            }
-                        }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            item {
-                                Surface(
-                                    onClick = { selectedAttendanceDay = null },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = if (selectedAttendanceDay == null) colors.brandPrimary else colors.bgCardHover,
-                                    border = BorderStroke(1.dp, if (selectedAttendanceDay == null) colors.brandPrimary else colors.borderCard),
-                                    modifier = Modifier.height(46.dp)
-                                ) {
-                                    Box(modifier = Modifier.padding(horizontal = 14.dp), contentAlignment = Alignment.Center) {
-                                        Text(
-                                            "All Month",
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = if (selectedAttendanceDay == null) Color.White else colors.textPrimary
-                                        )
-                                    }
-                                }
-                            }
-
-                            items((1..daysInMonth).toList()) { day ->
-                                val isSelected = (selectedAttendanceDay == day)
-                                val dStr = if (day < 10) "0" + day else day.toString()
-                                val dayDateStr = dStr + "/" + monthNumberStr + "/" + selectedYear
-                                val altDateStr = day.toString() + "/" + monthNumberStr + "/" + selectedYear
-                                val hasRecords = studentMonthAttendance.any { it.date == dayDateStr || it.date == altDateStr }
-
-                                Surface(
-                                    onClick = { selectedAttendanceDay = day },
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = if (isSelected) colors.brandPrimary else colors.bgCardHover,
-                                    border = BorderStroke(1.dp, if (isSelected) colors.brandPrimary else colors.borderCard),
-                                    modifier = Modifier.width(46.dp).height(46.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                if (normalizeDateStr(selectedAttendanceDate) != normalizeDateStr(today.formatted)) {
+                                    Surface(
+                                        onClick = { selectedAttendanceDate = today.formatted },
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = colors.brandPrimary.copy(alpha = 0.12f)
                                     ) {
                                         Text(
-                                            dStr,
-                                            fontSize = 13.sp,
-                                            fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Bold,
-                                            color = if (isSelected) Color.White else colors.textPrimary
+                                            text = "Today",
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = colors.brandPrimary,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                                         )
-                                        if (hasRecords) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .padding(top = 2.dp)
-                                                    .size(4.dp)
-                                                    .clip(CircleShape)
-                                                    .background(if (isSelected) Color.White else colors.brandPrimary)
-                                            )
-                                        }
+                                    }
+                                }
+
+                                Surface(
+                                    onClick = { showAttendanceCalendar = true },
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = colors.bgCardHover,
+                                    border = BorderStroke(1.dp, colors.brandPrimary.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                    ) {
+                                        Text("📅", fontSize = 14.sp)
+                                        Text(
+                                            text = selectedAttendanceDate,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = colors.brandPrimary
+                                        )
                                     }
                                 }
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        StylishAttendanceSummaryCard(
-                            presentCount = presentCount,
-                            absentCount = absentCount,
-                            leaveCount = leaveCount,
-                            holidayCount = holidayCount,
-                            selectedFilter = selectedStatusFilter,
-                            onFilterSelected = { status ->
-                                selectedStatusFilter = if (selectedStatusFilter == status) "ALL" else status
-                            }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "⇄ Swipe left/right for All Classes & Class-Wise Attendance",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colors.textSecondary
                         )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        val classNamesList = remember(batches, students) {
+                            val fromBatches = batches.map { it.batchName.trim() }.filter { it.isNotEmpty() }
+                            val fromStudents = students.map { it.gradeClass.trim() }.filter { it.isNotEmpty() }
+                            (fromBatches + fromStudents).distinctBy { it.uppercase() }
+                        }
+
+                        // Horizontal Scrollable Tiles: First "All Classes", then each Class Tile
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Tile 0: ALL CLASSES SUMMARY
+                            item {
+                                val isAllSelected = selectedClassAttendanceFilter == "ALL"
+                                Surface(
+                                    onClick = { selectedClassAttendanceFilter = "ALL" },
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = if (isAllSelected) colors.brandPrimary.copy(alpha = 0.06f) else colors.bgCardHover,
+                                    border = BorderStroke(if (isAllSelected) 1.5.dp else 1.dp, if (isAllSelected) colors.brandPrimary else colors.borderCard),
+                                    modifier = Modifier.width(290.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                                Text("🏫", fontSize = 16.sp)
+                                                Column {
+                                                    Text("All Classes", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = colors.textPrimary)
+                                                    Text("${students.size} Total Students", fontSize = 10.sp, color = colors.textSecondary)
+                                                }
+                                            }
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = colors.brandPrimary.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = "$studentPct% Present",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colors.brandPrimary,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        StylishAttendanceSummaryCard(
+                                            presentCount = presentCount,
+                                            absentCount = absentCount,
+                                            leaveCount = leaveCount,
+                                            holidayCount = holidayCount,
+                                            selectedFilter = if (isAllSelected) selectedStatusFilter else "ALL",
+                                            onFilterSelected = { status ->
+                                                selectedClassAttendanceFilter = "ALL"
+                                                selectedStatusFilter = if (selectedStatusFilter == status && isAllSelected) "ALL" else status
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+
+                            // Subsequent Tiles: Individual Class-Wise Summary Tiles
+                            items(classNamesList) { cName ->
+                                val isClassSelected = selectedClassAttendanceFilter.equals(cName, ignoreCase = true)
+                                val classStudentsCount = students.count { it.gradeClass.equals(cName, ignoreCase = true) }
+                                val classRecords = activeAttendanceRecords.filter { it.gradeClass.equals(cName, ignoreCase = true) }
+                                val cPresent = classRecords.count { it.status == "PRESENT" }
+                                val cAbsent = classRecords.count { it.status == "ABSENT" }
+                                val cLeave = classRecords.count { it.status == "LEAVE" }
+                                val cHoliday = classRecords.count { it.status == "HOLIDAY" }
+                                val cTotalMarked = cPresent + cAbsent + cLeave
+                                val cPct = if (cTotalMarked > 0) (cPresent * 100 / cTotalMarked) else 0
+
+                                Surface(
+                                    onClick = { selectedClassAttendanceFilter = cName },
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = if (isClassSelected) colors.brandPrimary.copy(alpha = 0.06f) else colors.bgCardHover,
+                                    border = BorderStroke(if (isClassSelected) 1.5.dp else 1.dp, if (isClassSelected) colors.brandPrimary else colors.borderCard),
+                                    modifier = Modifier.width(280.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                                Text("📚", fontSize = 16.sp)
+                                                Column {
+                                                    Text(cName, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp, color = colors.textPrimary)
+                                                    Text("$classStudentsCount Enrolled", fontSize = 10.sp, color = colors.textSecondary)
+                                                }
+                                            }
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = colors.success.copy(alpha = 0.15f)
+                                            ) {
+                                                Text(
+                                                    text = "$cPct% Present",
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colors.success,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                                )
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(10.dp))
+
+                                        StylishAttendanceSummaryCard(
+                                            presentCount = cPresent,
+                                            absentCount = cAbsent,
+                                            leaveCount = cLeave,
+                                            holidayCount = cHoliday,
+                                            selectedFilter = if (isClassSelected) selectedStatusFilter else "ALL",
+                                            onFilterSelected = { status ->
+                                                selectedClassAttendanceFilter = cName
+                                                selectedStatusFilter = if (selectedStatusFilter == status && isClassSelected) "ALL" else status
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         if (selectedStatusFilter != "ALL" && activeAttendanceRecords.isNotEmpty()) {
-                            val filteredList = activeAttendanceRecords.filter { it.status == selectedStatusFilter }
+                            val filteredList = activeAttendanceRecords.filter {
+                                it.status == selectedStatusFilter &&
+                                (selectedClassAttendanceFilter == "ALL" || it.gradeClass.equals(selectedClassAttendanceFilter, ignoreCase = true))
+                            }
                             Spacer(modifier = Modifier.height(10.dp))
                             Surface(
                                 shape = RoundedCornerShape(10.dp),
@@ -507,15 +592,16 @@ fun DashboardScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Column(modifier = Modifier.padding(10.dp)) {
+                                    val scopeTitle = if (selectedClassAttendanceFilter == "ALL") "All Classes" else selectedClassAttendanceFilter
                                     Text(
-                                        text = selectedStatusFilter + " Students (" + filteredList.size + ")",
+                                        text = "$scopeTitle • $selectedStatusFilter Students (${filteredList.size})",
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 12.sp,
                                         color = colors.textPrimary
                                     )
                                     Spacer(modifier = Modifier.height(6.dp))
                                     if (filteredList.isEmpty()) {
-                                        Text("No students marked " + selectedStatusFilter.lowercase() + " on this date.", fontSize = 11.sp, color = colors.textSecondary)
+                                        Text("No students marked ${selectedStatusFilter.lowercase()} on $selectedAttendanceDate.", fontSize = 11.sp, color = colors.textSecondary)
                                     } else {
                                         filteredList.forEach { att ->
                                             Row(
@@ -791,6 +877,16 @@ fun DashboardScreen(
             }
 
             item { Spacer(modifier = Modifier.height(70.dp)) }
+        }
+
+        if (showAttendanceCalendar) {
+            ModernDatePickerDialog(
+                currentDate = selectedAttendanceDate,
+                onDateSelected = { picked ->
+                    selectedAttendanceDate = normalizeDateStr(picked)
+                },
+                onDismiss = { showAttendanceCalendar = false }
+            )
         }
 
         // 7. Modal Bottom Sheet

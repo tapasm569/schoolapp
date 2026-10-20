@@ -290,7 +290,8 @@ fun AddStaffScreen(
 fun StaffScreen(
     database: AppDatabase,
     schoolCode: String,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateAdd: () -> Unit = {}
 ) {
     val colors = LocalSchoolColors.current
     val staffList by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
@@ -314,6 +315,16 @@ fun StaffScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateAdd,
+                containerColor = colors.brandPrimary,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("+", fontSize = 28.sp)
+            }
         }
     ) { padding ->
         if (staffList.isEmpty()) {
@@ -695,15 +706,20 @@ fun ExpenseScreen(
     val colors = LocalSchoolColors.current
     val expenses by database.expenseDao().getExpensesBySchool(schoolCode).collectAsState(initial = emptyList())
     val scope = rememberCoroutineScope()
+    val todayDate = remember { com.school.manage.core.utils.getSystemCurrentDate().formatted }
+
     var title by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
+    var selectedExpenseDate by remember { mutableStateOf("") }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Expenses (" + schoolCode + ")", color = colors.textPrimary) },
+                title = { Text("Expenses (" + expenses.size + ")", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
                 },
@@ -715,49 +731,133 @@ fun ExpenseScreen(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item { Text("Add Expense", fontWeight = FontWeight.Bold, color = colors.textPrimary) }
-            item { CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Title") }
-            item { CustomRoundedInput(value = category, onValueChange = { category = it }, placeholder = "Category") }
-            item { CustomRoundedInput(value = amount, onValueChange = { amount = it }, placeholder = "Amount (₹)") }
             item {
-                Button(
-                    modifier = Modifier.fillMaxWidth().height(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                    onClick = {
-                        if (title.isNotBlank() && amount.isNotBlank()) {
-                            scope.launch {
-                                database.expenseDao().insertExpense(
-                                    ExpenseEntity(
-                                        schoolCode = schoolCode,
-                                        title = title,
-                                        category = category,
-                                        amount = amount.toDoubleOrNull() ?: 0.0,
-                                        date = "02/10/2026",
-                                        notes = ""
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = colors.bgCard,
+                    border = BorderStroke(1.dp, colors.borderCard),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Add New Expense", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, color = colors.brandPrimary)
+                        CustomRoundedInput(value = title, onValueChange = { title = it; errorMessage = null }, placeholder = "Expense Title (e.g. Electricity Bill)")
+                        CustomRoundedInput(value = category, onValueChange = { category = it; errorMessage = null }, placeholder = "Category (e.g. Utility, Maintenance)")
+                        CustomRoundedInput(value = amount, onValueChange = { amount = it; errorMessage = null }, placeholder = "Amount (₹)")
+
+                        // Step 1: Mandatory Date Selection before Submit
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (selectedExpenseDate.isNotEmpty()) colors.brandPrimary.copy(alpha = 0.1f) else colors.inputBg,
+                            border = BorderStroke(1.2.dp, if (selectedExpenseDate.isNotEmpty()) colors.brandPrimary else colors.inputBorder),
+                            modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = if (selectedExpenseDate.isEmpty()) "Select Expense Date (Required) *" else "Selected Date: $selectedExpenseDate",
+                                        fontSize = 13.sp,
+                                        fontWeight = if (selectedExpenseDate.isNotEmpty()) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (selectedExpenseDate.isNotEmpty()) colors.brandPrimary else colors.textSecondary
                                     )
-                                )
-                                title = ""
-                                category = ""
-                                amount = ""
+                                    Text(
+                                        text = "Tap calendar to choose the date for this expense",
+                                        fontSize = 10.sp,
+                                        color = colors.textSecondary
+                                    )
+                                }
+                                Text("📅", fontSize = 20.sp)
                             }
                         }
+
+                        if (errorMessage != null) {
+                            Text(errorMessage!!, color = colors.error, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        Button(
+                            modifier = Modifier.fillMaxWidth().height(48.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            enabled = selectedExpenseDate.isNotBlank() && title.isNotBlank() && amount.isNotBlank(),
+                            colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                            onClick = {
+                                val amt = amount.trim().toDoubleOrNull()
+                                if (selectedExpenseDate.isBlank()) {
+                                    errorMessage = "Please select an expense date from the calendar first!"
+                                } else if (title.isBlank() || amt == null || amt <= 0.0) {
+                                    errorMessage = "Please enter a valid title and amount!"
+                                } else {
+                                    scope.launch {
+                                        database.expenseDao().insertExpense(
+                                            ExpenseEntity(
+                                                schoolCode = schoolCode,
+                                                title = title.trim(),
+                                                category = category.trim().ifEmpty { "General" },
+                                                amount = amt,
+                                                date = selectedExpenseDate,
+                                                notes = ""
+                                            )
+                                        )
+                                        title = ""
+                                        category = ""
+                                        amount = ""
+                                        selectedExpenseDate = ""
+                                        errorMessage = null
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(
+                                text = if (selectedExpenseDate.isEmpty()) "📅 Select Date First to Submit" else "💾 Save Expense on $selectedExpenseDate",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
-                ) { Text("Save Expense", fontWeight = FontWeight.Bold) }
+                }
             }
+
+            item {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("EXPENSE HISTORY (${expenses.size})", fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = colors.textSecondary)
+            }
+
             items(expenses) { exp ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
+                    border = BorderStroke(1.dp, colors.borderCard),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(exp.title, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-                        Text("₹" + exp.amount.toInt(), color = colors.error, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.padding(14.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(exp.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("Category: ${exp.category.ifEmpty { "General" }}  •  📅 ${exp.date}", fontSize = 12.sp, color = colors.textSecondary)
+                        }
+                        Text("₹" + exp.amount.toInt(), color = colors.error, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
                     }
                 }
             }
+        }
+
+        if (showDatePicker) {
+            ModernDatePickerDialog(
+                currentDate = selectedExpenseDate.ifEmpty { todayDate },
+                onDateSelected = {
+                    val parts = it.trim().split("/")
+                    selectedExpenseDate = if (parts.size == 3) {
+                        "${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}/${parts[2]}"
+                    } else it
+                    errorMessage = null
+                },
+                onDismiss = { showDatePicker = false }
+            )
         }
     }
 }

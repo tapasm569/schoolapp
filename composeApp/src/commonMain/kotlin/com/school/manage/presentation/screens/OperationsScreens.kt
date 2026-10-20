@@ -378,18 +378,19 @@ fun AnnouncementsScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     val announcements by database.announcementDao().getAnnouncementsBySchool(schoolCode).collectAsState(initial = emptyList())
+    val todayStr = remember { com.school.manage.core.utils.getSystemCurrentDate().formatted }
 
-    var showAddDialog by remember { mutableStateOf(false) }
+    var showAddModal by remember { mutableStateOf(false) }
     var title by remember { mutableStateOf("") }
     var message by remember { mutableStateOf("") }
-    var audience by remember { mutableStateOf("ALL") }
+    var targetAudience by remember { mutableStateOf("ALL") } // ALL (Both), STUDENT, TEACHER
     var priority by remember { mutableStateOf("NORMAL") }
 
     Scaffold(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("School Announcements (" + announcements.size + ")", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
+                title = { Text("Announcements (" + announcements.size + ")", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
                 },
@@ -398,7 +399,7 @@ fun AnnouncementsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true },
+                onClick = { showAddModal = true },
                 containerColor = colors.brandPrimary,
                 contentColor = Color.White,
                 shape = RoundedCornerShape(16.dp)
@@ -414,15 +415,15 @@ fun AnnouncementsScreen(
             if (announcements.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                        Text("No notices published yet. Tap + to post a circular.", color = colors.textSecondary)
+                        Text("No announcements published yet. Tap + to broadcast a notice.", color = colors.textSecondary)
                     }
                 }
             } else {
-                items(announcements) { notice ->
-                    val badgeColor = when (notice.priority) {
-                        "URGENT" -> colors.error
-                        "EVENT" -> Color(0xFFF59E0B)
-                        else -> colors.brandPrimary
+                items(announcements) { ann ->
+                    val receiverLabel = when (ann.targetAudience.uppercase()) {
+                        "STUDENT", "STUDENTS" -> "🎓 Receiver: Students Only"
+                        "TEACHER", "TEACHERS", "STAFF" -> "👨‍🏫 Receiver: Teachers Only"
+                        else -> "👥 Receiver: Both (Students & Teachers)"
                     }
                     Surface(
                         shape = RoundedCornerShape(14.dp),
@@ -431,87 +432,139 @@ fun AnnouncementsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(14.dp)) {
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(notice.title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
-                                Surface(shape = RoundedCornerShape(6.dp), color = badgeColor.copy(alpha = 0.15f)) {
-                                    Text(notice.priority, color = badgeColor, fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text(ann.title, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary, modifier = Modifier.weight(1f).padding(end = 8.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = if (ann.priority == "URGENT") colors.error.copy(alpha = 0.15f) else colors.brandPrimary.copy(alpha = 0.15f)
+                                ) {
+                                    Text(
+                                        text = ann.priority,
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (ann.priority == "URGENT") colors.error else colors.brandPrimary,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
                                 }
                             }
                             Spacer(modifier = Modifier.height(4.dp))
-                            Text("Audience: " + notice.targetAudience + " • Date: " + notice.date, fontSize = 11.sp, color = colors.textSecondary)
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = colors.bgCardHover
+                            ) {
+                                Text(
+                                    text = receiverLabel,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = colors.brandPrimary,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                                )
+                            }
                             Spacer(modifier = Modifier.height(6.dp))
-                            Text(notice.message, fontSize = 13.sp, color = colors.textPrimary, lineHeight = 17.sp)
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton(onClick = { scope.launch { database.announcementDao().deleteAnnouncement(notice) } }) {
-                                    Text("Delete Notice", color = colors.error, fontSize = 11.sp)
+                            Text(ann.message, fontSize = 13.sp, color = colors.textSecondary)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                Text("📅 " + ann.date, fontSize = 11.sp, color = colors.textSecondary)
+                                TextButton(onClick = { scope.launch { database.announcementDao().deleteAnnouncement(ann) } }) {
+                                    Text("Delete", color = colors.error, fontSize = 12.sp)
                                 }
                             }
                         }
                     }
                 }
             }
-
             item { Spacer(modifier = Modifier.height(20.dp)) }
         }
 
-        if (showAddDialog) {
-            Dialog(onDismissRequest = { showAddDialog = false }) {
-                Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = colors.bgCard,
-                    border = BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth().padding(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Publish Announcement", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = colors.textPrimary)
-                        CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Title (e.g. Diwali Holiday Notice)")
-                        CustomRoundedInput(value = message, onValueChange = { message = it }, placeholder = "Circular content / instructions")
+        if (showAddModal) {
+            AlertDialog(
+                onDismissRequest = { showAddModal = false },
+                containerColor = colors.bgCard,
+                title = { Text("Publish Announcement", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        CustomRoundedInput(value = title, onValueChange = { title = it }, placeholder = "Announcement Title")
+                        CustomRoundedInput(value = message, onValueChange = { message = it }, placeholder = "Message / Notice Details")
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            for (pr in listOf("NORMAL", "URGENT", "EVENT")) {
+                        Text("Select Receiver:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.textPrimary)
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            listOf(
+                                "ALL" to "👥 Both (Students & Teachers)",
+                                "STUDENT" to "🎓 Students Only",
+                                "TEACHER" to "👨‍🏫 Teachers Only"
+                            ).forEach { (key, label) ->
+                                val isSel = targetAudience == key
+                                Surface(
+                                    onClick = { targetAudience = key },
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isSel) colors.brandPrimary else colors.bgCardHover,
+                                    border = BorderStroke(1.dp, if (isSel) colors.brandPrimary else colors.borderCard),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(label, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = if (isSel) Color.White else colors.textPrimary)
+                                        if (isSel) {
+                                            Text("✓", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Text("Priority:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.textPrimary)
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf("NORMAL", "URGENT").forEach { pr ->
                                 Surface(
                                     onClick = { priority = pr },
                                     shape = RoundedCornerShape(8.dp),
                                     color = if (priority == pr) colors.brandPrimary else colors.bgCardHover
                                 ) {
-                                    Text(pr, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (priority == pr) Color.White else colors.textPrimary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp))
+                                    Text(pr, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (priority == pr) Color.White else colors.textPrimary, modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp))
                                 }
                             }
                         }
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { showAddDialog = false }) { Text("Cancel", color = colors.textSecondary) }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Button(
-                                colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
-                                onClick = {
-                                    if (title.isNotBlank() && message.isNotBlank()) {
-                                        scope.launch {
-                                            database.announcementDao().insertAnnouncement(
-                                                AnnouncementEntity(
-                                                    schoolCode = schoolCode,
-                                                    title = title.trim(),
-                                                    message = message.trim(),
-                                                    priority = priority,
-                                                    targetAudience = audience
-                                                )
-                                            )
-                                            title = ""
-                                            message = ""
-                                            showAddDialog = false
-                                        }
-                                    }
-                                }
-                            ) { Text("Publish") }
-                        }
                     }
+                },
+                confirmButton = {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        onClick = {
+                            if (title.isNotBlank() && message.isNotBlank()) {
+                                scope.launch {
+                                    database.announcementDao().insertAnnouncement(
+                                        AnnouncementEntity(
+                                            schoolCode = schoolCode,
+                                            title = title.trim(),
+                                            message = message.trim(),
+                                            targetAudience = targetAudience,
+                                            priority = priority,
+                                            date = todayStr
+                                        )
+                                    )
+                                    title = ""
+                                    message = ""
+                                    targetAudience = "ALL"
+                                    showAddModal = false
+                                }
+                            }
+                        }
+                    ) { Text("Publish") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showAddModal = false }) { Text("Cancel", color = colors.textSecondary) }
                 }
-            }
+            )
         }
     }
 }
 
-// 4. MESSAGES SCREEN (Standard itemsIndexed in LazyRow)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MessagesScreen(
