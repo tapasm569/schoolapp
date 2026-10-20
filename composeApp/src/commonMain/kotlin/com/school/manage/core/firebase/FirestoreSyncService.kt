@@ -154,6 +154,83 @@ class FirestoreSyncService(private val database: AppDatabase) {
         println("===> [RTDB SYNC] Finished pushing all collections to Realtime Database successfully!")
     }
 
+    /**
+     * Single-Record Delta Sync:
+     * Only updates or inserts the specific student record that was edited/created.
+     */
+    fun pushStudent(schoolCode: String, student: StudentEntity) {
+        val targetSchool = schoolCode.ifBlank { student.schoolCode }
+        if (targetSchool.isBlank()) return
+        scope.launch {
+            try {
+                rtdb.reference("schools")
+                    .child(targetSchool)
+                    .child("students")
+                    .child(student.id.toString())
+                    .setValue(
+                        mapOf(
+                            "id" to student.id.toString(),
+                            "schoolCode" to targetSchool,
+                            "rollNo" to student.rollNo,
+                            "name" to student.name,
+                            "gradeClass" to student.gradeClass,
+                            "section" to student.section,
+                            "guardianName" to student.guardianName,
+                            "fatherName" to student.fatherName,
+                            "motherName" to student.motherName,
+                            "phone" to student.phone,
+                            "whatsapp" to student.whatsapp,
+                            "address" to student.address,
+                            "dob" to student.dob,
+                            "gender" to student.gender,
+                            "caste" to student.caste,
+                            "admissionDate" to student.admissionDate,
+                            "photoBase64" to student.photoBase64
+                        )
+                    )
+                println("✓ [Delta Sync] Synced single student: ${student.name} (ID: ${student.id})")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    /**
+     * Single-Record Delta Sync:
+     * Only updates or inserts the specific staff member that was edited/created.
+     */
+    fun pushStaff(schoolCode: String, staff: StaffEntity) {
+        val targetSchool = schoolCode.ifBlank { staff.schoolCode }
+        if (targetSchool.isBlank()) return
+        scope.launch {
+            try {
+                rtdb.reference("schools")
+                    .child(targetSchool)
+                    .child("staff")
+                    .child(staff.id.toString())
+                    .setValue(
+                        mapOf(
+                            "id" to staff.id.toString(),
+                            "schoolCode" to targetSchool,
+                            "name" to staff.name,
+                            "role" to staff.role,
+                            "phone" to staff.phone,
+                            "whatsapp" to staff.whatsapp,
+                            "salary" to staff.salary.toString(),
+                            "qualification" to staff.qualification,
+                            "joinDate" to staff.joinDate,
+                            "gender" to staff.gender,
+                            "address" to staff.address,
+                            "photoBase64" to staff.photoBase64
+                        )
+                    )
+                println("✓ [Delta Sync] Synced single staff member: ${staff.name} (ID: ${staff.id})")
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     suspend fun deleteStudentRecord(schoolCode: String, student: StudentEntity): Boolean {
         val targetSchool = schoolCode.ifBlank { student.schoolCode }
         try {

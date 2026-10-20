@@ -757,31 +757,27 @@ fun AddStudentScreen(
                             return@Button
                         }
                         scope.launch {
-                            val newId = database.studentDao().insertStudent(
-                                StudentEntity(
-                                    schoolCode = schoolCode,
-                                    rollNo = rollNo.trim(),
-                                    name = name.trim(),
-                                    photoBase64 = photoBase64,
-                                    phone = phone.trim(),
-                                    fatherName = fatherName.trim(),
-                                    motherName = motherName.trim(),
-                                    dob = dob.trim(),
-                                    aadharNumber = aadhar.trim(),
-                                    caste = caste.trim(),
-                                    gender = gender,
-                                    whatsapp = whatsapp.trim(),
-                                    address = address.trim(),
-                                    guardianName = fatherName.ifBlank { motherName },
-                                    admissionDate = "02/10/2026"
-                                )
+                            val studentToSave = StudentEntity(
+                                schoolCode = schoolCode,
+                                rollNo = rollNo.trim(),
+                                name = name.trim(),
+                                photoBase64 = photoBase64,
+                                phone = phone.trim(),
+                                fatherName = fatherName.trim(),
+                                motherName = motherName.trim(),
+                                dob = dob.trim(),
+                                aadharNumber = aadhar.trim(),
+                                caste = caste.trim(),
+                                gender = gender,
+                                whatsapp = whatsapp.trim(),
+                                address = address.trim(),
+                                guardianName = fatherName.ifBlank { motherName },
+                                admissionDate = "02/10/2026"
                             )
+                            val newId = database.studentDao().insertStudent(studentToSave)
                             onStudentSaved(newId, name.trim())
-                            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
-                                try {
-                                    com.school.manage.core.firebase.FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
-                                } catch (_: Exception) {}
-                            }
+                            com.school.manage.core.firebase.FirestoreSyncService(database)
+                                .pushStudent(schoolCode, studentToSave.copy(id = newId))
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
