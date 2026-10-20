@@ -395,37 +395,33 @@ class FirestoreSyncService(private val database: AppDatabase) {
         schoolCode: String,
         student: StudentEntity
     ): Boolean {
-        if (schoolCode.isBlank() || student.schoolCode != schoolCode) {
-            return false
+        val targetSchool = schoolCode.ifBlank { student.schoolCode }
+        try {
+            database.studentDao().deleteStudent(student)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+        if (targetSchool.isBlank()) return true
 
-        return try {
-            val schoolRef = firestore.collection("schools").document(schoolCode)
-            schoolRef.collection("deletedStudents")
-                .document(student.id.toString())
-                .set(
-                    mapOf(
-                        "id" to student.id.toString(),
-                        "deleted" to true
-                    )
-                )
-
-            // The marker is already saved. A failed cloud-document deletion
-            // must not allow this record to be restored or uploaded again.
+        scope.launch {
             try {
+                val schoolRef = firestore.collection("schools").document(targetSchool)
+                schoolRef.collection("deletedStudents")
+                    .document(student.id.toString())
+                    .set(
+                        mapOf(
+                            "id" to student.id.toString(),
+                            "deleted" to true
+                        )
+                    )
                 schoolRef.collection("students")
                     .document(student.id.toString())
                     .delete()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-
-            database.studentDao().deleteStudent(student)
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
         }
+        return true
     }
 
     /**
@@ -436,37 +432,33 @@ class FirestoreSyncService(private val database: AppDatabase) {
         schoolCode: String,
         staff: StaffEntity
     ): Boolean {
-        if (schoolCode.isBlank() || staff.schoolCode != schoolCode) {
-            return false
+        val targetSchool = schoolCode.ifBlank { staff.schoolCode }
+        try {
+            database.staffDao().deleteStaff(staff)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
+        if (targetSchool.isBlank()) return true
 
-        return try {
-            val schoolRef = firestore.collection("schools").document(schoolCode)
-            schoolRef.collection("deletedStaff")
-                .document(staff.id.toString())
-                .set(
-                    mapOf(
-                        "id" to staff.id.toString(),
-                        "deleted" to true
-                    )
-                )
-
-            // The marker is already saved, so a cloud deletion error cannot
-            // cause this record to be restored or uploaded again.
+        scope.launch {
             try {
+                val schoolRef = firestore.collection("schools").document(targetSchool)
+                schoolRef.collection("deletedStaff")
+                    .document(staff.id.toString())
+                    .set(
+                        mapOf(
+                            "id" to staff.id.toString(),
+                            "deleted" to true
+                        )
+                    )
                 schoolRef.collection("staff")
                     .document(staff.id.toString())
                     .delete()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-
-            database.staffDao().deleteStaff(staff)
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
         }
+        return true
     }
 
     fun startSync(schoolCode: String) {

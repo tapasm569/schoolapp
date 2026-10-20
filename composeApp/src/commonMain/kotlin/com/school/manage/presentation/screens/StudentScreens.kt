@@ -776,10 +776,12 @@ fun AddStudentScreen(
                                     admissionDate = "02/10/2026"
                                 )
                             )
-                            try {
+                            onStudentSaved(newId, name.trim())
+                            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Default).launch {
+                                try {
                                     com.school.manage.core.firebase.FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
                                 } catch (_: Exception) {}
-                                onStudentSaved(newId, name.trim())
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp),
@@ -798,34 +800,7 @@ fun AddStudentScreen(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = colors.bgCard,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.borderCard),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(14.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("Profile photo", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
-                            Text("This image will be displayed on Profile", fontSize = 12.sp, color = colors.textSecondary)
-                        }
-                        Box(
-                            modifier = Modifier
-                                .size(50.dp)
-                                .clip(CircleShape)
-                                .background(colors.borderCard),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("👤", fontSize = 24.sp)
-                        }
-                    }
-                }
-            }
+
 
             item {
                 Column {
