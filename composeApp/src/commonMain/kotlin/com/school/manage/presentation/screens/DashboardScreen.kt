@@ -232,54 +232,8 @@ fun DashboardScreen(
     }
     val scope = rememberCoroutineScope()
     val dashboardListState = rememberLazyListState()
-    var isRefreshingDashboard by remember { mutableStateOf(false) }
-    var dashboardPullDistance by remember { mutableFloatStateOf(0f) }
-    val dashboardRefreshThreshold = with(androidx.compose.ui.platform.LocalDensity.current) {
-        80.dp.toPx()
-    }
-
-    val dashboardRefreshConnection = remember(schoolCode, dashboardRefreshThreshold) {
-        object : NestedScrollConnection {
-            override fun onPreScroll(
-                available: Offset,
-                source: NestedScrollSource
-            ): Offset {
-                val atTop = dashboardListState.firstVisibleItemIndex == 0 &&
-                    dashboardListState.firstVisibleItemScrollOffset == 0
-
-                if (source == NestedScrollSource.Drag &&
-                    atTop &&
-                    available.y > 0f &&
-                    !isRefreshingDashboard
-                ) {
-                    dashboardPullDistance += available.y
-
-                    if (dashboardPullDistance >= dashboardRefreshThreshold) {
-                        dashboardPullDistance = 0f
-                        isRefreshingDashboard = true
-
-                        scope.launch {
-                            try {
-                                FirestoreSyncService(database)
-                                    .restoreAllFromCloud(schoolCode)
-                            } finally {
-                                isRefreshingDashboard = false
-                            }
-                        }
-                    }
-
-                    // Consume the downward drag while pulling to refresh.
-                    return Offset(0f, available.y)
-                }
-
-                if (available.y < 0f || !atTop) {
-                    dashboardPullDistance = 0f
-                }
-
-                return Offset.Zero
-            }
-        }
-    }
+    var isCloudSyncing by remember { mutableStateOf(false) }
+    var cloudSyncStatusMessage by remember { mutableStateOf<String?>(null) }
 
     val pickSchoolLogo = rememberPhotoPickerLauncher { encodedBase64 ->
         scope.launch {
@@ -309,30 +263,13 @@ fun DashboardScreen(
         LazyColumn(
             state = dashboardListState,
             modifier = Modifier
-                .nestedScroll(dashboardRefreshConnection)
+                
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 14.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item {
-                if (isRefreshingDashboard) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(22.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("Refreshing data...")
-                    }
-                }
-            }
+
 
             item { Spacer(modifier = Modifier.height(6.dp)) }
 
@@ -1028,6 +965,63 @@ AddNewOptionItem(
                                     fontWeight = FontWeight.Bold,
                                     color = colors.textPrimary
                                 )
+                            }
+                        }
+                    }
+
+                    // Cloud Auto-Push Sync Button
+                    Surface(
+                        onClick = {
+                            if (!isCloudSyncing) {
+                                isCloudSyncing = true
+                                cloudSyncStatusMessage = "Syncing with cloud..."
+                                scope.launch {
+                                    try {
+                                        FirestoreSyncService(database).pushAllLocalDataToCloud(schoolCode)
+                                        cloudSyncStatusMessage = "✓ Cloud sync complete!"
+                                    } catch (e: Exception) {
+                                        cloudSyncStatusMessage = "Sync error: ${e.message}"
+                                    } finally {
+                                        isCloudSyncing = false
+                                    }
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(14.dp),
+                        color = colors.brandPrimary.copy(alpha = 0.12f),
+                        border = BorderStroke(1.2.dp, colors.brandPrimary),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(if (isCloudSyncing) "⏳" else "☁️", fontSize = 20.sp)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = if (isCloudSyncing) "Syncing to Firebase..." else "Sync All Data to Cloud",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 14.sp,
+                                        color = colors.brandPrimary
+                                    )
+                                    Text(
+                                        text = cloudSyncStatusMessage ?: "Tap to upload students, staff & fees",
+                                        fontSize = 11.sp,
+                                        color = colors.textSecondary
+                                    )
+                                }
+                            }
+                            if (isCloudSyncing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = colors.brandPrimary
+                                )
+                            } else {
+                                Text("➔", fontSize = 16.sp, color = colors.brandPrimary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
