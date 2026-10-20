@@ -13,6 +13,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 
 class FirestoreSyncService(private val database: AppDatabase) {
+    companion object {
+        private var lastPushTimestamp = 0L
+    }
 
     private val firestore = Firebase.firestore
     private val scope = CoroutineScope(Dispatchers.IO)
