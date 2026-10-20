@@ -268,43 +268,6 @@ fun StudentPortalScreen(
                 }
             }
 
-            // 1B. Student Announcements Banner (Filtered for Students or Both)
-            val latestStudentNotice = studentAnnouncements.firstOrNull()
-            if (latestStudentNotice != null) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { activeModal = "ANNOUNCEMENTS" },
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("📢", fontSize = 22.sp)
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    latestStudentNotice.title,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 13.sp,
-                                    color = Color(0xFF92400E)
-                                )
-                                Text(
-                                    latestStudentNotice.message,
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF78350F),
-                                    maxLines = 2
-                                )
-                            }
-                            Text("›", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
-                        }
-                    }
-                }
-            }
-
             // 2. Action Grid (6 Fully Functional Options)
             item {
                 Text(
