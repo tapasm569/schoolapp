@@ -19,6 +19,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("dev.gitlive:firebase-firestore:2.1.0")
+            implementation("dev.gitlive:firebase-database:2.1.0")
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)

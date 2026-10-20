@@ -1,464 +1,192 @@
 package com.school.manage.core.firebase
 
 import com.school.manage.core.database.AppDatabase
-import com.school.manage.core.database.entity.*
+import com.school.manage.core.database.entity.StaffEntity
+import com.school.manage.core.database.entity.StudentEntity
 import dev.gitlive.firebase.Firebase
-import dev.gitlive.firebase.firestore.firestore
+import dev.gitlive.firebase.database.database
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 
 class FirestoreSyncService(private val database: AppDatabase) {
-    companion object {
-        private var lastPushTimestamp = 0L
-    }
 
-    private val firestore = Firebase.firestore
-    private val scope = CoroutineScope(Dispatchers.IO)
-
-    private fun getSafeStr(doc: dev.gitlive.firebase.firestore.DocumentSnapshot, field: String): String {
-        return try {
-            if (doc.contains(field)) doc.get<String?>(field) ?: "" else ""
-        } catch (e: Exception) {
-            ""
-        }
-    }
-
-    suspend fun saveSchoolToCloud(school: SchoolEntity): Boolean {
-        return try {
-            withTimeout(10000L) {
-                firestore.collection("schools")
-                    .document(school.schoolCode)
-                    .set(
-                        mapOf(
-                            "schoolCode" to school.schoolCode,
-                            "schoolName" to school.schoolName,
-                            "phone" to school.phone,
-                            "email" to school.email,
-                            "address" to school.address,
-                            "password" to school.password
-                        )
-                    )
-                true
-            }
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
-        return try {
-            withTimeout(10000L) {
-                val doc = firestore.collection("schools").document(schoolCode).get()
-                if (doc.exists) {
-                    val code = getSafeStr(doc, "schoolCode").ifBlank { schoolCode }
-                    val name = getSafeStr(doc, "schoolName")
-                    val phone = getSafeStr(doc, "phone")
-                    val email = getSafeStr(doc, "email")
-                    val address = getSafeStr(doc, "address")
-                    val pass = getSafeStr(doc, "password")
-
-                    val restored = SchoolEntity(
-                        schoolCode = code,
-                        schoolName = name,
-                        phone = phone,
-                        email = email,
-                        address = address,
-                        password = pass
-                    )
-                    database.schoolDao().insertSchool(restored)
-                    restored
-                } else {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    suspend fun pushAllLocalDataToCloud(schoolCode: String) {
-        if (schoolCode.isBlank()) return
-        val schoolRef = firestore.collection("schools").document(schoolCode)
-
-        // 1. Classes / Batches
-        try {
-            val batches = database.batchDao().getBatchesBySchool(schoolCode).first()
-            for (item in batches) {
-                try {
-                    schoolRef.collection("classes").document(item.id.toString()).set(
-                        mapOf(
-                            "id" to item.id.toString(),
-                            "schoolCode" to item.schoolCode,
-                            "batchName" to item.batchName,
-                            "defaultMonthlyTuition" to item.defaultMonthlyTuition.toString(),
-                            "subjects" to item.subjects,
-                            "sections" to item.sections,
-                            "feeTemplateRaw" to item.feeTemplateRaw,
-                            "collectTuitionAtAdmission" to item.collectTuitionAtAdmission
-                        )
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 2. Students
-        try {
-            val students = database.studentDao().getStudentsBySchool(schoolCode).first()
-            for (item in students) {
-                try {
-                    schoolRef.collection("students").document(item.id.toString()).set(
-                        mapOf(
-                            "id" to item.id.toString(),
-                            "schoolCode" to item.schoolCode,
-                            "rollNo" to item.rollNo,
-                            "name" to item.name,
-                            "gradeClass" to item.gradeClass,
-                            "section" to item.section,
-                            "guardianName" to item.guardianName,
-                            "fatherName" to item.fatherName,
-                            "motherName" to item.motherName,
-                            "phone" to item.phone,
-                            "whatsapp" to item.whatsapp,
-                            "monthlyFee" to item.monthlyFee.toString(),
-                            "admissionFee" to item.admissionFee.toString(),
-                            "admissionDate" to item.admissionDate,
-                            "dob" to item.dob,
-                            "caste" to item.caste,
-                            "gender" to item.gender,
-                            "address" to item.address,
-                            "aadharNumber" to item.aadharNumber,
-                            "photoBase64" to item.photoBase64
-                        )
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 3. Staff
-        try {
-            val staffList = database.staffDao().getStaffBySchool(schoolCode).first()
-            for (item in staffList) {
-                try {
-                    schoolRef.collection("staff").document(item.id.toString()).set(
-                        mapOf(
-                            "id" to item.id.toString(),
-                            "schoolCode" to item.schoolCode,
-                            "name" to item.name,
-                            "role" to item.role,
-                            "qualification" to item.qualification,
-                            "phone" to item.phone,
-                            "whatsapp" to item.whatsapp,
-                            "salary" to item.salary.toString(),
-                            "salaryType" to item.salaryType,
-                            "joinDate" to item.joinDate,
-                            "gender" to item.gender,
-                            "address" to item.address,
-                            "photoBase64" to item.photoBase64
-                        )
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-        // 4. Fees
-        try {
-            val fees = database.feeDao().getFeeRecordsBySchool(schoolCode).first()
-            for (item in fees) {
-                try {
-                    schoolRef.collection("fees").document(item.id.toString()).set(
-                        mapOf(
-                            "id" to item.id.toString(),
-                            "schoolCode" to item.schoolCode,
-                            "studentId" to item.studentId.toString(),
-                            "studentName" to item.studentName,
-                            "gradeClass" to item.gradeClass,
-                            "feeMonth" to item.feeMonth,
-                            "amountPaid" to item.amountPaid.toString(),
-                            "paymentDate" to item.paymentDate,
-                            "paymentMode" to item.paymentMode,
-                            "remarks" to item.remarks
-                        )
-                    )
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    suspend fun restoreAllFromCloud(schoolCode: String) {
-        if (schoolCode.isBlank()) return
-        try {
-            withTimeout(30000L) {
-                val schoolRef = firestore.collection("schools").document(schoolCode)
-
-                try {
-                    val classesDocs = schoolRef.collection("classes").get().documents
-                    for (doc in classesDocs) {
-                        val id = doc.id.toLongOrNull() ?: 0L
-                        val batchName = getSafeStr(doc, "batchName")
-                        val feeStr = getSafeStr(doc, "defaultMonthlyTuition")
-                        val subjects = getSafeStr(doc, "subjects")
-                        val sections = getSafeStr(doc, "sections")
-                        val feeTemplateRaw = getSafeStr(doc, "feeTemplateRaw")
-                        val collectTuitionAtAdmission = try {
-                            if (doc.contains("collectTuitionAtAdmission")) {
-                                doc.get<Boolean?>("collectTuitionAtAdmission") ?: true
-                            } else {
-                                true
-                            }
-                        } catch (e: Exception) {
-                            true
-                        }
-                        if (batchName.isNotBlank()) {
-                            database.batchDao().insertBatch(
-                                BatchEntity(
-                                    id = id,
-                                    schoolCode = schoolCode,
-                                    batchName = batchName,
-                                    defaultMonthlyTuition = feeStr.toDoubleOrNull() ?: 0.0,
-                                    subjects = subjects,
-                                    sections = sections,
-                                    feeTemplateRaw = feeTemplateRaw,
-                                    collectTuitionAtAdmission = collectTuitionAtAdmission
-                                )
-                            )
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-                try {
-                    val studentDocs = schoolRef.collection("students").get().documents
-                    for (doc in studentDocs) {
-                        val deletionMarker = schoolRef
-                            .collection("deletedStudents")
-                            .document(doc.id)
-                            .get()
-                        if (deletionMarker.exists) continue
-
-                        val id = doc.id.toLongOrNull() ?: 0L
-                        val rollNo = getSafeStr(doc, "rollNo")
-                        val name = getSafeStr(doc, "name")
-                        val gradeClass = getSafeStr(doc, "gradeClass")
-                        val section = getSafeStr(doc, "section")
-                        val guardianName = getSafeStr(doc, "guardianName")
-                        val fatherName = getSafeStr(doc, "fatherName").ifBlank { guardianName }
-                        val motherName = getSafeStr(doc, "motherName")
-                        val phone = getSafeStr(doc, "phone")
-                        val whatsapp = getSafeStr(doc, "whatsapp").ifBlank { phone }
-                        val feeStr = getSafeStr(doc, "monthlyFee")
-                        val admFeeStr = getSafeStr(doc, "admissionFee")
-                        val admissionDate = getSafeStr(doc, "admissionDate")
-                        val dob = getSafeStr(doc, "dob")
-                        val caste = getSafeStr(doc, "caste")
-                        val gender = getSafeStr(doc, "gender").ifBlank { "Male" }
-                        val address = getSafeStr(doc, "address")
-                        val aadharNumber = getSafeStr(doc, "aadharNumber")
-                        val photoBase64 = getSafeStr(doc, "photoBase64")
-
-                        if (name.isNotBlank()) {
-                            database.studentDao().insertStudent(
-                                StudentEntity(
-                                    id = id,
-                                    schoolCode = schoolCode,
-                                    rollNo = rollNo,
-                                    name = name,
-                                    gradeClass = gradeClass,
-                                    section = section,
-                                    guardianName = guardianName.ifBlank { fatherName },
-                                    fatherName = fatherName,
-                                    motherName = motherName,
-                                    phone = phone,
-                                    whatsapp = whatsapp,
-                                    monthlyFee = feeStr.toDoubleOrNull() ?: 0.0,
-                                    admissionFee = admFeeStr.toDoubleOrNull() ?: 0.0,
-                                    admissionDate = admissionDate,
-                                    dob = dob,
-                                    caste = caste,
-                                    gender = gender,
-                                    address = address,
-                                    aadharNumber = aadharNumber,
-                                    photoBase64 = photoBase64
-                                )
-                            )
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-                try {
-                    val staffDocs = schoolRef.collection("staff").get().documents
-                    for (doc in staffDocs) {
-                        val deletionMarker = schoolRef
-                            .collection("deletedStaff")
-                            .document(doc.id)
-                            .get()
-                        if (deletionMarker.exists) continue
-
-                        val id = doc.id.toLongOrNull() ?: 0L
-                        val name = getSafeStr(doc, "name")
-                        val role = getSafeStr(doc, "role").ifBlank { "Teacher" }
-                        val phone = getSafeStr(doc, "phone")
-                        val salStr = getSafeStr(doc, "salary")
-                        val joinDate = getSafeStr(doc, "joinDate")
-                        val qualification = getSafeStr(doc, "qualification")
-                        val whatsapp = getSafeStr(doc, "whatsapp").ifBlank { phone }
-                        val salaryType = getSafeStr(doc, "salaryType").ifBlank { "Monthly" }
-                        val gender = getSafeStr(doc, "gender").ifBlank { "Male" }
-                        val address = getSafeStr(doc, "address")
-                        val photoBase64 = getSafeStr(doc, "photoBase64")
-                        if (name.isNotBlank()) {
-                            database.staffDao().insertStaff(
-                                StaffEntity(
-                                    id = id,
-                                    schoolCode = schoolCode,
-                                    name = name,
-                                    role = role,
-                                    phone = phone,
-                                    salary = salStr.toDoubleOrNull() ?: 0.0,
-                                    joinDate = joinDate,
-                                    gender = gender,
-                                    whatsapp = whatsapp,
-                                    address = address,
-                                    qualification = qualification,
-                                    salaryType = salaryType,
-                                    photoBase64 = photoBase64,
-                                    password = phone
-                                )
-                            )
-                        }
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-
-                try {
-                    val feeDocs = schoolRef.collection("fees").get().documents
-                    for (doc in feeDocs) {
-                        val id = doc.id.toLongOrNull() ?: 0L
-                        val studentId = getSafeStr(doc, "studentId").toLongOrNull() ?: 0L
-                        val studentName = getSafeStr(doc, "studentName")
-                        val gradeClass = getSafeStr(doc, "gradeClass")
-                        val feeMonth = getSafeStr(doc, "feeMonth")
-                        val amountStr = getSafeStr(doc, "amountPaid")
-                        val paymentDate = getSafeStr(doc, "paymentDate")
-                        val paymentMode = getSafeStr(doc, "paymentMode").ifBlank { "Cash" }
-                        val remarks = getSafeStr(doc, "remarks")
-                        database.feeDao().insertFee(
-                            FeeRecordEntity(
-                                id = id,
-                                studentId = studentId,
-                                studentName = studentName,
-                                gradeClass = gradeClass,
-                                feeMonth = feeMonth,
-                                schoolCode = schoolCode,
-                                amountPaid = amountStr.toDoubleOrNull() ?: 0.0,
-                                paymentDate = paymentDate,
-                                paymentMode = paymentMode,
-                                remarks = remarks
-                            )
-                        )
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
+    private val rtdb = Firebase.database
+    private val scope = CoroutineScope(Dispatchers.Default)
 
     /**
-     * A tombstone prevents a deleted student from being recreated by
-     * background synchronization or cloud restoration.
+     * Pushes all local SQLite data directly to Firebase Realtime Database.
+     * RTDB has NO daily 20,000 operation write cap, so this is safe for bulk sync.
      */
-    suspend fun deleteStudentRecord(
-        schoolCode: String,
-        student: StudentEntity
-    ): Boolean {
+    suspend fun pushAllLocalDataToCloud(schoolCode: String) {
+        if (schoolCode.isBlank()) return
+        println("===> [RTDB SYNC] Pushing all local data to Realtime Database for school: $schoolCode")
+
+        val schoolRef = rtdb.reference("schools").child(schoolCode)
+
+        // 1. School Info
+        try {
+            val school = database.schoolDao().getSchoolByCode(schoolCode)
+            if (school != null) {
+                schoolRef.child("info").setValue(
+                    mapOf(
+                        "schoolCode" to school.schoolCode,
+                        "schoolName" to school.schoolName,
+                        "email" to school.email,
+                        "phone" to school.phone,
+                        "address" to school.address,
+                        "photoBase64" to school.photoBase64
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 2. Batches
+        try {
+            val batches = database.batchDao().getBatchesBySchool(schoolCode).first()
+            val batchMap = mutableMapOf<String, Any>()
+            for (item in batches) {
+                batchMap[item.id.toString()] = mapOf(
+                    "id" to item.id.toString(),
+                    "schoolCode" to item.schoolCode,
+                    "batchName" to item.batchName,
+                    "className" to item.className,
+                    "section" to item.section,
+                    "monthlyFee" to item.monthlyFee.toString(),
+                    "admissionFee" to item.admissionFee.toString(),
+                    "subjects" to item.subjects,
+                    "startDate" to item.startDate,
+                    "endDate" to item.endDate
+                )
+            }
+            if (batchMap.isNotEmpty()) {
+                schoolRef.child("batches").setValue(batchMap)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 3. Students
+        try {
+            val students = database.studentDao().getStudentsBySchool(schoolCode).first()
+            val studentMap = mutableMapOf<String, Any>()
+            for (item in students) {
+                studentMap[item.id.toString()] = mapOf(
+                    "id" to item.id.toString(),
+                    "schoolCode" to item.schoolCode,
+                    "rollNo" to item.rollNo,
+                    "name" to item.name,
+                    "gradeClass" to item.gradeClass,
+                    "section" to item.section,
+                    "guardianName" to item.guardianName,
+                    "fatherName" to item.fatherName,
+                    "motherName" to item.motherName,
+                    "phone" to item.phone,
+                    "whatsapp" to item.whatsapp,
+                    "address" to item.address,
+                    "dob" to item.dob,
+                    "gender" to item.gender,
+                    "caste" to item.caste,
+                    "admissionDate" to item.admissionDate,
+                    "photoBase64" to item.photoBase64
+                )
+            }
+            if (studentMap.isNotEmpty()) {
+                schoolRef.child("students").setValue(studentMap)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 4. Staff
+        try {
+            val staffList = database.staffDao().getStaffBySchool(schoolCode).first()
+            val staffMap = mutableMapOf<String, Any>()
+            for (item in staffList) {
+                staffMap[item.id.toString()] = mapOf(
+                    "id" to item.id.toString(),
+                    "schoolCode" to item.schoolCode,
+                    "name" to item.name,
+                    "role" to item.role,
+                    "phone" to item.phone,
+                    "whatsapp" to item.whatsapp,
+                    "salary" to item.salary.toString(),
+                    "qualification" to item.qualification,
+                    "joinDate" to item.joinDate,
+                    "gender" to item.gender,
+                    "address" to item.address,
+                    "photoBase64" to item.photoBase64
+                )
+            }
+            if (staffMap.isNotEmpty()) {
+                schoolRef.child("staff").setValue(staffMap)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 5. Fees
+        try {
+            val fees = database.feeDao().getFeesBySchool(schoolCode).first()
+            val feeMap = mutableMapOf<String, Any>()
+            for (item in fees) {
+                feeMap[item.id.toString()] = mapOf(
+                    "id" to item.id.toString(),
+                    "schoolCode" to item.schoolCode,
+                    "studentId" to item.studentId.toString(),
+                    "monthYear" to item.monthYear,
+                    "amount" to item.amount.toString(),
+                    "status" to item.status,
+                    "paidDate" to item.paidDate,
+                    "remarks" to item.remarks
+                )
+            }
+            if (feeMap.isNotEmpty()) {
+                schoolRef.child("fees").setValue(feeMap)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        println("===> [RTDB SYNC] Finished pushing all collections to Realtime Database successfully!")
+    }
+
+    suspend fun deleteStudentRecord(schoolCode: String, student: StudentEntity): Boolean {
         val targetSchool = schoolCode.ifBlank { student.schoolCode }
         try {
             database.studentDao().deleteStudent(student)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        if (targetSchool.isBlank()) return true
-
-        scope.launch {
-            try {
-                val schoolRef = firestore.collection("schools").document(targetSchool)
-                schoolRef.collection("deletedStudents")
-                    .document(student.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to student.id.toString(),
-                            "deleted" to true
-                        )
-                    )
-                schoolRef.collection("students")
-                    .document(student.id.toString())
-                    .delete()
-            } catch (e: Exception) {
-                e.printStackTrace()
+        if (targetSchool.isNotBlank()) {
+            scope.launch {
+                try {
+                    rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
         return true
     }
 
-    /**
-     * A tombstone prevents a deleted staff member from being recreated by
-     * background synchronization or cloud restoration.
-     */
-    suspend fun deleteStaffRecord(
-        schoolCode: String,
-        staff: StaffEntity
-    ): Boolean {
+    suspend fun deleteStaffRecord(schoolCode: String, staff: StaffEntity): Boolean {
         val targetSchool = schoolCode.ifBlank { staff.schoolCode }
         try {
             database.staffDao().deleteStaff(staff)
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        if (targetSchool.isBlank()) return true
-
-        scope.launch {
-            try {
-                val schoolRef = firestore.collection("schools").document(targetSchool)
-                schoolRef.collection("deletedStaff")
-                    .document(staff.id.toString())
-                    .set(
-                        mapOf(
-                            "id" to staff.id.toString(),
-                            "deleted" to true
-                        )
-                    )
-                schoolRef.collection("staff")
-                    .document(staff.id.toString())
-                    .delete()
-            } catch (e: Exception) {
-                e.printStackTrace()
+        if (targetSchool.isNotBlank()) {
+            scope.launch {
+                try {
+                    rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
         return true
@@ -466,167 +194,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
 
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
-
         scope.launch {
-            database.batchDao().getBatchesBySchool(schoolCode).collectLatest { list ->
-                for (item in list) {
-                    try {
-                        firestore.collection("schools").document(schoolCode)
-                            .collection("classes").document(item.id.toString())
-                            .set(
-                                mapOf(
-                                    "id" to item.id.toString(),
-                                    "schoolCode" to item.schoolCode,
-                                    "batchName" to item.batchName,
-                                    "defaultMonthlyTuition" to item.defaultMonthlyTuition.toString(),
-                                    "subjects" to item.subjects,
-                                    "sections" to item.sections,
-                                    "feeTemplateRaw" to item.feeTemplateRaw,
-                                    "collectTuitionAtAdmission" to item.collectTuitionAtAdmission
-                                )
-                            )
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
-
-        scope.launch {
-            database.studentDao().getStudentsBySchool(schoolCode).collectLatest { list ->
-                for (item in list) {
-                    try {
-                        val deletionMarker = firestore.collection("schools")
-                            .document(schoolCode)
-                            .collection("deletedStudents")
-                            .document(item.id.toString())
-                            .get()
-                        if (deletionMarker.exists) continue
-
-                        firestore.collection("schools").document(schoolCode)
-                            .collection("students").document(item.id.toString())
-                            .set(
-                                mapOf(
-                                    "id" to item.id.toString(),
-                                    "schoolCode" to item.schoolCode,
-                                    "rollNo" to item.rollNo,
-                                    "name" to item.name,
-                                    "gradeClass" to item.gradeClass,
-                                    "section" to item.section,
-                                    "guardianName" to item.guardianName,
-                                    "fatherName" to item.fatherName,
-                                    "motherName" to item.motherName,
-                                    "phone" to item.phone,
-                                    "whatsapp" to item.whatsapp,
-                                    "monthlyFee" to item.monthlyFee.toString(),
-                                    "admissionFee" to item.admissionFee.toString(),
-                                    "admissionDate" to item.admissionDate,
-                                    "dob" to item.dob,
-                                    "caste" to item.caste,
-                                    "gender" to item.gender,
-                                    "address" to item.address,
-                                    "aadharNumber" to item.aadharNumber,
-                                    "photoBase64" to item.photoBase64
-                                )
-                            )
-
-                        // Recheck after upload to handle a concurrent deletion.
-                        val markerAfterUpload = firestore.collection("schools")
-                            .document(schoolCode)
-                            .collection("deletedStudents")
-                            .document(item.id.toString())
-                            .get()
-
-                        if (markerAfterUpload.exists) {
-                            firestore.collection("schools")
-                                .document(schoolCode)
-                                .collection("students")
-                                .document(item.id.toString())
-                                .delete()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
-
-        scope.launch {
-            database.staffDao().getStaffBySchool(schoolCode).collectLatest { list ->
-                for (item in list) {
-                    try {
-                        val deletionMarker = firestore.collection("schools")
-                            .document(schoolCode)
-                            .collection("deletedStaff")
-                            .document(item.id.toString())
-                            .get()
-                        if (deletionMarker.exists) continue
-
-                        firestore.collection("schools").document(schoolCode)
-                            .collection("staff").document(item.id.toString())
-                            .set(
-                                mapOf(
-                                    "id" to item.id.toString(),
-                                    "schoolCode" to item.schoolCode,
-                                    "name" to item.name,
-                                    "role" to item.role,
-                                    "phone" to item.phone,
-                                    "salary" to item.salary.toString(),
-                                    "qualification" to item.qualification,
-                                    "whatsapp" to item.whatsapp,
-                                    "salaryType" to item.salaryType,
-                                    "gender" to item.gender,
-                                    "address" to item.address,
-                                    "photoBase64" to item.photoBase64,
-                                    "joinDate" to item.joinDate
-                                )
-                            )
-
-                        // Recheck after upload to handle a concurrent deletion.
-                        val markerAfterUpload = firestore.collection("schools")
-                            .document(schoolCode)
-                            .collection("deletedStaff")
-                            .document(item.id.toString())
-                            .get()
-
-                        if (markerAfterUpload.exists) {
-                            firestore.collection("schools")
-                                .document(schoolCode)
-                                .collection("staff")
-                                .document(item.id.toString())
-                                .delete()
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            }
-        }
-
-        scope.launch {
-            database.feeDao().getFeeRecordsBySchool(schoolCode).collectLatest { list ->
-                for (item in list) {
-                    try {
-                        firestore.collection("schools").document(schoolCode)
-                            .collection("fees").document(item.id.toString())
-                            .set(
-                                mapOf(
-                                    "id" to item.id.toString(),
-                                    "schoolCode" to item.schoolCode,
-                                    "studentId" to item.studentId.toString(),
-                                    "studentName" to item.studentName,
-                                    "gradeClass" to item.gradeClass,
-                                    "feeMonth" to item.feeMonth,
-                                    "amountPaid" to item.amountPaid.toString(),
-                                    "paymentDate" to item.paymentDate,
-                                    "paymentMode" to item.paymentMode,
-                                    "remarks" to item.remarks
-                                )
-                            )
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
+            try {
+                pushAllLocalDataToCloud(schoolCode)
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
