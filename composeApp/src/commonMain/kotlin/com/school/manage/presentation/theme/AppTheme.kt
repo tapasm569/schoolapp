@@ -4,6 +4,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.unit.dp
 
 data class SchoolThemeColors(
     val isDark: Boolean,
@@ -24,36 +26,36 @@ data class SchoolThemeColors(
 
 val LightPalette = SchoolThemeColors(
     isDark = false,
-    bgApp = Color(0xFFF4F7FB),
+    bgApp = Color(0xFFF5F7FC),
     bgCard = Color(0xFFFFFFFF),
-    bgCardHover = Color(0xFFF8FAFC),
-    borderCard = Color(0xFFE2E8F0),
-    textPrimary = Color(0xFF0F172A),
-    textSecondary = Color(0xFF64748B),
-    brandPrimary = Color(0xFF0D529C),
-    brandAccent = Color(0xFF2563EB),
-    success = Color(0xFF16A34A),
-    error = Color(0xFFDC2626),
-    warning = Color(0xFFD97706),
+    bgCardHover = Color(0xFFF0F3FA),
+    borderCard = Color(0xFFE3E8F2),
+    textPrimary = Color(0xFF172033),
+    textSecondary = Color(0xFF667085),
+    brandPrimary = Color(0xFF4338CA),
+    brandAccent = Color(0xFF0D9488),
+    success = Color(0xFF15803D),
+    error = Color(0xFFB42318),
+    warning = Color(0xFFB45309),
     inputBg = Color(0xFFFFFFFF),
-    inputBorder = Color(0xFFCBD5E1)
+    inputBorder = Color(0xFFD0D5DD)
 )
 
 val DarkPalette = SchoolThemeColors(
     isDark = true,
-    bgApp = Color(0xFF0B1120),
-    bgCard = Color(0xFF1E293B),
-    bgCardHover = Color(0xFF334155),
-    borderCard = Color(0xFF334155),
-    textPrimary = Color(0xFFF8FAFC),
-    textSecondary = Color(0xFF94A3B8),
-    brandPrimary = Color(0xFF38BDF8),
-    brandAccent = Color(0xFF60A5FA),
-    success = Color(0xFF22C55E),
-    error = Color(0xFFEF4444),
-    warning = Color(0xFFF59E0B),
-    inputBg = Color(0xFF1E293B),
-    inputBorder = Color(0xFF475569)
+    bgApp = Color(0xFF101522),
+    bgCard = Color(0xFF191F2E),
+    bgCardHover = Color(0xFF252D40),
+    borderCard = Color(0xFF343D52),
+    textPrimary = Color(0xFFF2F4F8),
+    textSecondary = Color(0xFFADB7CA),
+    brandPrimary = Color(0xFFA5B4FC),
+    brandAccent = Color(0xFF5EEAD4),
+    success = Color(0xFF4ADE80),
+    error = Color(0xFFFF8A80),
+    warning = Color(0xFFFBBF24),
+    inputBg = Color(0xFF20283A),
+    inputBorder = Color(0xFF48536B)
 )
 
 val LocalSchoolColors = staticCompositionLocalOf { LightPalette }
@@ -93,6 +95,13 @@ fun SchoolAppTheme(
     ) {
         MaterialTheme(
             colorScheme = m3Colors,
+            shapes = Shapes(
+                extraSmall = RoundedCornerShape(8.dp),
+                small = RoundedCornerShape(12.dp),
+                medium = RoundedCornerShape(16.dp),
+                large = RoundedCornerShape(22.dp),
+                extraLarge = RoundedCornerShape(28.dp)
+            ),
             content = content
         )
     }
