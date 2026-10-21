@@ -268,8 +268,9 @@ fun DashboardScreen(
                 
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(horizontal = 16.dp),
+            contentPadding = PaddingValues(bottom = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
 
@@ -377,9 +378,10 @@ fun DashboardScreen(
             // 3. Attendance Summary (Current Date + Calendar Picker + Horizontal Class-Wise Tiles)
             item {
                 Surface(
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = colors.bgCard,
                     border = BorderStroke(1.dp, colors.borderCard),
+                    shadowElevation = if (colors.isDark) 0.dp else 2.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -690,9 +692,10 @@ fun DashboardScreen(
             // 5. Monthly Financial Summary
             item {
                 Surface(
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(20.dp),
                     color = colors.bgCard,
                     border = BorderStroke(1.dp, colors.borderCard),
+                    shadowElevation = if (colors.isDark) 0.dp else 2.dp,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
