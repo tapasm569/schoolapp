@@ -42,6 +42,7 @@ fun CustomRoundedInput(
         shape = RoundedCornerShape(16.dp),
         color = colors.inputBg,
         border = BorderStroke(1.2.dp, colors.inputBorder),
+        shadowElevation = if (colors.isDark) 0.dp else 1.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -91,9 +92,10 @@ fun DropdownTriggerInput(
 ) {
     val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(16.dp),
         color = colors.inputBg,
         border = BorderStroke(1.dp, colors.inputBorder),
+        shadowElevation = if (colors.isDark) 0.dp else 1.dp,
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
     ) {
         Row(
@@ -177,9 +179,10 @@ fun TopCountCard(
     val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = colors.bgCard,
         border = BorderStroke(1.dp, colors.borderCard),
+        shadowElevation = if (colors.isDark) 0.dp else 2.dp,
         modifier = modifier
     ) {
         Column {
@@ -218,9 +221,10 @@ fun AttendanceProgressBarCard(
 ) {
     val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(20.dp),
         color = colors.bgCard,
         border = BorderStroke(1.dp, colors.borderCard),
+        shadowElevation = if (colors.isDark) 0.dp else 2.dp,
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
@@ -418,9 +422,10 @@ fun StatMetricTile(
 ) {
     val colors = LocalSchoolColors.current
     Surface(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         color = colors.bgCard,
         border = BorderStroke(1.dp, colors.borderCard),
+        shadowElevation = if (colors.isDark) 0.dp else 2.dp,
         modifier = modifier
     ) {
         Row(
@@ -457,9 +462,10 @@ fun ModernActionTile(
     val colors = LocalSchoolColors.current
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         color = colors.bgCard,
         border = BorderStroke(1.dp, colors.borderCard),
+        shadowElevation = if (colors.isDark) 0.dp else 2.dp,
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
