@@ -62,73 +62,27 @@ fun DashboardScreen(
     onLogout: () -> Unit
 ) {
     // ================= CHRONOLOGICAL SETUP FLOW =================
-    val setupBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val setupStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
-    var setupGuided by remember { mutableStateOf(false) }
+    val flowBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val flowStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    var isSetupNavigated by remember { mutableStateOf(false) }
 
-    LaunchedEffect(setupBatches, setupStaff) {
-        if (!setupGuided) {
-            if (setupBatches.isEmpty()) {
+    LaunchedEffect(flowBatches, flowStaff) {
+        if (!isSetupNavigated) {
+            if (flowBatches.isEmpty()) {
                 onNavigate("add_batch")
-                setupGuided = true
-            } else if (setupStaff.isEmpty()) {
+                isSetupNavigated = true
+            } else if (flowStaff.isEmpty()) {
                 onNavigate("add_staff")
-                setupGuided = true
+                isSetupNavigated = true
             }
         }
     }
     // ============================================================
 
-    // ================= CHRONOLOGICAL SETUP FLOW =================
-    val setupBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val setupStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
-    
-    LaunchedEffect(setupBatches, setupStaff) {
-        if (!setupGuided) {
-            if (setupBatches.isEmpty()) {
-                onNavigate("add_batch")
-                setupGuided = true
-            } else if (setupStaff.isEmpty()) {
-                onNavigate("add_staff")
-                setupGuided = true
-            }
-        }
-    }
-    // ============================================================
 
-    // ================= NATIVE FIRST-TIME SETUP FLOW WATCHER =================
-        val subjectsListCheck by database.schoolDao().getSchoolByCode(schoolCode).let { 
-        // fallback or collector
-        remember { mutableStateOf(emptyList<String>()) }
-    }
-        
-    
-    LaunchedEffect(batchesList, staffListCheck) {
-        if (!setupGuided) {
-            if (batchesList.isEmpty()) {
-                // Step 1: Force open Class/Batch list screen
-                onNavigate("add_batch")
-                setupGuided = true
-            } else if (staffListCheck.isEmpty()) {
-                // Step 4: If classes exist but no staff, prompt staff add
-                onNavigate("add_staff")
-                setupGuided = true
-            }
-        }
-    }
-    // ======================================================================
 
-    // ================= NATIVE FIRST-TIME SETUP FLOW STATE =================
-            
-    
-    LaunchedEffect(batchesList, staffListCheck) {
-        if (!setupStepChecked && batchesList.isEmpty()) {
-            // Step 1: Force open Add Class screen if no classes exist
-            onNavigate("add_batch")
-            setupStepChecked = true
-        }
-    }
-    // ======================================================================
+
+
 
 
     // Financial Dues & Payroll Calculations for Dashboard Cards
