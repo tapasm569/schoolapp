@@ -1,3 +1,6 @@
+import com.school.manage.presentation.screens.SchoolSetupWizardScreen
+import dev.gitlive.firebase.database.database
+import dev.gitlive.firebase.Firebase
 package com.school.manage.presentation.screens
 
 import androidx.compose.ui.window.Dialog
@@ -59,6 +62,37 @@ fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
+    // ================= MANDATORY CHRONOLOGICAL SETUP GATEKEEPER =================
+    var isSchoolSetupDone by remember { mutableStateOf<Boolean?>(null) }
+    val currentSchoolCode = remember { 
+        try { currentSchool?.schoolCode ?: "12345" } catch(e: Exception) { "12345" } 
+    }
+
+    LaunchedEffect(currentSchoolCode) {
+        try {
+            val root = Firebase.database.reference("schools").child(currentSchoolCode)
+            val infoSnap = root.child("info").get()
+            val isDone = infoSnap.child("setupCompleted").value as? Boolean ?: false
+            val batchesSnap = root.child("batches").get()
+            val hasBatches = batchesSnap.children.toList().isNotEmpty()
+            
+            isSchoolSetupDone = isDone && hasBatches
+        } catch (e: Exception) {
+            isSchoolSetupDone = true // Fallback to avoid lockout on network issues
+        }
+    }
+
+    if (isSchoolSetupDone == false) {
+        SchoolSetupWizardScreen(
+            schoolCode = currentSchoolCode,
+            onSetupCompleted = {
+                isSchoolSetupDone = true
+            }
+        )
+        return
+    }
+    // ============================================================================
+
     // Financial Dues & Payroll Calculations for Dashboard Cards
     val allStudentsList by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val allSchoolFeeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
