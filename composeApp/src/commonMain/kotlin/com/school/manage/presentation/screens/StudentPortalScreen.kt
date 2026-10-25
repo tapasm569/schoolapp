@@ -1,5 +1,10 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -39,6 +44,8 @@ fun StudentPortalScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
+    var showResultDialog by remember { mutableStateOf(false) }
+
     val primaryColor = MaterialTheme.colorScheme.primary
     val uriHandler = LocalUriHandler.current
     val scope = rememberCoroutineScope()
