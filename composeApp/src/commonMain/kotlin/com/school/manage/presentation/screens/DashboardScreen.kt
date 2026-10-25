@@ -61,16 +61,31 @@ fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
+    // ================= CHRONOLOGICAL SETUP FLOW =================
+    val setupBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val setupStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    var setupGuided by remember { mutableStateOf(false) }
+
+    LaunchedEffect(setupBatches, setupStaff) {
+        if (!setupGuided) {
+            if (setupBatches.isEmpty()) {
+                onNavigate("add_batch")
+                setupGuided = true
+            } else if (setupStaff.isEmpty()) {
+                onNavigate("add_staff")
+                setupGuided = true
+            }
+        }
+    }
+    // ============================================================
+
     // ================= NATIVE FIRST-TIME SETUP FLOW WATCHER =================
-    val batchesList by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val subjectsListCheck by database.schoolDao().getSchoolByCode(schoolCode).let { 
+        val subjectsListCheck by database.schoolDao().getSchoolByCode(schoolCode).let { 
         // fallback or collector
         remember { mutableStateOf(emptyList<String>()) }
     }
-    val staffListCheck by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+        
     
-    var setupGuided by remember { mutableStateOf(false) }
-
     LaunchedEffect(batchesList, staffListCheck) {
         if (!setupGuided) {
             if (batchesList.isEmpty()) {
@@ -87,11 +102,8 @@ fun DashboardScreen(
     // ======================================================================
 
     // ================= NATIVE FIRST-TIME SETUP FLOW STATE =================
-    val batchesList by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val staffListCheck by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+            
     
-    var setupStepChecked by remember { mutableStateOf(false) }
-
     LaunchedEffect(batchesList, staffListCheck) {
         if (!setupStepChecked && batchesList.isEmpty()) {
             // Step 1: Force open Add Class screen if no classes exist
