@@ -79,6 +79,23 @@ fun DashboardScreen(
     }
     // ============================================================
 
+    // ================= CHRONOLOGICAL SETUP FLOW =================
+    val setupBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val setupStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    
+    LaunchedEffect(setupBatches, setupStaff) {
+        if (!setupGuided) {
+            if (setupBatches.isEmpty()) {
+                onNavigate("add_batch")
+                setupGuided = true
+            } else if (setupStaff.isEmpty()) {
+                onNavigate("add_staff")
+                setupGuided = true
+            }
+        }
+    }
+    // ============================================================
+
     // ================= NATIVE FIRST-TIME SETUP FLOW WATCHER =================
         val subjectsListCheck by database.schoolDao().getSchoolByCode(schoolCode).let { 
         // fallback or collector
