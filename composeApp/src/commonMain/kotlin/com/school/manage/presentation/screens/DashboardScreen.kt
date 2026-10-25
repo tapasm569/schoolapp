@@ -1,7 +1,7 @@
+package com.school.manage.presentation.screens
 import com.school.manage.presentation.screens.SchoolSetupWizardScreen
 import dev.gitlive.firebase.database.database
 import dev.gitlive.firebase.Firebase
-package com.school.manage.presentation.screens
 
 import androidx.compose.ui.window.Dialog
 
@@ -64,13 +64,12 @@ fun DashboardScreen(
 ) {
     // ================= MANDATORY CHRONOLOGICAL SETUP GATEKEEPER =================
     var isSchoolSetupDone by remember { mutableStateOf<Boolean?>(null) }
-    val currentSchoolCode = remember { 
-        try { currentSchool?.schoolCode ?: "12345" } catch(e: Exception) { "12345" } 
-    }
+    val activeSchoolCode = schoolCode
 
-    LaunchedEffect(currentSchoolCode) {
+    LaunchedEffect(activeSchoolCode) {
         try {
-            val root = Firebase.database.reference("schools").child(currentSchoolCode)
+            val code = activeSchoolCode.ifBlank { "12345" }
+            val root = Firebase.database.reference("schools").child(code)
             val infoSnap = root.child("info").get()
             val isDone = infoSnap.child("setupCompleted").value as? Boolean ?: false
             val batchesSnap = root.child("batches").get()
@@ -78,13 +77,13 @@ fun DashboardScreen(
             
             isSchoolSetupDone = isDone && hasBatches
         } catch (e: Exception) {
-            isSchoolSetupDone = true // Fallback to avoid lockout on network issues
+            isSchoolSetupDone = true
         }
     }
 
     if (isSchoolSetupDone == false) {
         SchoolSetupWizardScreen(
-            schoolCode = currentSchoolCode,
+            schoolCode = activeSchoolCode.ifBlank { "12345" },
             onSetupCompleted = {
                 isSchoolSetupDone = true
             }
