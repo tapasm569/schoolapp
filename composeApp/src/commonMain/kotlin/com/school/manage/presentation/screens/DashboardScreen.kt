@@ -1,5 +1,4 @@
 package com.school.manage.presentation.screens
-import com.school.manage.presentation.screens.SchoolSetupWizardScreen
 import dev.gitlive.firebase.database.database
 import dev.gitlive.firebase.Firebase
 
@@ -62,35 +61,46 @@ fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
-    // ================= MANDATORY CHRONOLOGICAL SETUP GATEKEEPER =================
-    var isSchoolSetupDone by remember { mutableStateOf<Boolean?>(null) }
-    val activeSchoolCode = schoolCode
+    // ================= NATIVE FIRST-TIME SETUP FLOW WATCHER =================
+    val batchesList by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val subjectsListCheck by database.schoolDao().getSchoolByCode(schoolCode).let { 
+        // fallback or collector
+        remember { mutableStateOf(emptyList<String>()) }
+    }
+    val staffListCheck by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    
+    var setupGuided by remember { mutableStateOf(false) }
 
-    LaunchedEffect(activeSchoolCode) {
-        try {
-            val code = activeSchoolCode.ifBlank { "12345" }
-            val root = Firebase.database.reference("schools").child(code)
-            val infoSnap = root.child("info").get()
-            val isDone = infoSnap.child("setupCompleted").value as? Boolean ?: false
-            val batchesSnap = root.child("batches").get()
-            val hasBatches = batchesSnap.children.toList().isNotEmpty()
-            
-            isSchoolSetupDone = isDone && hasBatches
-        } catch (e: Exception) {
-            isSchoolSetupDone = true
+    LaunchedEffect(batchesList, staffListCheck) {
+        if (!setupGuided) {
+            if (batchesList.isEmpty()) {
+                // Step 1: Force open Class/Batch list screen
+                onNavigate("add_batch")
+                setupGuided = true
+            } else if (staffListCheck.isEmpty()) {
+                // Step 4: If classes exist but no staff, prompt staff add
+                onNavigate("add_staff")
+                setupGuided = true
+            }
         }
     }
+    // ======================================================================
 
-    if (isSchoolSetupDone == false) {
-        SchoolSetupWizardScreen(
-            schoolCode = activeSchoolCode.ifBlank { "12345" },
-            onSetupCompleted = {
-                isSchoolSetupDone = true
-            }
-        )
-        return
+    // ================= NATIVE FIRST-TIME SETUP FLOW STATE =================
+    val batchesList by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val staffListCheck by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    
+    var setupStepChecked by remember { mutableStateOf(false) }
+
+    LaunchedEffect(batchesList, staffListCheck) {
+        if (!setupStepChecked && batchesList.isEmpty()) {
+            // Step 1: Force open Add Class screen if no classes exist
+            onNavigate("add_batch")
+            setupStepChecked = true
+        }
     }
-    // ============================================================================
+    // ======================================================================
+
 
     // Financial Dues & Payroll Calculations for Dashboard Cards
     val allStudentsList by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
