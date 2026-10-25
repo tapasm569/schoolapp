@@ -285,7 +285,14 @@ fun StudentPortalScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeModal = "FEES" })
+                    
+                    StudentModernActionTile(
+                        title = "Result",
+                        icon = "📊",
+                        badgeColor = Color(0xFFEFF6FF),
+                        onClick = { showResultDialog = true }
+                    )
+StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeModal = "FEES" })
                     StudentModernActionTile("Exams", "📝", Color(0xFFE0F2FE), onClick = { activeModal = "EXAMS" })
                     StudentModernActionTile("Classwork", "🖥️", Color(0xFFFEF3C7), onClick = { activeModal = "CLASSWORK" })
                     StudentModernActionTile("Homework", "📖", Color(0xFFFFE4E6), onClick = { activeModal = "HOMEWORK" })
@@ -939,4 +946,107 @@ fun StatBox(label: String, value: String, bgColor: Color, textColor: Color) {
             Text(value, fontWeight = FontWeight.Bold, fontSize = 15.sp, color = textColor)
         }
     }
+
+    // ================= STUDENT RESULT / MARKSHEET DIALOG =================
+    if (showResultDialog) {
+        AlertDialog(
+            onDismissRequest = { showResultDialog = false },
+            shape = RoundedCornerShape(24.dp),
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("📊", fontSize = 22.sp)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Exam Results", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp)
+                }
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Official Academic Scorecard",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Gray
+                    )
+
+                    // Card showing Marks Overview
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFFF1F5F9),
+                        border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(14.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text("Term Examination", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = Color(0xFFDCFCE7)
+                                ) {
+                                    Text(
+                                        "PASSED",
+                                        color = Color(0xFF15803D),
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Divider(color = Color(0xFFCBD5E1), thickness = 0.5.dp)
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Subjects & Scores
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Mathematics", fontSize = 13.sp, color = Color(0xFF334155))
+                                Text("92 / 100", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("English", fontSize = 13.sp, color = Color(0xFF334155))
+                                Text("85 / 100", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                Text("Science", fontSize = 13.sp, color = Color(0xFF334155))
+                                Text("88 / 100", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFFE0E7FF),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("Overall Percentage", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E40AF))
+                                    Text("88.3% (Grade A+)", fontSize = 12.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF1E40AF))
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showResultDialog = false },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E40AF))
+                ) {
+                    Text("Close", fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
 }
