@@ -49,9 +49,15 @@ fun BatchListScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("School Classes (${batches.size})", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.textPrimary)
-                        Text("Tap any class card to view details & update subjects/fees", fontSize = 11.sp, color = colors.textSecondary)
+                        if (batches.isEmpty()) {
+                            Text("Step 1: Setup Class", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.brandPrimary)
+                            Text("Add at least one class to begin", fontSize = 11.sp, color = colors.textSecondary)
+                        } else {
+                            Text("School Classes (${batches.size})", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.textPrimary)
+                            Text("Tap any class card to view details", fontSize = 11.sp, color = colors.textSecondary)
+                        }
                     }
+                }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -60,6 +66,21 @@ fun BatchListScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = colors.bgApp)
             )
+        },
+        
+        bottomBar = {
+            if (batches.isNotEmpty()) {
+                Surface(color = colors.bgApp, shadowElevation = 24.dp) {
+                    Button(
+                        onClick = { onNavigateBack() },
+                        modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Text("Next Step: Setup Subjects & Fees ➔", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color.White)
+                    }
+                }
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
