@@ -29,7 +29,43 @@ class FirestoreSyncService(private val database: AppDatabase) {
      * Refreshes local data from Firebase without overwriting cloud collections.
      */
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
-        restoreAllFromCloud(schoolCode)
+        if (schoolCode.isBlank()) return
+        try {
+            val root = rtdb.reference("schools").child(schoolCode)
+            
+            // 1. School profile
+            database.schoolDao().getSchoolByCode(schoolCode)?.let { s ->
+                root.child("profile").setValue(s)
+            }
+            
+            // 2. Batches / Classes
+            val batches = database.batchDao().getBatchesForSchool(schoolCode).first()
+            batches.forEach { b ->
+                root.child("batches").child(b.id.toString()).setValue(b)
+            }
+            
+            // 3. Teachers & Staff
+            val staffList = database.staffDao().getStaffForSchool(schoolCode).first()
+            staffList.forEach { st ->
+                root.child("staff").child(st.id.toString()).setValue(st)
+            }
+            
+            // 4. Students
+            val students = database.studentDao().getStudentsForSchool(schoolCode).first()
+            students.forEach { st ->
+                root.child("students").child(st.id.toString()).setValue(st)
+            }
+            
+            // 5. Fees
+            val fees = database.feeRecordDao().getFeeRecordsForSchool(schoolCode).first()
+            fees.forEach { fee ->
+                root.child("fee_records").child(fee.id.toString()).setValue(fee)
+            }
+            
+            println("✓ Successfully uploaded all local data to Firebase schools/$schoolCode")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
     /**
      * Compatibility wrapper for AuthScreens: restores all records from RTDB into local SQLite.
