@@ -62,22 +62,36 @@ fun DashboardScreen(
     onLogout: () -> Unit
 ) {
     // ================= CHRONOLOGICAL SETUP FLOW =================
-    val flowBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val flowStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
-    var isSetupNavigated by remember { mutableStateOf(false) }
+    val setupBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
+    val setupStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
+    
+    var schoolEntityForSetup by remember { mutableStateOf<com.school.manage.core.database.entity.SchoolEntity?>(null) }
+    var setupInitialized by remember { mutableStateOf(false) }
 
-    LaunchedEffect(flowBatches, flowStaff) {
-        if (!isSetupNavigated) {
-            if (flowBatches.isEmpty()) {
+    LaunchedEffect(schoolCode, setupBatches, setupStaff) {
+        schoolEntityForSetup = database.schoolDao().getSchoolByCode(schoolCode)
+        setupInitialized = true
+    }
+
+    LaunchedEffect(setupInitialized, setupBatches, setupStaff, schoolEntityForSetup) {
+        if (setupInitialized && !showManageSubjectsDialog && !showSetAdmissionFeeDialog) {
+            if (setupBatches.isEmpty()) {
+                // Step 1: Classes
                 onNavigate("add_batch")
-                isSetupNavigated = true
-            } else if (flowStaff.isEmpty()) {
+            } else if (schoolEntityForSetup?.masterSubjects.isNullOrBlank()) {
+                // Step 2: Subjects
+                showManageSubjectsDialog = true
+            } else if (setupBatches.any { it.defaultMonthlyTuition <= 0.0 }) {
+                // Step 3: Fee Policy & Admission
+                showSetAdmissionFeeDialog = true
+            } else if (setupStaff.isEmpty()) {
+                // Step 4: Teachers
                 onNavigate("add_staff")
-                isSetupNavigated = true
             }
         }
     }
     // ============================================================
+
 
 
 
