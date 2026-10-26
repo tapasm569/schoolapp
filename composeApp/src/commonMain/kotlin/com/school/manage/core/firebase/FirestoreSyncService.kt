@@ -199,6 +199,24 @@ class FirestoreSyncService(private val database: AppDatabase) {
     /**
      * Saves newly registered school to cloud.
      */
+    /**
+     * Pushes school profile info (including masterSubjects) to Firebase.
+     */
+    suspend fun pushSchoolProfile(schoolCode: String, schoolName: String, masterSubjects: String) {
+        if (schoolCode.isBlank()) return
+        try {
+            rtdb.reference("schools").child(schoolCode).child("profile").updateChildren(
+                mapOf(
+                    "schoolCode" to schoolCode,
+                    "schoolName" to schoolName,
+                    "masterSubjects" to masterSubjects
+                )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     suspend fun saveSchoolToCloud(school: SchoolEntity) {
         if (school.schoolCode.isBlank()) return
         try {

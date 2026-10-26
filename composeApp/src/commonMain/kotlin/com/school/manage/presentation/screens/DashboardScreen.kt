@@ -2264,6 +2264,9 @@ AddNewOptionItem(
                                     if (currentSchool != null) {
                                         val updated = currentSchool.copy(masterSubjects = subjectsStr)
                                         database.schoolDao().insertSchool(updated)
+                                        try {
+                                            FirestoreSyncService(database).pushSchoolProfile(schoolCode, updated.schoolName, subjectsStr)
+                                        } catch (_: Exception) {}
                                     }
                                     showManageSubjectsDialog = false
                                     if (batches.none { it.defaultMonthlyTuition > 0.0 || it.feeTemplateRaw.isNotBlank() }) {
