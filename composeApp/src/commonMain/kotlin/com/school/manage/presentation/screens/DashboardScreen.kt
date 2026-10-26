@@ -2136,7 +2136,7 @@ AddNewOptionItem(
                                                         val savedId = database.batchDao().insertBatch(updatedBatch)
                                                         if (savedId > 0L) {
                                                             try {
-                                                                com.school.manage.core.sync.FirestoreSyncService(database).pushBatch(
+                                                                FirestoreSyncService(database).pushBatch(
                                                                     schoolCode,
                                                                     updatedBatch.copy(id = savedId)
                                                                 )
