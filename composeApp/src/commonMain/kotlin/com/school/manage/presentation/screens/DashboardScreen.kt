@@ -61,44 +61,6 @@ fun DashboardScreen(
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit
 ) {
-    // ================= CHRONOLOGICAL SETUP FLOW =================
-    val setupBatches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
-    val setupStaff by database.staffDao().getStaffBySchool(schoolCode).collectAsState(initial = emptyList())
-    
-    var schoolEntityForSetup by remember { mutableStateOf<com.school.manage.core.database.entity.SchoolEntity?>(null) }
-    var setupInitialized by remember { mutableStateOf(false) }
-
-    LaunchedEffect(schoolCode, setupBatches, setupStaff) {
-        schoolEntityForSetup = database.schoolDao().getSchoolByCode(schoolCode)
-        setupInitialized = true
-    }
-
-    LaunchedEffect(setupInitialized, setupBatches, setupStaff, schoolEntityForSetup) {
-        if (setupInitialized && !showManageSubjectsDialog && !showSetAdmissionFeeDialog) {
-            if (setupBatches.isEmpty()) {
-                // Step 1: Classes
-                onNavigate("add_batch")
-            } else if (schoolEntityForSetup?.masterSubjects.isNullOrBlank()) {
-                // Step 2: Subjects
-                showManageSubjectsDialog = true
-            } else if (setupBatches.any { it.defaultMonthlyTuition <= 0.0 }) {
-                // Step 3: Fee Policy & Admission
-                showSetAdmissionFeeDialog = true
-            } else if (setupStaff.isEmpty()) {
-                // Step 4: Teachers
-                onNavigate("add_staff")
-            }
-        }
-    }
-    // ============================================================
-
-
-
-
-
-
-
-
     // Financial Dues & Payroll Calculations for Dashboard Cards
     val allStudentsList by database.studentDao().getStudentsBySchool(schoolCode).collectAsState(initial = emptyList())
     val allSchoolFeeRecords by database.feeDao().getFeeRecordsBySchool(schoolCode).collectAsState(initial = emptyList())
@@ -239,6 +201,33 @@ fun DashboardScreen(
     var showAddNewBottomSheet by remember { mutableStateOf(false) }
     var showSetAdmissionFeeDialog by remember { mutableStateOf(false) }
     var showManageSubjectsDialog by remember { mutableStateOf(false) }
+
+    // ================= CHRONOLOGICAL 4-STEP SETUP FLOW =================
+    var setupFlowChecked by remember { mutableStateOf(false) }
+    LaunchedEffect(schoolCode, batches.size, allStaffList.size) {
+        kotlinx.coroutines.delay(300)
+        val schoolEntity = database.schoolDao().getSchoolByCode(schoolCode)
+        if (!setupFlowChecked && !showManageSubjectsDialog && !showSetAdmissionFeeDialog) {
+            if (batches.isEmpty()) {
+                // Step 1: Redirect to Classes list so admin can add all classes
+                setupFlowChecked = true
+                onNavigate("batch_list")
+            } else if (schoolEntity?.masterSubjects.isNullOrBlank()) {
+                // Step 2: Classes exist, now confirm/save school subjects
+                setupFlowChecked = true
+                showManageSubjectsDialog = true
+            } else if (batches.any { it.defaultMonthlyTuition <= 0.0 }) {
+                // Step 3: Configure Admission & Tuition Fee policy
+                setupFlowChecked = true
+                showSetAdmissionFeeDialog = true
+            } else if (allStaffList.isEmpty()) {
+                // Step 4: Add first teacher/staff member
+                setupFlowChecked = true
+                onNavigate("add_staff")
+            }
+        }
+    }
+    // ===================================================================
 
     // Navigation Drawer / Hamburger Menu State
     var showHamburgerMenu by remember { mutableStateOf(false) }
@@ -2116,11 +2105,16 @@ AddNewOptionItem(
                                 ) {
                                     OutlinedButton(
                                         enabled = !isSavingFeeRules,
-                                        onClick = { showSetAdmissionFeeDialog = false },
+                                        onClick = {
+                                            showSetAdmissionFeeDialog = false
+                                            if (allStaffList.isEmpty()) {
+                                                onNavigate("add_staff")
+                                            }
+                                        },
                                         modifier = Modifier.weight(1f).height(46.dp),
                                         shape = RoundedCornerShape(12.dp)
                                     ) {
-                                        Text("Cancel")
+                                        Text(if (allStaffList.isEmpty()) "Next: Teacher ➔" else "Close")
                                     }
                                     Button(
                                         enabled = currentBatch != null && !isSavingFeeRules,
@@ -2263,6 +2257,11 @@ AddNewOptionItem(
                                         database.schoolDao().insertSchool(updated)
                                     }
                                     showManageSubjectsDialog = false
+                                    if (batches.any { it.defaultMonthlyTuition <= 0.0 }) {
+                                        showSetAdmissionFeeDialog = true
+                                    } else if (allStaffList.isEmpty()) {
+                                        onNavigate("add_staff")
+                                    }
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = colors.success)
