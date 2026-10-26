@@ -57,7 +57,6 @@ fun BatchListScreen(
                             Text("Tap any class card to view details", fontSize = 11.sp, color = colors.textSecondary)
                         }
                     }
-                }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
