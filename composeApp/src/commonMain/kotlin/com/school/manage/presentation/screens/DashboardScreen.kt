@@ -203,27 +203,22 @@ fun DashboardScreen(
     var showManageSubjectsDialog by remember { mutableStateOf(false) }
 
     // ================= CHRONOLOGICAL 4-STEP SETUP FLOW =================
-    var setupFlowChecked by remember { mutableStateOf(false) }
-    LaunchedEffect(schoolCode, batches.size, allStaffList.size) {
-        kotlinx.coroutines.delay(300)
+    val hasAnyFeeConfigured = remember(batches) {
+        batches.any { it.defaultMonthlyTuition > 0.0 || it.feeTemplateRaw.isNotBlank() }
+    }
+    LaunchedEffect(schoolCode, batches.size, hasAnyFeeConfigured, allStaffList.size) {
+        kotlinx.coroutines.delay(350)
         val schoolEntity = database.schoolDao().getSchoolByCode(schoolCode)
-        if (!setupFlowChecked && !showManageSubjectsDialog && !showSetAdmissionFeeDialog) {
+        if (!showManageSubjectsDialog && !showSetAdmissionFeeDialog) {
             if (batches.isEmpty()) {
                 // Step 1: Redirect to Classes list so admin can add all classes
-                setupFlowChecked = true
                 onNavigate("batch_list")
             } else if (schoolEntity?.masterSubjects.isNullOrBlank()) {
                 // Step 2: Classes exist, now confirm/save school subjects
-                setupFlowChecked = true
                 showManageSubjectsDialog = true
-            } else if (batches.any { it.defaultMonthlyTuition <= 0.0 }) {
-                // Step 3: Configure Admission & Tuition Fee policy
-                setupFlowChecked = true
+            } else if (!hasAnyFeeConfigured && allStaffList.isEmpty()) {
+                // Step 3: Configure Admission & Tuition Fee policy (only during initial setup before staff is added)
                 showSetAdmissionFeeDialog = true
-            } else if (allStaffList.isEmpty()) {
-                // Step 4: Add first teacher/staff member
-                setupFlowChecked = true
-                onNavigate("add_staff")
             }
         }
     }
@@ -2140,9 +2135,23 @@ AddNewOptionItem(
                                                         )
                                                         val savedId = database.batchDao().insertBatch(updatedBatch)
                                                         if (savedId > 0L) {
-                                                            feeSaveMessage = "Saved admission fee rules for ${updatedBatch.batchName}."
-                                                            // The dashboard's Room Flow sync uploads the changed class.
-                                                            // Keep this dialog open so the selected class and saved values remain visible.
+                                                            try {
+                                                                com.school.manage.core.sync.FirestoreSyncService(database).pushBatch(
+                                                                    schoolCode,
+                                                                    updatedBatch.copy(id = savedId)
+                                                                )
+                                                            } catch (_: Exception) {}
+                                                            feeSaveMessage = "✓ Saved fee rules for ${updatedBatch.batchName}!"
+                                                            val allClassesConfigured = batches.all { b ->
+                                                                b.id == updatedBatch.id || b.defaultMonthlyTuition > 0.0 || b.feeTemplateRaw.isNotBlank()
+                                                            }
+                                                            if (allClassesConfigured) {
+                                                                kotlinx.coroutines.delay(400)
+                                                                showSetAdmissionFeeDialog = false
+                                                                if (allStaffList.isEmpty()) {
+                                                                    onNavigate("add_staff")
+                                                                }
+                                                            }
                                                         } else {
                                                             feeSaveMessage = "Error: The fee settings were not saved. Please try again."
                                                         }
@@ -2257,7 +2266,7 @@ AddNewOptionItem(
                                         database.schoolDao().insertSchool(updated)
                                     }
                                     showManageSubjectsDialog = false
-                                    if (batches.any { it.defaultMonthlyTuition <= 0.0 }) {
+                                    if (batches.none { it.defaultMonthlyTuition > 0.0 || it.feeTemplateRaw.isNotBlank() }) {
                                         showSetAdmissionFeeDialog = true
                                     } else if (allStaffList.isEmpty()) {
                                         onNavigate("add_staff")
