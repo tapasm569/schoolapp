@@ -106,7 +106,18 @@ fun DashboardScreen(
     }
 
     LaunchedEffect(schoolCode) {
-        FirestoreSyncService(database).startSync(schoolCode)
+        val syncService = FirestoreSyncService(database)
+        syncService.startSync(schoolCode)
+        // Automatically ensure all local teachers/staff are pushed to cloud
+        kotlinx.coroutines.delay(1000)
+        try {
+            val localStaff = database.staffDao().getStaffBySchool(schoolCode)
+            localStaff.collect { list ->
+                list.forEach { staffMember ->
+                    syncService.pushStaff(schoolCode, staffMember)
+                }
+            }
+        } catch (_: Exception) {}
     }
 
     val colors = LocalSchoolColors.current

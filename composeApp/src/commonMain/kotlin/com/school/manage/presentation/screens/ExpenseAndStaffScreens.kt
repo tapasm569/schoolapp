@@ -86,23 +86,26 @@ fun AddStaffScreen(
                             return@Button
                         }
                         scope.launch {
-                            database.staffDao().insertStaff(
-                                StaffEntity(
-                                    schoolCode = schoolCode,
-                                    name = name.trim(),
-                                    phone = phone.trim(),
-                                    joinDate = startDate,
-                                    gender = gender,
-                                    whatsapp = whatsapp.trim(),
-                                    address = address.trim(),
-                                    qualification = qualification.trim(),
-                                    role = position.ifBlank { "Teacher" },
-                                    salary = salary.toDoubleOrNull() ?: 0.0,
-                                    salaryType = salaryType,
-                                    password = phone.trim(),
-                                    photoBase64 = photoBase64
-                                )
+                            val newStaff = StaffEntity(
+                                schoolCode = schoolCode,
+                                name = name.trim(),
+                                phone = phone.trim(),
+                                joinDate = startDate,
+                                gender = gender,
+                                whatsapp = whatsapp.trim(),
+                                address = address.trim(),
+                                qualification = qualification.trim(),
+                                role = position.ifBlank { "Teacher" },
+                                salary = salary.toDoubleOrNull() ?: 0.0,
+                                salaryType = salaryType,
+                                password = phone.trim(),
+                                photoBase64 = photoBase64
                             )
+                            val insertedId = database.staffDao().insertStaff(newStaff)
+                            try {
+                                val staffToPush = if (insertedId > 0L) newStaff.copy(id = insertedId) else newStaff
+                                FirestoreSyncService(database).pushStaff(schoolCode, staffToPush)
+                            } catch (_: Exception) {}
                             onNavigateBack()
                         }
                     },
@@ -677,6 +680,9 @@ fun StaffScreen(
                                                 photoBase64 = editPhoto
                                             )
                                             database.staffDao().insertStaff(updatedStaff)
+                                            try {
+                                                FirestoreSyncService(database).pushStaff(schoolCode, updatedStaff)
+                                            } catch (_: Exception) {}
                                             selectedTeacherForEdit = null
                                         }
                                     }
