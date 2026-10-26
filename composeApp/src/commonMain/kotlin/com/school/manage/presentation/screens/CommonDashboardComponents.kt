@@ -496,22 +496,35 @@ fun ModernDatePickerDialog(
     val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     val sysToday = remember { getSystemCurrentDate() }
 
+    // Properly parse the date or default strictly to TODAY
     val initialDate = remember(currentDate) {
-        val parts = currentDate.split("/")
-        if (parts.size == 3) {
-            val d = parts[0].toIntOrNull() ?: sysToday.day
-            val m = ((parts[1].toIntOrNull() ?: (sysToday.monthIndex + 1)) - 1).coerceIn(0, 11)
-            val y = parts[2].toIntOrNull() ?: sysToday.year
-            Triple(d, m, y)
+        val cleanDate = currentDate.trim()
+        val parts = cleanDate.split(Regex("[/-]"))
+        
+        if (cleanDate.isNotBlank() && parts.size >= 3) {
+            val first = parts[0].toIntOrNull() ?: sysToday.day
+            val second = parts[1].toIntOrNull() ?: (sysToday.monthIndex + 1)
+            val third = parts[2].toIntOrNull() ?: sysToday.year
+            
+            if (third > 1000) {
+                // Format: DD/MM/YYYY
+                Triple(first.coerceIn(1, 31), (second - 1).coerceIn(0, 11), third)
+            } else if (first > 1000) {
+                // Format: YYYY/MM/DD or YYYY-MM-DD
+                Triple(third.coerceIn(1, 31), (second - 1).coerceIn(0, 11), first)
+            } else {
+                Triple(sysToday.day, sysToday.monthIndex, sysToday.year)
+            }
         } else {
             Triple(sysToday.day, sysToday.monthIndex, sysToday.year)
         }
     }
 
-    var selectedYear by remember { mutableStateOf(initialDate.third) }
-    var selectedMonthIndex by remember { mutableStateOf(initialDate.second) }
-    var selectedDay by remember { mutableStateOf(initialDate.first) }
-    var isSelectingYear by remember { mutableStateOf(false) }
+    // Add 'initialDate' as a key so the picker resets to the correct date every time it opens!
+    var selectedYear by remember(initialDate) { mutableStateOf(initialDate.third) }
+    var selectedMonthIndex by remember(initialDate) { mutableStateOf(initialDate.second) }
+    var selectedDay by remember(initialDate) { mutableStateOf(initialDate.first) }
+    var isSelectingYear by remember(initialDate) { mutableStateOf(false) }
 
     val daysInSelectedMonth = remember(selectedMonthIndex, selectedYear) {
         when (selectedMonthIndex) {
