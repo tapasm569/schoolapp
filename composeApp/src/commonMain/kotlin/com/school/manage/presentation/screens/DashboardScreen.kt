@@ -112,9 +112,9 @@ fun DashboardScreen(
         // Restore active academic session from cloud
         launch {
             try {
-                val cloudSession = syncService.getActiveSession(schoolCode)
+                val cloudSession: String? = syncService.getActiveSession(schoolCode)
                 if (!cloudSession.isNullOrBlank()) {
-                    currentBatchSession = cloudSession
+                    if (cloudSession is String) currentBatchSession = cloudSession
                 }
             } catch (_: Exception) {}
         }

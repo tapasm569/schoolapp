@@ -24,13 +24,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
     /**
      * Pushes all local SQLite data directly to Firebase Realtime Database.
      */
-    /**
-     * Legacy compatibility method.
-     * Refreshes local data from Firebase without overwriting cloud collections.
-     */
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
         restoreAllFromCloud(schoolCode)
     }
+
     /**
      * Compatibility wrapper for AuthScreens: restores all records from RTDB into local SQLite.
      */
@@ -150,8 +147,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     )
                 }
             }
-            // Firebase is authoritative after a successful root fetch.
-            // Reconcile all collections, including collections that are absent remotely.
+
             syncCollectionFromSnapshot(schoolCode, "batches", snapshot.child("batches"))
             syncCollectionFromSnapshot(schoolCode, "students", snapshot.child("students"))
             syncCollectionFromSnapshot(schoolCode, "staff", snapshot.child("staff"))
@@ -187,7 +183,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 address = addr,
                 photoBase64 = p64
             )
-            // Cache locally
             database.schoolDao().registerSchool(school)
             school
         } catch (e: Exception) {
@@ -199,6 +194,25 @@ class FirestoreSyncService(private val database: AppDatabase) {
     /**
      * Saves newly registered school to cloud.
      */
+    suspend fun saveSchoolToCloud(school: SchoolEntity) {
+        if (school.schoolCode.isBlank()) return
+        try {
+            rtdb.reference("schools").child(school.schoolCode).child("info").setValue(
+                mapOf(
+                    "schoolCode" to school.schoolCode,
+                    "schoolName" to school.schoolName,
+                    "password" to school.password,
+                    "phone" to school.phone,
+                    "email" to school.email,
+                    "address" to school.address,
+                    "photoBase64" to school.photoBase64
+                )
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     /**
      * Pushes school profile info (including masterSubjects) to Firebase.
      */
@@ -217,22 +231,29 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    suspend fun saveSchoolToCloud(school: SchoolEntity) {
-        if (school.schoolCode.isBlank()) return
+    /**
+     * Pushes active academic session (e.g. 2026) to Firebase.
+     */
+    suspend fun pushActiveSession(schoolCode: String, session: String) {
+        if (schoolCode.isBlank() || session.isBlank()) return
         try {
-            rtdb.reference("schools").child(school.schoolCode).child("info").setValue(
-                mapOf(
-                    "schoolCode" to school.schoolCode,
-                    "schoolName" to school.schoolName,
-                    "password" to school.password,
-                    "phone" to school.phone,
-                    "email" to school.email,
-                    "address" to school.address,
-                    "photoBase64" to school.photoBase64
-                )
-            )
+            rtdb.reference("schools").child(schoolCode).child("profile").child("activeSession").setValue(session)
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * Retrieves active academic session from cloud.
+     */
+    suspend fun getActiveSession(schoolCode: String): String? {
+        if (schoolCode.isBlank()) return null
+        return try {
+            val snapshot = rtdb.reference("schools").child(schoolCode).child("profile").child("activeSession").get()
+            if (!snapshot.exists) return null
+            snapshot.value?.toString()
+        } catch (e: Exception) {
+            null
         }
     }
 
@@ -371,7 +392,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(batch.id > 0L) { "Class ID must be positive" }
 
-        // Remove from Firebase first. If this fails, retain the local record.
         rtdb.reference("schools")
             .child(targetSchool)
             .child("batches")
@@ -386,8 +406,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(student.id > 0L) { "Student ID must be positive" }
 
-        // Await the cloud deletion before touching Room. If Firebase fails, keep
-        // the local record so the UI does not report a false successful delete.
         rtdb.reference("schools")
             .child(targetSchool)
             .child("students")
@@ -403,8 +421,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(staff.id > 0L) { "Staff ID must be positive" }
 
-        // Await the cloud deletion before touching Room. If Firebase fails, keep
-        // the local record so the UI does not report a false successful delete.
         rtdb.reference("schools")
             .child(targetSchool)
             .child("staff")
@@ -417,30 +433,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
 
     /**
      * Reconcile one complete Firebase collection with its local Room records.
-     * Records missing from Firebase are removed locally.
      */
     private suspend fun syncCollectionFromSnapshot(
         schoolCode: String,
         collection: String,
         snapshot: dev.gitlive.firebase.database.DataSnapshot
     ) {
-        // Never delete local records when Firebase has no collection
-        // or when its snapshot is empty. Preserve existing local data.
         if (!snapshot.exists) return
 
         val children = snapshot.children.toList()
         if (children.isEmpty()) return
 
-        val remoteKeys = children.mapNotNull { it.key }.toSet()
-
         when (collection) {
             "batches" -> {
-                val local = database.batchDao()
-                    .getBatchesBySchool(schoolCode).first()
-
-            // Preserve local classes missing from a Firebase snapshot.
-            // Explicit class deletion is handled by deleteBatchRecord().
-
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull()
@@ -452,9 +457,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     database.batchDao().insertBatch(
                         BatchEntity(
                             id = id,
-                            // The Firebase path identifies the authoritative school.
-                            // Do not let an outdated record field hide this class
-                            // from the school's Room query after relogin.
                             schoolCode = schoolCode,
                             batchName = name,
                             subjects = map["subjects"]?.toString() ?: "",
@@ -472,12 +474,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
 
             "students" -> {
-                val local = database.studentDao()
-                    .getStudentsBySchool(schoolCode).first()
-
-                // Preserve local records missing from a Firebase snapshot.
-                // Explicit deletion is handled by the corresponding delete function.
-
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull()
@@ -513,12 +509,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
 
             "staff" -> {
-                val local = database.staffDao()
-                    .getStaffBySchool(schoolCode).first()
-
-                // Preserve local records missing from a Firebase snapshot.
-                // Explicit deletion is handled by the corresponding delete function.
-
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull()
@@ -548,12 +538,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
 
             "fees" -> {
-                val local = database.feeDao()
-                    .getFeeRecordsBySchool(schoolCode).first()
-
-                // Preserve local records missing from a Firebase snapshot.
-                // Explicit deletion is handled by the corresponding delete function.
-
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull()
@@ -584,8 +568,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
 
     /**
      * Keep local Room data synchronized with Firebase changes.
-     * Do not upload the entire local database here: doing so could recreate
-     * records that were intentionally deleted from Firebase.
      */
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
