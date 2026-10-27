@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,6 +55,7 @@ fun AddStaffScreen(
     var address by remember { mutableStateOf("") }
     var qualification by remember { mutableStateOf("") }
 
+    var staffCategory by remember { mutableStateOf("Teaching") }
     var position by remember { mutableStateOf("") }
     var salary by remember { mutableStateOf("") }
 
@@ -113,7 +115,7 @@ fun AddStaffScreen(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
                 ) {
-                    Text("Save Teacher", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    Text(if (staffCategory == "Teaching") "Save Teacher" else "Save Staff Member", fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -237,15 +239,112 @@ fun AddStaffScreen(
             item { CustomRoundedInput(value = phone, onValueChange = { phone = it }, placeholder = "Mobile number (Acts as login password)") }
             item { CustomRoundedInput(value = address, onValueChange = { address = it }, placeholder = "Enter Address") }
 
+            // --- STAFF CATEGORY SELECTION (TEACHING VS NON-TEACHING) ---
+            item {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Staff Category", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text("Select whether this employee is a teacher or non-teaching support staff.", fontSize = 12.sp, color = colors.textSecondary)
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (staffCategory == "Teaching") colors.brandPrimary else colors.bgCard,
+                            border = BorderStroke(1.dp, if (staffCategory == "Teaching") colors.brandPrimary else colors.borderCard),
+                            modifier = Modifier.weight(1f).clickable {
+                                staffCategory = "Teaching"
+                                if (position.isBlank() || position == "Accountant" || position == "Security Guard" || position == "Driver") {
+                                    position = "Teacher"
+                                }
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    "👨‍🏫 Teaching",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = if (staffCategory == "Teaching") Color.White else colors.textPrimary
+                                )
+                            }
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (staffCategory == "Non-Teaching") Color(0xFF7C3AED) else colors.bgCard,
+                            border = BorderStroke(1.dp, if (staffCategory == "Non-Teaching") Color(0xFF7C3AED) else colors.borderCard),
+                            modifier = Modifier.weight(1f).clickable {
+                                staffCategory = "Non-Teaching"
+                                if (position == "Teacher" || position.isBlank()) {
+                                    position = "Security Guard"
+                                }
+                            }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    "💼 Non-Teaching",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = if (staffCategory == "Non-Teaching") Color.White else colors.textPrimary
+                                )
+                            }
+                        }
+                    }
+
+                    Text(
+                        if (staffCategory == "Teaching") "SUGGESTED TEACHING ROLES" else "SUGGESTED NON-TEACHING ROLES",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.textSecondary,
+                        letterSpacing = 0.5.sp
+                    )
+
+                    val roleSuggestions = if (staffCategory == "Teaching") {
+                        listOf("Primary Teacher", "Subject Teacher", "Assistant Teacher", "Headmaster / Principal")
+                    } else {
+                        listOf("Accountant", "Clerk / Office", "Security Guard", "Driver", "Peon / Attendant", "Ayah / Caretaker", "Cleaner")
+                    }
+
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        items(roleSuggestions) { suggestion ->
+                            val isSelected = position.equals(suggestion, ignoreCase = true)
+                            Surface(
+                                shape = RoundedCornerShape(10.dp),
+                                color = if (isSelected) (if (staffCategory == "Teaching") colors.brandPrimary.copy(alpha = 0.15f) else Color(0xFF7C3AED).copy(alpha = 0.15f)) else colors.bgCard,
+                                border = BorderStroke(1.dp, if (isSelected) (if (staffCategory == "Teaching") colors.brandPrimary else Color(0xFF7C3AED)) else colors.borderCard),
+                                modifier = Modifier.clickable { position = suggestion }
+                            ) {
+                                Text(
+                                    suggestion,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = if (isSelected) (if (staffCategory == "Teaching") colors.brandPrimary else Color(0xFF7C3AED)) else colors.textSecondary,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             item {
                 Column {
-                    Text("Qualification And Salary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
+                    Text(if (staffCategory == "Teaching") "Qualification And Salary" else "Designation, Shift & Salary", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = colors.textPrimary)
                     Text("Enter Qualification details here.", fontSize = 12.sp, color = colors.textSecondary)
                 }
             }
 
-            item { CustomRoundedInput(value = qualification, onValueChange = { qualification = it }, placeholder = "Enter Qualification") }
-            item { CustomRoundedInput(value = position, onValueChange = { position = it }, placeholder = "Enter Position (e.g. Math Teacher)") }
+            item { CustomRoundedInput(value = qualification, onValueChange = { qualification = it }, placeholder = if (staffCategory == "Teaching") "Qualification (e.g. B.Ed, M.A, B.Sc)" else "Shift / Timing or Qualification (e.g. 8 AM - 4 PM)") }
+            item { CustomRoundedInput(value = position, onValueChange = { position = it }, placeholder = if (staffCategory == "Teaching") "Position (e.g. Math Teacher)" else "Position (e.g. Security Guard, Driver, Clerk)") }
             item { CustomRoundedInput(value = salary, onValueChange = { salary = it }, placeholder = "Enter Salary (e.g. 15000)") }
 
             item {
@@ -301,14 +400,44 @@ fun StaffScreen(
     val scope = rememberCoroutineScope()
     var selectedTeacherForEdit by remember { mutableStateOf<StaffEntity?>(null) }
 
+    val nonTeachingKeywords = remember {
+        listOf("accountant", "clerk", "guard", "security", "driver", "peon", "attendant", "ayah", "caretaker", "cleaner", "sweeper", "office", "bus", "van", "maid", "cook")
+    }
+
+    var selectedStaffFilter by remember { mutableStateOf("ALL") }
+    var staffSearchQuery by remember { mutableStateOf("") }
+
+    val teachingCount = remember(staffList) {
+        staffList.count { staff -> nonTeachingKeywords.none { staff.role.contains(it, ignoreCase = true) } }
+    }
+    val nonTeachingCount = remember(staffList) {
+        staffList.count { staff -> nonTeachingKeywords.any { staff.role.contains(it, ignoreCase = true) } }
+    }
+
+    val filteredStaffList = remember(staffList, selectedStaffFilter, staffSearchQuery) {
+        staffList.filter { staff ->
+            val isNonTeach = nonTeachingKeywords.any { staff.role.contains(it, ignoreCase = true) }
+            val matchesFilter = when (selectedStaffFilter) {
+                "TEACHING" -> !isNonTeach
+                "NON_TEACHING" -> isNonTeach
+                else -> true
+            }
+            val matchesSearch = staffSearchQuery.isBlank() ||
+                staff.name.contains(staffSearchQuery, ignoreCase = true) ||
+                staff.role.contains(staffSearchQuery, ignoreCase = true) ||
+                staff.phone.contains(staffSearchQuery, ignoreCase = true)
+            matchesFilter && matchesSearch
+        }
+    }
+
     Scaffold(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
                 title = {
                     Column {
-                        Text("Staff & Faculty Directory (${staffList.size})", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.textPrimary)
-                        Text("Tap any teacher card to view & update profile", fontSize = 11.sp, color = colors.textSecondary)
+                        Text("Staff Directory (${staffList.size})", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = colors.textPrimary)
+                        Text("$teachingCount Teachers • $nonTeachingCount Non-Teaching", fontSize = 11.sp, color = colors.textSecondary)
                     }
                 },
                 navigationIcon = {
@@ -339,7 +468,67 @@ fun StaffScreen(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(staffList) { staff ->
+                // Search Field
+                item {
+                    OutlinedTextField(
+                        value = staffSearchQuery,
+                        onValueChange = { staffSearchQuery = it },
+                        placeholder = { Text("🔍 Search by name, role or phone...", fontSize = 13.sp) },
+                        singleLine = true,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White,
+                            focusedBorderColor = colors.brandPrimary,
+                            unfocusedBorderColor = Color(0xFFE2E8F0)
+                        ),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 2.dp)
+                    )
+                }
+
+                // Filter Chips
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val filterOptions = listOf(
+                            Triple("ALL", "All (${staffList.size})", colors.brandPrimary),
+                            Triple("TEACHING", "Teachers ($teachingCount)", colors.brandPrimary),
+                            Triple("NON_TEACHING", "Non-Teaching ($nonTeachingCount)", Color(0xFF7C3AED))
+                        )
+                        filterOptions.forEach { (key, label, activeColor) ->
+                            val isSelected = selectedStaffFilter == key
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = if (isSelected) activeColor else Color.White,
+                                border = BorderStroke(1.dp, if (isSelected) activeColor else Color(0xFFE2E8F0)),
+                                modifier = Modifier.clickable { selectedStaffFilter = key }
+                            ) {
+                                Text(
+                                    text = label,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isSelected) Color.White else colors.textSecondary,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (filteredStaffList.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("No staff members found matching filter.", color = colors.textSecondary, fontSize = 13.sp)
+                        }
+                    }
+                }
+
+                items(filteredStaffList) { staff ->
                     Surface(
                         shape = RoundedCornerShape(16.dp),
                         color = colors.bgCard,
