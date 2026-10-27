@@ -434,6 +434,128 @@ class FirestoreSyncService(private val database: AppDatabase) {
     /**
      * Reconcile one complete Firebase collection with its local Room records.
      */
+
+    // --- 12 MODULE PUSH FUNCTIONS ---
+    suspend fun pushExam(schoolCode: String, exam: com.school.manage.core.database.entity.ExamEntity) {
+        val targetSchool = schoolCode.ifBlank { exam.schoolCode }
+        if (targetSchool.isBlank() || exam.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("exams").child(exam.id.toString()).setValue(
+            mapOf(
+                "id" to exam.id, "schoolCode" to targetSchool, "title" to exam.title,
+                "gradeClass" to exam.gradeClass, "subject" to exam.subject,
+                "examDate" to exam.examDate, "maxMarks" to exam.maxMarks
+            )
+        )
+    }
+
+    suspend fun pushHomework(schoolCode: String, hw: com.school.manage.core.database.entity.HomeworkEntity) {
+        val targetSchool = schoolCode.ifBlank { hw.schoolCode }
+        if (targetSchool.isBlank() || hw.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("homework").child(hw.id.toString()).setValue(
+            mapOf(
+                "id" to hw.id, "schoolCode" to targetSchool, "title" to hw.title,
+                "description" to hw.description, "gradeClass" to hw.gradeClass,
+                "subject" to hw.subject, "assignedDate" to hw.assignedDate, "dueDate" to hw.dueDate
+            )
+        )
+    }
+
+    suspend fun pushClasswork(schoolCode: String, cw: com.school.manage.core.database.entity.ClassworkEntity) {
+        val targetSchool = schoolCode.ifBlank { cw.schoolCode }
+        if (targetSchool.isBlank() || cw.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("classwork").child(cw.id.toString()).setValue(
+            mapOf(
+                "id" to cw.id, "schoolCode" to targetSchool, "topicTitle" to cw.topicTitle,
+                "summary" to cw.summary, "gradeClass" to cw.gradeClass,
+                "subject" to cw.subject, "date" to cw.date
+            )
+        )
+    }
+
+    suspend fun pushEnquiry(schoolCode: String, enq: com.school.manage.core.database.entity.EnquiryEntity) {
+        val targetSchool = schoolCode.ifBlank { enq.schoolCode }
+        if (targetSchool.isBlank() || enq.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("enquiries").child(enq.id.toString()).setValue(
+            mapOf(
+                "id" to enq.id, "schoolCode" to targetSchool, "studentName" to enq.studentName,
+                "parentName" to enq.parentName, "phone" to enq.phone, "gradeClass" to enq.gradeClass,
+                "date" to enq.date, "status" to enq.status, "notes" to enq.notes
+            )
+        )
+    }
+
+    suspend fun pushStaffLog(schoolCode: String, log: com.school.manage.core.database.entity.StaffLogEntity) {
+        val targetSchool = schoolCode.ifBlank { log.schoolCode }
+        if (targetSchool.isBlank() || log.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("staff_logs").child(log.id.toString()).setValue(
+            mapOf(
+                "id" to log.id, "schoolCode" to targetSchool, "staffName" to log.staffName,
+                "staffId" to log.staffId, "date" to log.date, "checkIn" to log.checkIn,
+                "checkOut" to log.checkOut, "activityNote" to log.activityNote, "status" to log.status
+            )
+        )
+    }
+
+    suspend fun pushAnnouncement(schoolCode: String, ann: com.school.manage.core.database.entity.AnnouncementEntity) {
+        val targetSchool = schoolCode.ifBlank { ann.schoolCode }
+        if (targetSchool.isBlank() || ann.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("announcements").child(ann.id.toString()).setValue(
+            mapOf(
+                "id" to ann.id, "schoolCode" to targetSchool, "title" to ann.title,
+                "message" to ann.message, "targetAudience" to ann.targetAudience,
+                "date" to ann.date, "priority" to ann.priority
+            )
+        )
+    }
+
+    suspend fun pushLeaveRequest(schoolCode: String, lr: com.school.manage.core.database.entity.LeaveRequestEntity) {
+        val targetSchool = schoolCode.ifBlank { lr.schoolCode }
+        if (targetSchool.isBlank() || lr.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("leave_requests").child(lr.id.toString()).setValue(
+            mapOf(
+                "id" to lr.id, "schoolCode" to targetSchool, "applicantName" to lr.applicantName,
+                "applicantType" to lr.applicantType, "startDate" to lr.startDate,
+                "endDate" to lr.endDate, "reason" to lr.reason, "status" to lr.status
+            )
+        )
+    }
+
+    suspend fun pushTimetable(schoolCode: String, tt: com.school.manage.core.database.entity.TimetableEntity) {
+        val targetSchool = schoolCode.ifBlank { tt.schoolCode }
+        if (targetSchool.isBlank() || tt.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("timetables").child(tt.id.toString()).setValue(
+            mapOf(
+                "id" to tt.id, "schoolCode" to targetSchool, "gradeClass" to tt.gradeClass,
+                "dayOfWeek" to tt.dayOfWeek, "periodNo" to tt.periodNo,
+                "timeSlot" to tt.timeSlot, "subject" to tt.subject, "teacherName" to tt.teacherName
+            )
+        )
+    }
+
+    suspend fun pushOnlineClass(schoolCode: String, oc: com.school.manage.core.database.entity.OnlineClassEntity) {
+        val targetSchool = schoolCode.ifBlank { oc.schoolCode }
+        if (targetSchool.isBlank() || oc.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("online_classes").child(oc.id.toString()).setValue(
+            mapOf(
+                "id" to oc.id, "schoolCode" to targetSchool, "title" to oc.title,
+                "gradeClass" to oc.gradeClass, "subject" to oc.subject,
+                "meetingUrl" to oc.meetingUrl, "classDate" to oc.classDate, "classTime" to oc.classTime
+            )
+        )
+    }
+
+    suspend fun pushQuestion(schoolCode: String, qb: com.school.manage.core.database.entity.QuestionBankEntity) {
+        val targetSchool = schoolCode.ifBlank { qb.schoolCode }
+        if (targetSchool.isBlank() || qb.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("question_bank").child(qb.id.toString()).setValue(
+            mapOf(
+                "id" to qb.id, "schoolCode" to targetSchool, "gradeClass" to qb.gradeClass,
+                "subject" to qb.subject, "chapterTopic" to qb.chapterTopic,
+                "questionText" to qb.questionText, "answerKey" to qb.answerKey, "questionType" to qb.questionType
+            )
+        )
+    }
+
     private suspend fun syncCollectionFromSnapshot(
         schoolCode: String,
         collection: String,
@@ -576,7 +698,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         syncJobs[schoolCode] = scope.launch {
             val schoolRef = rtdb.reference("schools").child(schoolCode)
 
-            for (collection in listOf("batches", "students", "staff", "fees")) {
+            for (collection in listOf("batches", "students", "staff", "fees", "exams", "homework", "classwork", "enquiries", "staff_logs", "announcements", "leave_requests", "timetables", "online_classes", "question_bank")) {
                 launch {
                     try {
                         schoolRef.child(collection).valueEvents.collect { snapshot ->
