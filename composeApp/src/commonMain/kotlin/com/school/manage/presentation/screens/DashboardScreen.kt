@@ -105,9 +105,19 @@ fun DashboardScreen(
         Pair(unpaidSum, count)
     }
 
+    var currentBatchSession by remember { mutableStateOf("2026") }
     LaunchedEffect(schoolCode) {
         val syncService = FirestoreSyncService(database)
         syncService.startSync(schoolCode)
+        // Restore active academic session from cloud
+        launch {
+            try {
+                val cloudSession = syncService.getActiveSession(schoolCode)
+                if (!cloudSession.isNullOrBlank()) {
+                    currentBatchSession = cloudSession
+                }
+            } catch (_: Exception) {}
+        }
         // Automatically ensure all local teachers/staff are pushed to cloud
         kotlinx.coroutines.delay(1000)
         try {
@@ -259,8 +269,7 @@ fun DashboardScreen(
     var isBackupLoading by remember { mutableStateOf(false) }
 
 
-    var currentBatchSession by remember { mutableStateOf("2026 - 2027") }
-    var newAdminPassword by remember { mutableStateOf("") }
+var newAdminPassword by remember { mutableStateOf("") }
     var passwordChangeSuccessMsg by remember { mutableStateOf("") }
 
     var schoolRecord by remember { mutableStateOf<com.school.manage.core.database.entity.SchoolEntity?>(null) }
@@ -1172,11 +1181,11 @@ AddNewOptionItem(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // Option 1: Set Batch Season
+                    // Option 1: Academic Session (January - December)
                     HamburgerOptionItem(
-                        icon = "📅",
-                        title = "Set Batch Session",
-                        subtitle = "Current: $currentBatchSession",
+                        icon = "🗓️",
+                        title = "Academic Session",
+                        subtitle = "Active: $currentBatchSession (Jan – Dec)",
                         onClick = {
                             showHamburgerMenu = false
                             showBatchSessionDialog = true
@@ -1375,7 +1384,7 @@ AddNewOptionItem(
                     ProfileDetailRow(label = "School Name", value = schoolName.ifEmpty { "N/A" }, icon = "🏛️")
                     ProfileDetailRow(label = "Staff Count", value = "${staffList.size} Active Members", icon = "👨‍🏫")
                     ProfileDetailRow(label = "Students Count", value = "${students.size} Enrolled", icon = "🎒")
-                    ProfileDetailRow(label = "Batch Season", value = currentBatchSession, icon = "📅")
+                    ProfileDetailRow(label = "Academic Session", value = "$currentBatchSession (Jan – Dec)", icon = "🗓️")
                     ProfileDetailRow(
                         label = "Contact Number",
                         value = schoolRecord?.phone?.ifEmpty { "Not registered" } ?: "Not registered",
@@ -1398,37 +1407,118 @@ AddNewOptionItem(
             }
         }
 
-        // ================= 3. SET BATCH SESSION DIALOG =================
+        // ================= 3. ACADEMIC SESSION (JAN - DEC) DIALOG =================
         if (showBatchSessionDialog) {
-            var tempSession by remember { mutableStateOf(currentBatchSession) }
+            var selectedSessionYear by remember { mutableStateOf(currentBatchSession.filter { it.isDigit() }.ifBlank { "2026" }) }
+            val quickYears = listOf("2025", "2026", "2027", "2028")
+
             AlertDialog(
                 onDismissRequest = { showBatchSessionDialog = false },
-                title = { Text("Set Academic Batch Season", fontWeight = FontWeight.Bold) },
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text("🗓️", fontSize = 20.sp)
+                        Text("Academic Session", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = colors.textPrimary)
+                    }
+                },
                 text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Define the active academic year for student attendance, fees, and grading.", fontSize = 13.sp, color = colors.textSecondary)
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            "The academic session runs from January to December (12 Months). Select or enter the active session year for admissions, tuition dues, and attendance.",
+                            fontSize = 12.sp,
+                            color = colors.textSecondary,
+                            lineHeight = 16.sp
+                        )
+
+                        // Quick Select Year Chips
+                        Text("QUICK SELECT YEAR", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = colors.textSecondary, letterSpacing = 0.5.sp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            quickYears.forEach { yr ->
+                                val isSelected = selectedSessionYear == yr
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isSelected) colors.brandPrimary else Color(0xFFF1F5F9),
+                                    border = BorderStroke(1.dp, if (isSelected) colors.brandPrimary else Color(0xFFCBD5E1)),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable { selectedSessionYear = yr }
+                                ) {
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.padding(vertical = 8.dp)
+                                    ) {
+                                        Text(
+                                            yr,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) Color.White else Color(0xFF334155)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Session Input Field
                         OutlinedTextField(
-                            value = tempSession,
-                            onValueChange = { tempSession = it },
-                            label = { Text("Academic Session (e.g. 2026 - 2027)") },
+                            value = selectedSessionYear,
+                            onValueChange = { input -> selectedSessionYear = input.filter { it.isDigit() }.take(4) },
+                            label = { Text("Active Session Year") },
+                            placeholder = { Text("e.g. 2026") },
                             singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         )
+
+                        // Jan - Dec Cycle Info Banner
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFFEFF6FF),
+                            border = BorderStroke(1.dp, Color(0xFFBFDBFE)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("💡", fontSize = 16.sp)
+                                Text(
+                                    "Cycle: Jan $selectedSessionYear – Dec $selectedSessionYear. Fees and student dues calculate across these 12 months.",
+                                    fontSize = 11.sp,
+                                    color = Color(0xFF1D4ED8),
+                                    lineHeight = 14.sp
+                                )
+                            }
+                        }
                     }
                 },
                 confirmButton = {
-                    Button(onClick = {
-                        if (tempSession.isNotBlank()) {
-                            currentBatchSession = tempSession.trim()
-                        }
-                        showBatchSessionDialog = false
-                    }) {
-                        Text("Save Session")
+                    Button(
+                        onClick = {
+                            if (selectedSessionYear.isNotBlank()) {
+                                currentBatchSession = selectedSessionYear.trim()
+                                scope.launch {
+                                    try {
+                                        FirestoreSyncService(database).pushActiveSession(schoolCode, selectedSessionYear.trim())
+                                    } catch (_: Exception) {}
+                                }
+                            }
+                            showBatchSessionDialog = false
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary)
+                    ) {
+                        Text("Save Session", fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showBatchSessionDialog = false }) {
-                        Text("Cancel")
+                        Text("Cancel", color = colors.textSecondary)
                     }
                 }
             )
