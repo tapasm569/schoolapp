@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -565,9 +566,11 @@ fun StaffScreen(
                                             fontSize = 16.sp,
                                             color = colors.textPrimary
                                         )
-                                        Row(
+                                        // Replaced standard Row with FlowRow to prevent vertical text crushing
+                                        @OptIn(ExperimentalLayoutApi::class)
+                                        FlowRow(
                                             horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                            verticalAlignment = Alignment.CenterVertically
+                                            verticalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
                                             Surface(
                                                 shape = RoundedCornerShape(6.dp),
@@ -591,7 +594,9 @@ fun StaffScreen(
                                                         fontSize = 11.sp,
                                                         fontWeight = FontWeight.SemiBold,
                                                         color = colors.textSecondary,
-                                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                                                        maxLines = 1,
+                                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                                     )
                                                 }
                                             }
