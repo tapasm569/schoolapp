@@ -20,13 +20,13 @@
 </head>
 <body class="text-slate-800 antialiased min-h-screen flex flex-col">
 
-  <!-- ================= STRICT SECURE LOGIN SCREEN ================= -->
+  <!-- ================= SECURE AUTHENTICATION SCREEN ================= -->
   <div id="loginSection" class="min-h-screen flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-8 max-w-md w-full card-shadow border border-slate-200">
       <div class="text-center mb-8">
         <div class="w-16 h-16 bg-blue-50 text-blue-700 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-4 font-bold shadow-inner">🏫</div>
         <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">School Web Portal</h2>
-        <p class="text-xs text-slate-500 mt-1 font-medium">Cloud Administrative Access</p>
+        <p class="text-xs text-slate-500 mt-1 font-medium">100% Android App Compatible Cloud Management</p>
       </div>
 
       <form id="loginForm" class="space-y-4">
@@ -46,9 +46,6 @@
           <span>➔</span>
         </button>
       </form>
-      <div class="mt-6 text-center">
-        <p class="text-[11px] text-slate-400">Protected by Firebase Realtime Database Authentication</p>
-      </div>
     </div>
   </div>
 
@@ -74,7 +71,7 @@
             📚 Master Subjects
           </button>
           <button onclick="openFeatureModal('feePolicyModal')" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100">
-            💳 Set Admission Fee
+            💳 Set Fee Rules
           </button>
           <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
             <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -86,11 +83,11 @@
         </div>
       </div>
 
-      <!-- Main Navigation Tabs -->
+      <!-- Navigation Tabs -->
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 border-t border-slate-100 overflow-x-auto">
         <button class="nav-tab active-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-blue-600 text-blue-700 whitespace-nowrap" data-target="dashboardTab">📊 Overview</button>
         <button class="nav-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap" data-target="duesTab">💳 Student Dues</button>
-        <button class="nav-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap" data-target="classesTab">🏫 Classes & Setup</button>
+        <button class="nav-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap" data-target="classesTab">🏫 Classes & Rules</button>
         <button class="nav-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap" data-target="attendanceTab">📋 Attendance</button>
         <button class="nav-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap" data-target="studentsTab">🎒 Students</button>
         <button class="nav-tab py-3 px-4 font-bold text-xs sm:text-sm border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap" data-target="feesTab">💰 Fees & Ledger</button>
@@ -102,7 +99,6 @@
 
       <!-- ================= TAB 1: OVERVIEW ================= -->
       <div id="dashboardTab" class="tab-pane space-y-8">
-        <!-- Summary Cards -->
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <div class="bg-white p-5 rounded-2xl border border-slate-200 card-shadow cursor-pointer hover:border-blue-400 transition-all" onclick="switchTab('classesTab')">
             <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Classes</span>
@@ -143,7 +139,7 @@
             </div>
           </div>
           <div class="bg-white p-5 rounded-2xl border border-slate-200 card-shadow cursor-pointer hover:border-rose-400 transition-all" onclick="switchTab('feesTab')">
-            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Staff Payroll / Mo</span>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Monthly Payroll</span>
             <div class="flex items-center justify-between mt-2">
               <span id="statTotalPayroll" class="text-xl font-extrabold text-rose-600">₹0</span>
               <span class="text-xl p-2 bg-rose-50 rounded-xl">👨‍💼</span>
@@ -220,7 +216,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">💳 Student Pending Dues Roster</h2>
-              <p class="text-xs text-slate-500">Live card view of students with outstanding tuition & admission balances</p>
+              <p class="text-xs text-slate-500">Live card view calculated using the exact formula from Android App</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <select id="duesClassFilter" onchange="renderStudentDues()" class="px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold">
@@ -234,17 +230,17 @@
         </div>
       </div>
 
-      <!-- ================= TAB: CLASSES & SETUP ================= -->
+      <!-- ================= TAB: CLASSES & RULES ================= -->
       <div id="classesTab" class="tab-pane hidden space-y-6">
         <div class="bg-white p-6 rounded-3xl border border-slate-200 card-shadow">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">School Classes, Subjects & Fee Rules</h2>
-              <p class="text-xs text-slate-500">Every change syncs bi-directionally with your Android App</p>
+              <p class="text-xs text-slate-500">Syncs directly with Room Database & Firebase Realtime Database</p>
             </div>
             <div class="flex flex-wrap gap-2">
               <button onclick="openFeatureModal('subjectsModal')" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs">📚 Master Subjects</button>
-              <button onclick="openFeatureModal('feePolicyModal')" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold rounded-xl text-xs">💳 Set Admission Fee</button>
+              <button onclick="openFeatureModal('feePolicyModal')" class="px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold rounded-xl text-xs">💳 Set Fee Rules</button>
               <button onclick="openAddClassModal()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-xs">+ Add Class</button>
             </div>
           </div>
@@ -272,7 +268,7 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Daily Attendance & Interactive Marking</h2>
-              <p class="text-xs text-slate-500 mt-0.5">Select date & class to view or mark student attendance live</p>
+              <p class="text-xs text-slate-500 mt-0.5">Records are stored with exact schema (studentId: Long, userType: 'STUDENT')</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <select id="attendanceClassFilter" class="px-3 py-2 rounded-xl border border-slate-300 font-bold text-xs bg-slate-50">
@@ -285,7 +281,7 @@
           </div>
 
           <div class="mt-6">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Class-Wise Summary Tiles</h3>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Class-Wise Summary</h3>
             <div id="attendanceTilesContainer" class="flex gap-4 overflow-x-auto pb-4"></div>
           </div>
 
@@ -312,10 +308,10 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Student Directory</h2>
-              <p class="text-xs text-slate-500">Live roster of enrolled students</p>
+              <p class="text-xs text-slate-500">Live roster matching StudentEntity database attributes</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-              <input type="text" id="searchStudentInput" placeholder="🔍 Search name, roll no, class..." class="px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm w-64">
+              <input type="text" id="searchStudentInput" placeholder="🔍 Search name, roll no, father..." class="px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 text-sm w-64">
               <button onclick="openAddStudentModal()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-xs">+ Add Student</button>
             </div>
           </div>
@@ -326,7 +322,7 @@
                   <th class="py-3 px-4 font-bold">Roll</th>
                   <th class="py-3 px-4 font-bold">Name</th>
                   <th class="py-3 px-4 font-bold">Class</th>
-                  <th class="py-3 px-4 font-bold">Parent / Phone</th>
+                  <th class="py-3 px-4 font-bold">Father / Phone</th>
                   <th class="py-3 px-4 font-bold">Monthly Fee</th>
                   <th class="py-3 px-4 font-bold">Admission Date</th>
                   <th class="py-3 px-4 font-bold text-right">Action</th>
@@ -346,23 +342,23 @@
             <form id="feeCollectForm" class="space-y-4">
               <div>
                 <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Select Student</label>
-                <select id="feeStudentSelect" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm">
+                <select id="feeStudentSelect" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-semibold">
                   <option value="">-- Choose Student --</option>
                 </select>
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Fee Month</label>
-                <input type="text" id="feeMonthInput" placeholder="e.g. 10/2026" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm">
+                <input type="text" id="feeMonthInput" placeholder="e.g. 10/2026" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold">
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Amount Paid (₹)</label>
-                <input type="number" id="feeAmountInput" placeholder="500" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm">
+                <input type="number" id="feeAmountInput" placeholder="500" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold">
               </div>
               <div>
                 <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Payment Date</label>
-                <input type="date" id="feePaymentDateInput" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm">
+                <input type="date" id="feePaymentDateInput" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold">
               </div>
-              <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm">💰 Save & Print Receipt</button>
+              <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md">💰 Save & Print Receipt</button>
             </form>
           </div>
           <div class="bg-white p-6 rounded-3xl border border-slate-200 card-shadow lg:col-span-2">
@@ -413,15 +409,14 @@
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
               <h2 class="text-lg font-extrabold text-slate-900">Staff & Faculty Directory</h2>
-              <p class="text-xs text-slate-500">Manage Teaching & Non-Teaching Ground Staff</p>
+              <p class="text-xs text-slate-500">Manage Teaching & Non-Teaching Staff seamlessly</p>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-              <input type="text" id="searchStaffInput" oninput="renderStaff()" placeholder="🔍 Search by name, role, phone..." class="px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs w-60">
+              <input type="text" id="searchStaffInput" oninput="renderStaff()" placeholder="🔍 Search name, role, phone..." class="px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 text-xs w-60">
               <button onclick="openAddStaffModal()" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-xs">+ Add Staff</button>
             </div>
           </div>
 
-          <!-- Category Filter Tabs -->
           <div class="flex items-center gap-2 mb-6">
             <button onclick="setStaffFilter('ALL')" id="filterStaffAll" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-700 text-white border border-blue-700">All Staff</button>
             <button onclick="setStaffFilter('TEACHING')" id="filterStaffTeaching" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200">👨‍🏫 Teachers Only</button>
@@ -434,13 +429,13 @@
     </main>
   </div>
 
-  <!-- ================= COLLECT PAYMENT (DUE COLLECTION) MODAL ================= -->
+  <!-- ================= COLLECT DUE PAYMENT MODAL ================= -->
   <div id="collectDueModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-lg w-full card-shadow max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">💳 Collect Student Payment</h3>
-          <p class="text-xs text-slate-500">Collect full or partial fee amount</p>
+          <p class="text-xs text-slate-500">Collect full or partial fee amount with auto carry-over</p>
         </div>
         <button onclick="closeModal('collectDueModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
       </div>
@@ -494,7 +489,7 @@
             <span>Remaining Due Balance:</span>
             <span id="modalRemainingDueText" class="font-extrabold text-blue-800">₹0</span>
           </div>
-          <p class="text-[11px] text-blue-600">✓ If paid partially, this balance will automatically carry forward to next month's tuition dues.</p>
+          <p class="text-[11px] text-blue-600">✓ If paid partially, this balance automatically carries forward to the next month's tuition dues.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
@@ -531,7 +526,7 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">🗓️ Academic Session Setup</h3>
-          <p class="text-xs text-slate-500">Academic cycle runs strictly from January to December</p>
+          <p class="text-xs text-slate-500">Cycle runs strictly from January to December</p>
         </div>
         <button onclick="closeModal('sessionModal')" class="text-slate-400 font-bold text-lg">✕</button>
       </div>
@@ -552,10 +547,6 @@
           <input type="text" id="sessionYearInput" placeholder="2026" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-bold">
         </div>
 
-        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-3 text-xs text-blue-700">
-          💡 Cycle: <strong>Jan to Dec (12 Months)</strong>. Tuition fee calculations and dues evaluate across this annual cycle.
-        </div>
-
         <button type="button" onclick="saveSession()" class="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-sm">
           💾 Save & Set Active Session
         </button>
@@ -569,7 +560,7 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">Add Staff Member</h3>
-          <p class="text-xs text-slate-500">Teachers, Administrative & Ground Support Staff</p>
+          <p class="text-xs text-slate-500">Teachers, Administrative & Support Ground Staff</p>
         </div>
         <button onclick="closeModal('addStaffModal')" class="text-slate-400 font-bold text-lg">✕</button>
       </div>
@@ -648,12 +639,12 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">📚 Master School Subjects</h3>
-          <p class="text-xs text-slate-500">Comma-separated list of subjects taught across your school</p>
+          <p class="text-xs text-slate-500">Comma-separated list of subjects matching SchoolEntity</p>
         </div>
         <button onclick="closeModal('subjectsModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
       </div>
       <form id="masterSubjectsForm" class="space-y-4">
-        <textarea id="masterSubjectsInput" rows="3" placeholder="English, Bengali, Mathematics, Science, History, Geography, Computer" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium"></textarea>
+        <textarea id="masterSubjectsInput" rows="3" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm font-medium"></textarea>
         <button type="submit" class="w-full py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-sm">💾 Save Master Subjects</button>
       </form>
     </div>
@@ -665,7 +656,7 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">💳 Set Admission & Monthly Fee Rules</h3>
-          <p class="text-xs text-slate-500">Configure class-wise monthly tuition and admission fee heads</p>
+          <p class="text-xs text-slate-500">Configure class-wise monthly tuition and fee templates</p>
         </div>
         <button onclick="closeModal('feePolicyModal')" class="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
       </div>
@@ -680,7 +671,7 @@
         </div>
         <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
           <input type="checkbox" id="feePolicyCollectTuitionNow" class="rounded text-blue-600">
-          <label for="feePolicyCollectTuitionNow" class="text-xs font-bold text-slate-700">Collect 1st Month Tuition at the time of Admission</label>
+          <label for="feePolicyCollectTuitionNow" class="text-xs font-bold text-slate-700">Collect 1st Month Tuition at Admission (App standard)</label>
         </div>
         <div class="border-t pt-4">
           <label class="block text-xs font-bold text-slate-600 uppercase mb-2">Admission Fee Breakdown Heads</label>
@@ -719,7 +710,7 @@
     </div>
   </div>
 
-  <!-- Add Student Modal -->
+  <!-- Add Student Modal (Exact StudentEntity Schema) -->
   <div id="addStudentModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-md w-full card-shadow max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -733,7 +724,7 @@
           <input type="text" id="newStudentRoll" placeholder="Roll No" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <input type="text" id="newStudentParent" placeholder="Father / Guardian Name" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          <input type="text" id="newStudentFather" placeholder="Father's Name" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
           <input type="text" id="newStudentPhone" required placeholder="Mobile Number" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -747,7 +738,7 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-          <input type="number" id="newStudentFee" required placeholder="Monthly Fee (₹)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          <input type="number" id="newStudentFee" required placeholder="Monthly Tuition (₹)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
           <input type="number" id="newStudentAdmissionFee" placeholder="Admission Fee (₹)" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
         </div>
         <button type="submit" class="w-full py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-xl text-sm">💾 Save Student</button>
@@ -772,7 +763,7 @@
     </div>
   </div>
 
-  <!-- Feature Modals -->
+  <!-- Feature Modals (Exams, Birthdays, Homework, etc.) -->
   <div id="examsModal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl p-6 max-w-xl w-full card-shadow max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-slate-900">⏱️ Scheduled Examinations</h3><button onclick="closeModal('examsModal')" class="text-slate-400 font-bold text-lg">✕</button></div>
@@ -907,7 +898,7 @@
     </div>
   </div>
 
-  <!-- ================= JAVASCRIPT ENGINE WITH SECURE AUTH ================= -->
+  <!-- ================= JAVASCRIPT ENGINE 100% APP CLONED ================= -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyA_DQu5WHn6nHpc7Ldppm8sS04k7UWjuGY",
@@ -954,6 +945,15 @@
       if (val.includes('/')) return val;
       const [y, m, d] = val.split('-');
       return `${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${y}`;
+    }
+
+    function compareRollNumbers(a, b) {
+      const first = String(a.rollNo || '').trim();
+      const second = String(b.rollNo || '').trim();
+      const fn = parseInt(first, 10);
+      const sn = parseInt(second, 10);
+      if (!isNaN(fn) && !isNaN(sn)) return fn - sn;
+      return first.localeCompare(second);
     }
 
     function switchTab(targetId) {
@@ -1010,7 +1010,6 @@
       try {
         const snapshot = await db.ref(`schools/${code}`).once('value');
 
-        // 1. Check if school code exists in Firebase
         if (!snapshot.exists()) {
           errEl.textContent = '❌ School Code not found! Only registered schools in Firebase can log in.';
           errEl.classList.remove('hidden');
@@ -1022,8 +1021,6 @@
         const schoolData = snapshot.val() || {};
         const info = schoolData.info || {};
         const profile = schoolData.profile || {};
-
-        // 2. Retrieve Admin Password stored in Firebase
         const storedPassword = String(info.password || profile.password || schoolData.password || '').trim();
 
         if (!storedPassword) {
@@ -1034,7 +1031,6 @@
           return;
         }
 
-        // 3. Match passwords strictly
         if (storedPassword !== password) {
           errEl.textContent = '❌ Incorrect Admin Password! Access denied.';
           errEl.classList.remove('hidden');
@@ -1043,7 +1039,6 @@
           return;
         }
 
-        // 4. Authentication Successful
         localStorage.setItem("school_portal_code", code);
         localStorage.setItem("school_portal_auth", btoa(`${code}:${password}`));
         currentSchoolCode = code;
@@ -1057,10 +1052,8 @@
       }
     });
 
-    // Session validation on page load
     window.addEventListener('DOMContentLoaded', async () => {
       resetAllDateInputsToToday();
-
       const storedAuth = localStorage.getItem("school_portal_auth");
       if (currentSchoolCode && storedAuth) {
         try {
@@ -1153,8 +1146,8 @@
       function updateFeesFromSnapshot(v) {
         const list = Object.keys(v).map(k => ({ _key: k, ...v[k] }));
         const map = new Map();
-        appData.fees.forEach(item => map.set(item._key, item));
-        list.forEach(item => map.set(item._key, item));
+        appData.fees.forEach(item => map.set(String(item.id || item._key), item));
+        list.forEach(item => map.set(String(item.id || item._key), item));
         appData.fees = Array.from(map.values());
         const total = appData.fees.reduce((sum, f) => sum + (Number(f.amountPaid) || 0), 0);
         document.getElementById('statTotalFees').textContent = `₹${total}`;
@@ -1199,15 +1192,15 @@
       });
     }
 
-    // ================= STUDENT DUES CARD VIEW & COLLECTION =================
+    // ================= EXACT STUDENT DUES FORMULA (MATCHES ANDROID APP) =================
     function getStudentDueData(st) {
       const now = new Date();
       const curYear = now.getFullYear();
-      const curMonth = now.getMonth();
+      const curMonth = now.getMonth(); // 0 to 11
 
       const stId = st.id || st._key;
       const paid = appData.fees
-        .filter(f => String(f.studentId) === String(stId) || f.studentName === st.name)
+        .filter(f => String(f.studentId) === String(stId))
         .reduce((s, f) => s + (Number(f.amountPaid) || 0), 0);
 
       const parts = (st.admissionDate || '').split('/');
@@ -1216,7 +1209,7 @@
       const elapsedMonths = Math.max(1, (curYear - admYear) * 12 + (curMonth - admMonth) + 1);
 
       const batch = appData.batches.find(b => (b.batchName || '').toLowerCase() === (st.gradeClass || '').toLowerCase());
-      const monthlyRate = Number(st.monthlyFee) || (batch ? Number(batch.defaultMonthlyTuition) : 0) || 0;
+      const monthlyRate = (Number(st.monthlyFee) > 0) ? Number(st.monthlyFee) : (batch ? Number(batch.defaultMonthlyTuition) : 0) || 0;
       const admFee = Number(st.admissionFee) || 0;
       const expected = (monthlyRate * elapsedMonths) + admFee;
       const due = Math.max(0, expected - paid);
@@ -1237,7 +1230,7 @@
         if (searchQ) {
           const matchName = (item.student.name || '').toLowerCase().includes(searchQ);
           const matchRoll = String(item.student.rollNo || '').toLowerCase().includes(searchQ);
-          const matchFather = (item.student.parentName || item.student.fatherName || '').toLowerCase().includes(searchQ);
+          const matchFather = (item.student.fatherName || item.student.guardianName || '').toLowerCase().includes(searchQ);
           if (!matchName && !matchRoll && !matchFather) return false;
         }
         return true;
@@ -1260,7 +1253,7 @@
       grid.innerHTML = duesList.map(item => {
         const s = item.student;
         const cleanPhone = (s.phone || '').replace(/[^0-9]/g, '');
-        const father = s.parentName || s.fatherName || 'N/A';
+        const father = s.fatherName || s.guardianName || 'N/A';
         const msg = encodeURIComponent(`Dear Parent, fee reminder for ${s.name} (Roll #${s.rollNo || '-'}, ${s.gradeClass || ''}). Pending Due: ₹${item.due}. Please pay at your earliest convenience.`);
 
         const avatarHtml = s.photoBase64 && s.photoBase64.length > 50
@@ -1323,7 +1316,7 @@
       document.getElementById('modalStudentId').value = st.id || st._key;
       document.getElementById('modalStudentName').textContent = st.name;
       document.getElementById('modalStudentRoll').textContent = `Roll #${st.rollNo || '-'}`;
-      document.getElementById('modalStudentClass').textContent = `${st.gradeClass || 'General'} • Father: ${st.parentName || st.fatherName || 'N/A'}`;
+      document.getElementById('modalStudentClass').textContent = `${st.gradeClass || 'General'} • Father: ${st.fatherName || st.guardianName || 'N/A'}`;
       document.getElementById('modalTotalDueDisplay').textContent = `₹${dueInfo.due}`;
       document.getElementById('modalMonthsSummary').textContent = `${dueInfo.elapsedMonths} month(s) pending`;
 
@@ -1382,7 +1375,12 @@
         remarks: amountPaid < selectedDueAmount ? `Partial payment. Remaining ₹${selectedDueAmount - amountPaid} carried forward.` : 'Full settlement'
       };
 
-      db.ref(`schools/${currentSchoolCode}/fees/${id}`).set(record).then(() => {
+      // Write to both fees and fee_records to ensure complete multi-version app compatibility
+      const updates = {};
+      updates[`schools/${currentSchoolCode}/fees/${id}`] = record;
+      updates[`schools/${currentSchoolCode}/fee_records/${id}`] = record;
+
+      db.ref().update(updates).then(() => {
         closeModal('collectDueModal');
         printReceipt(String(id));
         renderStudentDues();
@@ -1418,7 +1416,8 @@
       document.getElementById('statStaffCount').textContent = appData.staff.length;
       document.getElementById('statStaffSubtitle').textContent = `${teachingCount} Teach • ${nonTeachingCount} Support`;
 
-      const payroll = appData.staff.reduce((sum, s) => sum + (Number(s.salary) || Number(s.monthlySalary) || 0), 0);
+      // Monthly payroll matches TeacherSalaryScreen.kt sumOf { it.salary }
+      const payroll = appData.staff.reduce((sum, s) => sum + (Number(s.salary) || 0), 0);
       document.getElementById('statTotalPayroll').textContent = `₹${payroll}`;
 
       const filtered = appData.staff.filter(s => {
@@ -1453,7 +1452,7 @@
                   ${roleIcon} ${isNonTeach ? 'Support Staff' : 'Faculty'}
                 </span>
                 <span class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
-                  ₹${s.salary || s.monthlySalary || 0}/${(s.salaryType || 'mo').slice(0,2).toLowerCase()}
+                  ₹${s.salary || 0}/${(s.salaryType || 'Monthly').slice(0,2).toLowerCase()}
                 </span>
               </div>
               <h4 class="font-bold text-slate-900">${s.name}</h4>
@@ -1525,7 +1524,7 @@
         qualification: document.getElementById('newStaffDutyQualification').value.trim(),
         assignedSubject: cat === 'TEACHING' ? document.getElementById('newStaffDutyQualification').value.trim() : '',
         phone: document.getElementById('newStaffPhone').value.trim(),
-        salary: sal.toString(),
+        salary: sal,
         salaryType: document.getElementById('newStaffSalaryType').value,
         password: document.getElementById('newStaffPhone').value.trim(),
         joinDate: toDDMMYYYY(document.getElementById('newStaffJoinDate').value),
@@ -1622,7 +1621,7 @@
         subjects: document.getElementById('newBatchSubjects').value.trim(),
         defaultMonthlyTuition: Number(document.getElementById('newBatchTuition').value) || 0,
         feeTemplateRaw: existing ? (existing.feeTemplateRaw || '') : '',
-        collectTuitionAtAdmission: existing ? Boolean(existing.collectTuitionAtAdmission) : false
+        collectTuitionAtAdmission: existing ? Boolean(existing.collectTuitionAtAdmission) : true
       }).then(() => {
         closeModal('addClassModal');
       });
@@ -1631,10 +1630,12 @@
     // ================= STUDENTS & FEE RULES =================
     function renderStudents() {
       const q = document.getElementById('searchStudentInput').value.toLowerCase();
-      const filtered = appData.students.filter(s =>
+      const sortedStudents = appData.students.slice().sort(compareRollNumbers);
+      const filtered = sortedStudents.filter(s =>
         (s.name || '').toLowerCase().includes(q) ||
         (s.gradeClass || '').toLowerCase().includes(q) ||
-        String(s.rollNo || '').toLowerCase().includes(q)
+        String(s.rollNo || '').toLowerCase().includes(q) ||
+        (s.fatherName || s.guardianName || '').toLowerCase().includes(q)
       );
       if (filtered.length === 0) {
         document.getElementById('studentTableBody').innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-400">No students found.</td></tr>`;
@@ -1645,7 +1646,7 @@
           <td class="py-3 px-4 font-bold text-blue-700">${s.rollNo || '-'}</td>
           <td class="py-3 px-4 font-bold">${s.name}</td>
           <td class="py-3 px-4">${s.gradeClass || '-'}</td>
-          <td class="py-3 px-4 text-xs"><div class="font-semibold">${s.parentName || s.fatherName || '-'}</div><div class="text-slate-400">📞 ${s.phone || '-'}</div></td>
+          <td class="py-3 px-4 text-xs"><div class="font-semibold">${s.fatherName || s.guardianName || '-'}</div><div class="text-slate-400">📞 ${s.phone || '-'}</div></td>
           <td class="py-3 px-4 font-bold text-emerald-700">₹${s.monthlyFee || 0}</td>
           <td class="py-3 px-4 text-xs text-slate-500">${s.admissionDate || '-'}</td>
           <td class="py-3 px-4 text-right"><button onclick="deleteDoc('students/${s._key}')" class="text-rose-600 text-xs font-bold">Delete</button></td>
@@ -1674,19 +1675,26 @@
       e.preventDefault();
       const id = Date.now();
       const dobRaw = document.getElementById('newStudentDob').value;
+      const fatherVal = document.getElementById('newStudentFather').value.trim();
+
       db.ref(`schools/${currentSchoolCode}/students/${id}`).set({
         id: id,
         schoolCode: currentSchoolCode,
         name: document.getElementById('newStudentName').value.trim(),
         gradeClass: document.getElementById('newStudentClass').value.trim(),
         rollNo: document.getElementById('newStudentRoll').value.trim() || '1',
-        parentName: document.getElementById('newStudentParent').value.trim(),
-        fatherName: document.getElementById('newStudentParent').value.trim(),
+        fatherName: fatherVal,
+        guardianName: fatherVal,
+        motherName: "",
         phone: document.getElementById('newStudentPhone').value.trim(),
         dob: dobRaw ? toDDMMYYYY(dobRaw) : '',
         admissionDate: toDDMMYYYY(document.getElementById('newStudentAdmissionDate').value),
         monthlyFee: Number(document.getElementById('newStudentFee').value) || 0,
-        admissionFee: Number(document.getElementById('newStudentAdmissionFee').value) || 0
+        admissionFee: Number(document.getElementById('newStudentAdmissionFee').value) || 0,
+        gender: "Male",
+        section: "",
+        address: "",
+        photoBase64: ""
       }).then(() => {
         closeModal('addStudentModal');
       });
@@ -1707,7 +1715,7 @@
       const batch = appData.batches.find(b => b._key === key);
       if (!batch) return;
       document.getElementById('feePolicyTuitionInput').value = batch.defaultMonthlyTuition || 0;
-      document.getElementById('feePolicyCollectTuitionNow').checked = Boolean(batch.collectTuitionAtAdmission);
+      document.getElementById('feePolicyCollectTuitionNow').checked = Boolean(batch.collectTuitionAtAdmission !== false);
       currentFeeParts = parseFeeTemplate(batch.feeTemplateRaw || '');
       renderFeePartsList();
     }
@@ -1750,7 +1758,7 @@
       });
     }
 
-    // ================= ATTENDANCE =================
+    // ================= ATTENDANCE (MATCHES ATTENDANCE SCREEN & ENTITY SCHEMA) =================
     document.getElementById('attendanceDatePicker').addEventListener('change', renderAttendance);
     document.getElementById('attendanceClassFilter').addEventListener('change', renderAttendance);
     document.getElementById('todayAttendanceBtn').addEventListener('click', () => {
@@ -1761,7 +1769,7 @@
     function renderAttendance() {
       const dateVal = toDDMMYYYY(document.getElementById('attendanceDatePicker').value);
       const classFilter = document.getElementById('attendanceClassFilter').value || 'ALL';
-      const records = appData.attendance.filter(a => a.date === dateVal);
+      const records = appData.attendance.filter(a => a.date === dateVal && (a.userType === 'STUDENT' || !a.userType));
       const allClasses = [...new Set([...appData.batches.map(b => b.batchName), ...appData.students.map(s => s.gradeClass)].filter(Boolean))];
 
       let tiles = `
@@ -1790,14 +1798,16 @@
       });
       document.getElementById('attendanceTilesContainer').innerHTML = tiles;
 
-      const filteredStudents = classFilter === 'ALL' ? appData.students : appData.students.filter(s => s.gradeClass === classFilter);
+      let list = classFilter === 'ALL' ? appData.students : appData.students.filter(s => s.gradeClass === classFilter);
+      list = list.slice().sort(compareRollNumbers);
+
       const tbody = document.getElementById('attendanceTableBody');
-      if (filteredStudents.length === 0) {
+      if (list.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">No students enrolled.</td></tr>`;
       } else {
-        tbody.innerHTML = filteredStudents.map(st => {
+        tbody.innerHTML = list.map(st => {
           const stId = st.id || st._key;
-          const existing = records.find(r => String(r.studentId) === String(stId) || (r.studentName === st.name && r.gradeClass === st.gradeClass));
+          const existing = records.find(r => String(r.studentId) === String(stId));
           const status = existing ? existing.status : 'UNMARKED';
           const badgeClass = status === 'PRESENT' ? 'bg-emerald-100 text-emerald-800' : (status === 'ABSENT' ? 'bg-rose-100 text-rose-800' : (status === 'LEAVE' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'));
 
@@ -1822,18 +1832,20 @@
       const st = appData.students.find(s => s._key === studentKey);
       if (!st) return;
       const dateVal = toDDMMYYYY(document.getElementById('attendanceDatePicker').value);
-      const stId = st.id || st._key;
+      const stId = Number(st.id || st._key) || 0;
 
-      const existing = appData.attendance.find(a => a.date === dateVal && (String(a.studentId) === String(stId) || (a.studentName === st.name && a.gradeClass === st.gradeClass)));
+      const existing = appData.attendance.find(a => a.date === dateVal && String(a.studentId) === String(stId));
       const recordKey = existing ? existing._key : String(Date.now());
       const recordId = existing && existing.id ? existing.id : Date.now();
 
       db.ref(`schools/${currentSchoolCode}/attendance/${recordKey}`).set({
         id: recordId,
         schoolCode: currentSchoolCode,
-        studentId: Number(stId) || 0,
+        studentId: stId,
         studentName: st.name,
         gradeClass: st.gradeClass || '',
+        staffId: 0,
+        userType: "STUDENT",
         date: dateVal,
         status: status
       });
@@ -1874,10 +1886,15 @@
         feeMonth: document.getElementById('feeMonthInput').value.trim(),
         amountPaid: Number(document.getElementById('feeAmountInput').value) || 0,
         paymentDate: toDDMMYYYY(document.getElementById('feePaymentDateInput').value),
-        paymentMode: "CASH"
+        paymentMode: "CASH",
+        remarks: "Direct Portal Payment"
       };
 
-      db.ref(`schools/${currentSchoolCode}/fees/${id}`).set(record).then(() => {
+      const updates = {};
+      updates[`schools/${currentSchoolCode}/fees/${id}`] = record;
+      updates[`schools/${currentSchoolCode}/fee_records/${id}`] = record;
+
+      db.ref().update(updates).then(() => {
         document.getElementById('feeCollectForm').reset();
         resetAllDateInputsToToday();
         printReceipt(String(id));
@@ -1898,8 +1915,8 @@
           <td class="py-3 px-4">${f.feeMonth}</td>
           <td class="py-3 px-4 font-bold text-emerald-600">₹${f.amountPaid}</td>
           <td class="py-3 px-4 text-right space-x-2">
-            <button onclick="printReceipt('${f._key}')" class="px-2 py-1 bg-slate-100 rounded text-xs font-bold">🖨️ Print</button>
-            <button onclick="deleteDoc('fees/${f._key}')" class="text-rose-600 text-xs font-bold">✕</button>
+            <button onclick="printReceipt('${f._key || f.id}')" class="px-2 py-1 bg-slate-100 rounded text-xs font-bold">🖨️ Print</button>
+            <button onclick="deleteDoc('fees/${f._key || f.id}')" class="text-rose-600 text-xs font-bold">✕</button>
           </td>
         </tr>
       `).join('');
@@ -1931,7 +1948,8 @@
         title: document.getElementById('newExpenseTitle').value.trim(),
         category: document.getElementById('newExpenseCategory').value.trim() || 'General',
         amount: Number(document.getElementById('newExpenseAmount').value) || 0,
-        date: toDDMMYYYY(document.getElementById('newExpenseDate').value)
+        date: toDDMMYYYY(document.getElementById('newExpenseDate').value),
+        notes: ""
       }).then(() => {
         closeModal('addExpenseModal');
       });
@@ -1951,7 +1969,7 @@
       if (!f) return;
       document.getElementById('receiptSchoolName').textContent = appData.profile.schoolName || document.getElementById('schoolNavTitle').textContent || `INSTITUTE (${currentSchoolCode})`;
       document.getElementById('receiptSchoolCode').textContent = `Code: ${currentSchoolCode}`;
-      document.getElementById('receiptNo').textContent = `#REC-${String(f._key).slice(-6).toUpperCase()}`;
+      document.getElementById('receiptNo').textContent = `#REC-${String(f.id || f._key).slice(-6).toUpperCase()}`;
       document.getElementById('receiptDate').textContent = f.paymentDate;
       document.getElementById('receiptStudentName').textContent = f.studentName;
       document.getElementById('receiptClassRoll').textContent = f.gradeClass || 'General';
@@ -2016,7 +2034,8 @@
         subject: document.getElementById('hwSubject').value.trim(),
         title: document.getElementById('hwTitle').value.trim(),
         description: document.getElementById('hwDesc').value.trim(),
-        dueDate: toDDMMYYYY(document.getElementById('hwDueDate').value)
+        dueDate: toDDMMYYYY(document.getElementById('hwDueDate').value),
+        assignedDate: getTodayFormatted()
       }).then(() => { document.getElementById('addHomeworkForm').reset(); });
     });
 
@@ -2061,7 +2080,10 @@
         studentName: document.getElementById('enqStudent').value.trim(),
         parentName: document.getElementById('enqParent').value.trim(),
         phone: document.getElementById('enqPhone').value.trim(),
-        gradeClass: document.getElementById('enqClass').value.trim()
+        gradeClass: document.getElementById('enqClass').value.trim(),
+        date: getTodayFormatted(),
+        status: "NEW",
+        notes: ""
       }).then(() => { document.getElementById('addEnquiryForm').reset(); });
     });
 
@@ -2080,10 +2102,13 @@
       const id = Date.now();
       db.ref(`schools/${currentSchoolCode}/staff_logs/${id}`).set({
         id: id, schoolCode: currentSchoolCode,
+        staffId: 0,
         staffName: document.getElementById('slStaffName').value.trim(),
         checkIn: document.getElementById('slCheckIn').value.trim(),
         checkOut: document.getElementById('slCheckOut').value.trim(),
-        activityNote: document.getElementById('slNote').value.trim()
+        activityNote: document.getElementById('slNote').value.trim(),
+        date: getTodayFormatted(),
+        status: "ON_TIME"
       }).then(() => { document.getElementById('addStaffLogForm').reset(); });
     });
 
@@ -2105,6 +2130,7 @@
         title: document.getElementById('noticeTitle').value.trim(),
         targetAudience: document.getElementById('noticeAudience').value,
         message: document.getElementById('noticeMessage').value.trim(),
+        priority: "NORMAL",
         date: getTodayFormatted()
       }).then(() => { document.getElementById('addNoticeForm').reset(); });
     });
@@ -2199,7 +2225,8 @@
         subject: document.getElementById('qbSubject').value.trim(),
         chapterTopic: document.getElementById('qbTopic').value.trim(),
         questionText: document.getElementById('qbQuestion').value.trim(),
-        answerKey: document.getElementById('qbAnswer').value.trim()
+        answerKey: document.getElementById('qbAnswer').value.trim(),
+        questionType: "SHORT"
       }).then(() => { document.getElementById('addQuestionForm').reset(); });
     });
   </script>
