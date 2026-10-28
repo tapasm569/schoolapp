@@ -117,7 +117,7 @@ fun ExamsScreen(
                                 }
 
                                 Button(
-                                    onClick = { scope.launch { database.examDao().deleteExam(exam) } },
+                                    onClick = { scope.launch { run { val _ent = exam; database.examDao().deleteExam(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "exams", _ent.id) } catch (_: Exception) {} } } },
                                     colors = ButtonDefaults.buttonColors(containerColor = colors.error.copy(alpha = 0.15f), contentColor = colors.error),
                                     shape = RoundedCornerShape(8.dp),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
@@ -183,16 +183,14 @@ fun ExamsScreen(
                         onClick = {
                             if (examTitle.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    database.examDao().insertExam(
-                                        ExamEntity(
+                                    run { val _ent = ExamEntity(
                                             schoolCode = schoolCode,
                                             title = examTitle.trim(),
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
                                             examDate = examDate,
                                             maxMarks = maxMarks.toDoubleOrNull() ?: 100.0
-                                        )
-                                    )
+                                        ); val _id = database.examDao().insertExam(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushExam(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     examTitle = ""
                                     subject = ""
                                     showAddExamModal = false
@@ -569,7 +567,7 @@ fun HomeworkScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("Due Date: " + hw.dueDate, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
-                                TextButton(onClick = { scope.launch { database.homeworkDao().deleteHomework(hw) } }) {
+                                TextButton(onClick = { scope.launch { run { val _ent = hw; database.homeworkDao().deleteHomework(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "homework", _ent.id) } catch (_: Exception) {} } } }) {
                                     Text("Delete", color = colors.error, fontSize = 12.sp)
                                 }
                             }
@@ -628,8 +626,7 @@ fun HomeworkScreen(
                         onClick = {
                             if (title.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    database.homeworkDao().insertHomework(
-                                        HomeworkEntity(
+                                    run { val _ent = HomeworkEntity(
                                             schoolCode = schoolCode,
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
@@ -637,8 +634,7 @@ fun HomeworkScreen(
                                             description = description.trim(),
                                             assignedDate = "03/10/2026",
                                             dueDate = dueDate
-                                        )
-                                    )
+                                        ); val _id = database.homeworkDao().insertHomework(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushHomework(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     title = ""
                                     description = ""
                                     subject = ""
@@ -767,7 +763,7 @@ fun ClassworkScreen(
                             Text(cw.summary, fontSize = 13.sp, color = colors.textSecondary)
                             Spacer(modifier = Modifier.height(6.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton(onClick = { scope.launch { database.classworkDao().deleteClasswork(cw) } }) {
+                                TextButton(onClick = { scope.launch { run { val _ent = cw; database.classworkDao().deleteClasswork(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "classwork", _ent.id) } catch (_: Exception) {} } } }) {
                                     Text("Remove", color = colors.error, fontSize = 12.sp)
                                 }
                             }
@@ -826,16 +822,14 @@ fun ClassworkScreen(
                         onClick = {
                             if (topicTitle.isNotBlank() && selectedClass.isNotBlank()) {
                                 scope.launch {
-                                    database.classworkDao().insertClasswork(
-                                        ClassworkEntity(
+                                    run { val _ent = ClassworkEntity(
                                             schoolCode = schoolCode,
                                             gradeClass = selectedClass,
                                             subject = subject.trim(),
                                             topicTitle = topicTitle.trim(),
                                             summary = summary.trim(),
                                             date = logDate
-                                        )
-                                    )
+                                        ); val _id = database.classworkDao().insertClasswork(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushClasswork(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     topicTitle = ""
                                     summary = ""
                                     subject = ""

@@ -821,8 +821,7 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                         onClick = {
                             if (leaveReason.isNotBlank()) {
                                 scope.launch {
-                                    database.leaveDao().insertLeave(
-                                        LeaveRequestEntity(
+                                    run { val _ent = LeaveRequestEntity(
                                             schoolCode = schoolCode,
                                             applicantName = studentName,
                                             applicantType = "STUDENT",
@@ -830,8 +829,7 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                                             endDate = leaveEndDate,
                                             reason = leaveReason,
                                             status = "PENDING"
-                                        )
-                                    )
+                                        ); val _id = database.leaveDao().insertLeave(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushLeaveRequest(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     leaveSubmittedMsg = "✓ Leave application submitted successfully!"
                                     leaveReason = ""
                                 }

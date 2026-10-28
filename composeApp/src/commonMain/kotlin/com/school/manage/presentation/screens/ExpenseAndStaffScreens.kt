@@ -990,16 +990,14 @@ fun ExpenseScreen(
                                     errorMessage = "Please enter a valid title and amount!"
                                 } else {
                                     scope.launch {
-                                        database.expenseDao().insertExpense(
-                                            ExpenseEntity(
+                                        run { val _ent = ExpenseEntity(
                                                 schoolCode = schoolCode,
                                                 title = title.trim(),
                                                 category = category.trim().ifEmpty { "General" },
                                                 amount = amt,
                                                 date = selectedExpenseDate,
                                                 notes = ""
-                                            )
-                                        )
+                                            ); val _id = database.expenseDao().insertExpense(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushExpense(schoolCode, _final) } catch (_: Exception) {}; _id }
                                         title = ""
                                         category = ""
                                         amount = ""

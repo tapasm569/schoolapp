@@ -1,17 +1,13 @@
 package com.school.manage.core.firebase
 
 import com.school.manage.core.database.AppDatabase
-import com.school.manage.core.database.entity.BatchEntity
-import com.school.manage.core.database.entity.FeeRecordEntity
-import com.school.manage.core.database.entity.SchoolEntity
-import com.school.manage.core.database.entity.StaffEntity
-import com.school.manage.core.database.entity.StudentEntity
+import com.school.manage.core.database.entity.*
 import dev.gitlive.firebase.Firebase
+import dev.gitlive.firebase.database.DataSnapshot
 import dev.gitlive.firebase.database.database
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -21,23 +17,16 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val syncJobs = mutableMapOf<String, Job>()
 
-    /**
-     * Pushes all local SQLite data directly to Firebase Realtime Database.
-     */
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
         restoreAllFromCloud(schoolCode)
     }
 
-    /**
-     * Compatibility wrapper for AuthScreens: restores all records from RTDB into local SQLite.
-     */
     suspend fun restoreAllFromCloud(schoolCode: String) {
         if (schoolCode.isBlank()) return
         try {
             val snapshot = rtdb.reference("schools").child(schoolCode).get()
             if (!snapshot.exists) return
 
-            // Restore School Info
             val infoMap = snapshot.child("info").value as? Map<*, *>
             if (infoMap != null) {
                 val sCode = infoMap["schoolCode"]?.toString() ?: schoolCode
@@ -64,102 +53,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 }
             }
 
-            // Restore Students
-            val studentsNode = snapshot.child("students")
-            if (studentsNode.exists) {
-                for (child in studentsNode.children) {
-                    val map = child.value as? Map<*, *> ?: continue
-                    val sId = map["id"]?.toString()?.toLongOrNull() ?: 0L
-                    val sCode = map["schoolCode"]?.toString() ?: schoolCode
-                    val roll = map["rollNo"]?.toString() ?: ""
-                    val name = map["name"]?.toString() ?: ""
-                    val grade = map["gradeClass"]?.toString() ?: ""
-                    val sec = map["section"]?.toString() ?: ""
-                    val guard = map["guardianName"]?.toString() ?: ""
-                    val fName = map["fatherName"]?.toString() ?: ""
-                    val mName = map["motherName"]?.toString() ?: ""
-                    val phone = map["phone"]?.toString() ?: ""
-                    val whatsapp = map["whatsapp"]?.toString() ?: ""
-                    val addr = map["address"]?.toString() ?: ""
-                    val dob = map["dob"]?.toString() ?: ""
-                    val gender = map["gender"]?.toString() ?: ""
-                    val caste = map["caste"]?.toString() ?: ""
-                    val admDate = map["admissionDate"]?.toString() ?: ""
-                    val photo = map["photoBase64"]?.toString() ?: ""
-
-                    database.studentDao().insertStudent(
-                        StudentEntity(
-                            id = if (sId > 0) sId else 0L,
-                            schoolCode = sCode,
-                            rollNo = roll,
-                            name = name,
-                            gradeClass = grade,
-                            section = sec,
-                            guardianName = guard,
-                            fatherName = fName,
-                            motherName = mName,
-                            phone = phone,
-                            whatsapp = whatsapp,
-                            address = addr,
-                            dob = dob,
-                            gender = gender,
-                            caste = caste,
-                            admissionDate = admDate,
-                            photoBase64 = photo
-                        )
-                    )
-                }
+            val allCollections = listOf(
+                "batches", "students", "staff", "fees", "fee_records", "expenses", "attendance",
+                "exams", "homework", "classwork", "enquiries", "staff_logs",
+                "announcements", "leave_requests", "timetables", "online_classes", "question_bank"
+            )
+            for (col in allCollections) {
+                syncCollectionFromSnapshot(schoolCode, col, snapshot.child(col))
             }
-
-            // Restore Staff
-            val staffNode = snapshot.child("staff")
-            if (staffNode.exists) {
-                for (child in staffNode.children) {
-                    val map = child.value as? Map<*, *> ?: continue
-                    val stId = map["id"]?.toString()?.toLongOrNull() ?: 0L
-                    val sCode = map["schoolCode"]?.toString() ?: schoolCode
-                    val name = map["name"]?.toString() ?: ""
-                    val role = map["role"]?.toString() ?: ""
-                    val phone = map["phone"]?.toString() ?: ""
-                    val whatsapp = map["whatsapp"]?.toString() ?: ""
-                    val salary = map["salary"]?.toString()?.toDoubleOrNull() ?: 0.0
-                    val qual = map["qualification"]?.toString() ?: ""
-                    val join = map["joinDate"]?.toString() ?: ""
-                    val gender = map["gender"]?.toString() ?: ""
-                    val addr = map["address"]?.toString() ?: ""
-                    val photo = map["photoBase64"]?.toString() ?: ""
-
-                    database.staffDao().insertStaff(
-                        StaffEntity(
-                            id = if (stId > 0) stId else 0L,
-                            schoolCode = sCode,
-                            name = name,
-                            role = role,
-                            phone = phone,
-                            whatsapp = whatsapp,
-                            salary = salary,
-                            qualification = qual,
-                            joinDate = join,
-                            gender = gender,
-                            address = addr,
-                            photoBase64 = photo
-                        )
-                    )
-                }
-            }
-
-            syncCollectionFromSnapshot(schoolCode, "batches", snapshot.child("batches"))
-            syncCollectionFromSnapshot(schoolCode, "students", snapshot.child("students"))
-            syncCollectionFromSnapshot(schoolCode, "staff", snapshot.child("staff"))
-            syncCollectionFromSnapshot(schoolCode, "fees", snapshot.child("fees"))
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    /**
-     * Restores a single school entity from cloud by schoolCode.
-     */
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
         if (schoolCode.isBlank()) return null
         return try {
@@ -191,9 +97,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Saves newly registered school to cloud.
-     */
     suspend fun saveSchoolToCloud(school: SchoolEntity) {
         if (school.schoolCode.isBlank()) return
         try {
@@ -213,9 +116,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Pushes school profile info (including masterSubjects) to Firebase.
-     */
     suspend fun pushSchoolProfile(schoolCode: String, schoolName: String, masterSubjects: String) {
         if (schoolCode.isBlank()) return
         try {
@@ -231,9 +131,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Pushes active academic session (e.g. 2026) to Firebase.
-     */
     suspend fun pushActiveSession(schoolCode: String, session: String) {
         if (schoolCode.isBlank() || session.isBlank()) return
         try {
@@ -243,9 +140,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Retrieves active academic session from cloud.
-     */
     suspend fun getActiveSession(schoolCode: String): String? {
         if (schoolCode.isBlank()) return null
         return try {
@@ -257,9 +151,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Saves one class to Firebase without replacing other classes.
-     */
     suspend fun pushBatch(schoolCode: String, batch: BatchEntity) {
         val targetSchool = schoolCode.ifBlank { batch.schoolCode }
         if (targetSchool.isBlank() || batch.id <= 0L || batch.batchName.isBlank()) {
@@ -367,24 +258,20 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(fee.id > 0L) { "Fee record ID must be positive" }
 
-        rtdb.reference("schools")
-            .child(targetSchool)
-            .child("fees")
-            .child(fee.id.toString())
-            .setValue(
-                mapOf(
-                    "id" to fee.id.toString(),
-                    "schoolCode" to targetSchool,
-                    "studentId" to fee.studentId.toString(),
-                    "studentName" to fee.studentName,
-                    "gradeClass" to fee.gradeClass,
-                    "amountPaid" to fee.amountPaid.toString(),
-                    "paymentDate" to fee.paymentDate,
-                    "feeMonth" to fee.feeMonth,
-                    "paymentMode" to fee.paymentMode,
-                    "remarks" to fee.remarks
-                )
-            )
+        val payload = mapOf(
+            "id" to fee.id.toString(),
+            "schoolCode" to targetSchool,
+            "studentId" to fee.studentId.toString(),
+            "studentName" to fee.studentName,
+            "gradeClass" to fee.gradeClass,
+            "amountPaid" to fee.amountPaid.toString(),
+            "paymentDate" to fee.paymentDate,
+            "feeMonth" to fee.feeMonth,
+            "paymentMode" to fee.paymentMode,
+            "remarks" to fee.remarks
+        )
+        rtdb.reference("schools").child(targetSchool).child("fees").child(fee.id.toString()).setValue(payload)
+        rtdb.reference("schools").child(targetSchool).child("fee_records").child(fee.id.toString()).setValue(payload)
     }
 
     suspend fun deleteBatchRecord(schoolCode: String, batch: BatchEntity) {
@@ -392,12 +279,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(batch.id > 0L) { "Class ID must be positive" }
 
-        rtdb.reference("schools")
-            .child(targetSchool)
-            .child("batches")
-            .child(batch.id.toString())
-            .removeValue()
-
+        rtdb.reference("schools").child(targetSchool).child("batches").child(batch.id.toString()).removeValue()
         database.batchDao().deleteBatch(batch)
     }
 
@@ -406,12 +288,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(student.id > 0L) { "Student ID must be positive" }
 
-        rtdb.reference("schools")
-            .child(targetSchool)
-            .child("students")
-            .child(student.id.toString())
-            .removeValue()
-
+        rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
         database.studentDao().deleteStudent(student)
         return true
     }
@@ -421,135 +298,158 @@ class FirestoreSyncService(private val database: AppDatabase) {
         require(targetSchool.isNotBlank()) { "School code is required" }
         require(staff.id > 0L) { "Staff ID must be positive" }
 
-        rtdb.reference("schools")
-            .child(targetSchool)
-            .child("staff")
-            .child(staff.id.toString())
-            .removeValue()
-
+        rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
         database.staffDao().deleteStaff(staff)
         return true
     }
 
-    /**
-     * Reconcile one complete Firebase collection with its local Room records.
-     */
+    suspend fun deleteModuleRecord(schoolCode: String, collection: String, id: Long) {
+        if (schoolCode.isBlank() || id <= 0L) return
+        try {
+            rtdb.reference("schools").child(schoolCode).child(collection).child(id.toString()).removeValue()
+        } catch (_: Exception) {}
+    }
 
-    // --- 12 MODULE PUSH FUNCTIONS ---
-    suspend fun pushExam(schoolCode: String, exam: com.school.manage.core.database.entity.ExamEntity) {
-        val targetSchool = schoolCode.ifBlank { exam.schoolCode }
-        if (targetSchool.isBlank() || exam.id <= 0L) return
-        rtdb.reference("schools").child(targetSchool).child("exams").child(exam.id.toString()).setValue(
+    suspend fun pushExpense(schoolCode: String, exp: ExpenseEntity) {
+        val targetSchool = schoolCode.ifBlank { exp.schoolCode }
+        if (targetSchool.isBlank() || exp.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("expenses").child(exp.id.toString()).setValue(
             mapOf(
-                "id" to exam.id, "schoolCode" to targetSchool, "title" to exam.title,
-                "gradeClass" to exam.gradeClass, "subject" to exam.subject,
-                "examDate" to exam.examDate, "maxMarks" to exam.maxMarks
+                "id" to exp.id.toString(), "schoolCode" to targetSchool, "title" to exp.title,
+                "category" to exp.category, "amount" to exp.amount.toString(),
+                "date" to exp.date, "notes" to exp.notes
             )
         )
     }
 
-    suspend fun pushHomework(schoolCode: String, hw: com.school.manage.core.database.entity.HomeworkEntity) {
+    suspend fun pushAttendance(schoolCode: String, att: AttendanceEntity) {
+        val targetSchool = schoolCode.ifBlank { att.schoolCode }
+        if (targetSchool.isBlank() || att.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("attendance").child(att.id.toString()).setValue(
+            mapOf(
+                "id" to att.id.toString(), "schoolCode" to targetSchool,
+                "studentId" to att.studentId.toString(), "studentName" to att.studentName,
+                "gradeClass" to att.gradeClass, "staffId" to att.staffId.toString(),
+                "userType" to att.userType, "date" to att.date, "status" to att.status
+            )
+        )
+    }
+
+    // --- 12 MODULE PUSH FUNCTIONS ---
+    suspend fun pushExam(schoolCode: String, exam: ExamEntity) {
+        val targetSchool = schoolCode.ifBlank { exam.schoolCode }
+        if (targetSchool.isBlank() || exam.id <= 0L) return
+        rtdb.reference("schools").child(targetSchool).child("exams").child(exam.id.toString()).setValue(
+            mapOf(
+                "id" to exam.id.toString(), "schoolCode" to targetSchool, "title" to exam.title,
+                "gradeClass" to exam.gradeClass, "subject" to exam.subject,
+                "examDate" to exam.examDate, "maxMarks" to exam.maxMarks.toString()
+            )
+        )
+    }
+
+    suspend fun pushHomework(schoolCode: String, hw: HomeworkEntity) {
         val targetSchool = schoolCode.ifBlank { hw.schoolCode }
         if (targetSchool.isBlank() || hw.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("homework").child(hw.id.toString()).setValue(
             mapOf(
-                "id" to hw.id, "schoolCode" to targetSchool, "title" to hw.title,
+                "id" to hw.id.toString(), "schoolCode" to targetSchool, "title" to hw.title,
                 "description" to hw.description, "gradeClass" to hw.gradeClass,
                 "subject" to hw.subject, "assignedDate" to hw.assignedDate, "dueDate" to hw.dueDate
             )
         )
     }
 
-    suspend fun pushClasswork(schoolCode: String, cw: com.school.manage.core.database.entity.ClassworkEntity) {
+    suspend fun pushClasswork(schoolCode: String, cw: ClassworkEntity) {
         val targetSchool = schoolCode.ifBlank { cw.schoolCode }
         if (targetSchool.isBlank() || cw.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("classwork").child(cw.id.toString()).setValue(
             mapOf(
-                "id" to cw.id, "schoolCode" to targetSchool, "topicTitle" to cw.topicTitle,
+                "id" to cw.id.toString(), "schoolCode" to targetSchool, "topicTitle" to cw.topicTitle,
                 "summary" to cw.summary, "gradeClass" to cw.gradeClass,
                 "subject" to cw.subject, "date" to cw.date
             )
         )
     }
 
-    suspend fun pushEnquiry(schoolCode: String, enq: com.school.manage.core.database.entity.EnquiryEntity) {
+    suspend fun pushEnquiry(schoolCode: String, enq: EnquiryEntity) {
         val targetSchool = schoolCode.ifBlank { enq.schoolCode }
         if (targetSchool.isBlank() || enq.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("enquiries").child(enq.id.toString()).setValue(
             mapOf(
-                "id" to enq.id, "schoolCode" to targetSchool, "studentName" to enq.studentName,
+                "id" to enq.id.toString(), "schoolCode" to targetSchool, "studentName" to enq.studentName,
                 "parentName" to enq.parentName, "phone" to enq.phone, "gradeClass" to enq.gradeClass,
                 "date" to enq.date, "status" to enq.status, "notes" to enq.notes
             )
         )
     }
 
-    suspend fun pushStaffLog(schoolCode: String, log: com.school.manage.core.database.entity.StaffLogEntity) {
+    suspend fun pushStaffLog(schoolCode: String, log: StaffLogEntity) {
         val targetSchool = schoolCode.ifBlank { log.schoolCode }
         if (targetSchool.isBlank() || log.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("staff_logs").child(log.id.toString()).setValue(
             mapOf(
-                "id" to log.id, "schoolCode" to targetSchool, "staffName" to log.staffName,
-                "staffId" to log.staffId, "date" to log.date, "checkIn" to log.checkIn,
+                "id" to log.id.toString(), "schoolCode" to targetSchool, "staffName" to log.staffName,
+                "staffId" to log.staffId.toString(), "date" to log.date, "checkIn" to log.checkIn,
                 "checkOut" to log.checkOut, "activityNote" to log.activityNote, "status" to log.status
             )
         )
     }
 
-    suspend fun pushAnnouncement(schoolCode: String, ann: com.school.manage.core.database.entity.AnnouncementEntity) {
+    suspend fun pushAnnouncement(schoolCode: String, ann: AnnouncementEntity) {
         val targetSchool = schoolCode.ifBlank { ann.schoolCode }
         if (targetSchool.isBlank() || ann.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("announcements").child(ann.id.toString()).setValue(
             mapOf(
-                "id" to ann.id, "schoolCode" to targetSchool, "title" to ann.title,
+                "id" to ann.id.toString(), "schoolCode" to targetSchool, "title" to ann.title,
                 "message" to ann.message, "targetAudience" to ann.targetAudience,
                 "date" to ann.date, "priority" to ann.priority
             )
         )
     }
 
-    suspend fun pushLeaveRequest(schoolCode: String, lr: com.school.manage.core.database.entity.LeaveRequestEntity) {
+    suspend fun pushLeaveRequest(schoolCode: String, lr: LeaveRequestEntity) {
         val targetSchool = schoolCode.ifBlank { lr.schoolCode }
         if (targetSchool.isBlank() || lr.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("leave_requests").child(lr.id.toString()).setValue(
             mapOf(
-                "id" to lr.id, "schoolCode" to targetSchool, "applicantName" to lr.applicantName,
+                "id" to lr.id.toString(), "schoolCode" to targetSchool, "applicantName" to lr.applicantName,
                 "applicantType" to lr.applicantType, "startDate" to lr.startDate,
                 "endDate" to lr.endDate, "reason" to lr.reason, "status" to lr.status
             )
         )
     }
 
-    suspend fun pushTimetable(schoolCode: String, tt: com.school.manage.core.database.entity.TimetableEntity) {
+    suspend fun pushTimetable(schoolCode: String, tt: TimetableEntity) {
         val targetSchool = schoolCode.ifBlank { tt.schoolCode }
         if (targetSchool.isBlank() || tt.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("timetables").child(tt.id.toString()).setValue(
             mapOf(
-                "id" to tt.id, "schoolCode" to targetSchool, "gradeClass" to tt.gradeClass,
-                "dayOfWeek" to tt.dayOfWeek, "periodNo" to tt.periodNo,
+                "id" to tt.id.toString(), "schoolCode" to targetSchool, "gradeClass" to tt.gradeClass,
+                "dayOfWeek" to tt.dayOfWeek, "periodNo" to tt.periodNo.toString(),
                 "timeSlot" to tt.timeSlot, "subject" to tt.subject, "teacherName" to tt.teacherName
             )
         )
     }
 
-    suspend fun pushOnlineClass(schoolCode: String, oc: com.school.manage.core.database.entity.OnlineClassEntity) {
+    suspend fun pushOnlineClass(schoolCode: String, oc: OnlineClassEntity) {
         val targetSchool = schoolCode.ifBlank { oc.schoolCode }
         if (targetSchool.isBlank() || oc.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("online_classes").child(oc.id.toString()).setValue(
             mapOf(
-                "id" to oc.id, "schoolCode" to targetSchool, "title" to oc.title,
+                "id" to oc.id.toString(), "schoolCode" to targetSchool, "title" to oc.title,
                 "gradeClass" to oc.gradeClass, "subject" to oc.subject,
                 "meetingUrl" to oc.meetingUrl, "classDate" to oc.classDate, "classTime" to oc.classTime
-            )
+   )
         )
     }
 
-    suspend fun pushQuestion(schoolCode: String, qb: com.school.manage.core.database.entity.QuestionBankEntity) {
+    suspend fun pushQuestion(schoolCode: String, qb: QuestionBankEntity) {
         val targetSchool = schoolCode.ifBlank { qb.schoolCode }
         if (targetSchool.isBlank() || qb.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("question_bank").child(qb.id.toString()).setValue(
             mapOf(
-                "id" to qb.id, "schoolCode" to targetSchool, "gradeClass" to qb.gradeClass,
+                "id" to qb.id.toString(), "schoolCode" to targetSchool, "gradeClass" to qb.gradeClass,
                 "subject" to qb.subject, "chapterTopic" to qb.chapterTopic,
                 "questionText" to qb.questionText, "answerKey" to qb.answerKey, "questionType" to qb.questionType
             )
@@ -559,7 +459,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private suspend fun syncCollectionFromSnapshot(
         schoolCode: String,
         collection: String,
-        snapshot: dev.gitlive.firebase.database.DataSnapshot
+        snapshot: DataSnapshot
     ) {
         if (!snapshot.exists) return
 
@@ -570,9 +470,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             "batches" -> {
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
-                    val id = map["id"]?.toString()?.toLongOrNull()
-                        ?: child.key?.toLongOrNull()
-                        ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     val name = map["batchName"]?.toString() ?: ""
                     if (id <= 0L || name.isBlank()) continue
 
@@ -584,12 +482,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             subjects = map["subjects"]?.toString() ?: "",
                             sections = map["sections"]?.toString() ?: "",
                             feeTemplateRaw = map["feeTemplateRaw"]?.toString() ?: "",
-                            defaultMonthlyTuition =
-                                map["defaultMonthlyTuition"]?.toString()
-                                    ?.toDoubleOrNull() ?: 0.0,
-                            collectTuitionAtAdmission =
-                                map["collectTuitionAtAdmission"]?.toString()
-                                    ?.toBooleanStrictOrNull() ?: true
+                            defaultMonthlyTuition = map["defaultMonthlyTuition"]?.toString()?.toDoubleOrNull() ?: 0.0,
+                            collectTuitionAtAdmission = map["collectTuitionAtAdmission"]?.toString()?.toBooleanStrictOrNull() ?: true
                         )
                     )
                 }
@@ -598,9 +492,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             "students" -> {
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
-                    val id = map["id"]?.toString()?.toLongOrNull()
-                        ?: child.key?.toLongOrNull()
-                        ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
 
                     database.studentDao().insertStudent(
@@ -633,9 +525,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             "staff" -> {
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
-                    val id = map["id"]?.toString()?.toLongOrNull()
-                        ?: child.key?.toLongOrNull()
-                        ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
 
                     database.staffDao().insertStaff(
@@ -659,24 +549,20 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 }
             }
 
-            "fees" -> {
+            "fees", "fee_records" -> {
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
-                    val id = map["id"]?.toString()?.toLongOrNull()
-                        ?: child.key?.toLongOrNull()
-                        ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
 
                     database.feeDao().insertFeeRecord(
                         FeeRecordEntity(
                             id = id,
                             schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
-                            studentId = map["studentId"]?.toString()
-                                ?.toLongOrNull() ?: 0L,
+                            studentId = map["studentId"]?.toString()?.toLongOrNull() ?: 0L,
                             studentName = map["studentName"]?.toString() ?: "",
                             gradeClass = map["gradeClass"]?.toString() ?: "",
-                            amountPaid = map["amountPaid"]?.toString()
-                                ?.toDoubleOrNull() ?: 0.0,
+                            amountPaid = map["amountPaid"]?.toString()?.toDoubleOrNull() ?: 0.0,
                             paymentDate = map["paymentDate"]?.toString() ?: "",
                             feeMonth = map["feeMonth"]?.toString() ?: "",
                             paymentMode = map["paymentMode"]?.toString() ?: "",
@@ -685,20 +571,260 @@ class FirestoreSyncService(private val database: AppDatabase) {
                     )
                 }
             }
+
+            "expenses" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.expenseDao().insertExpense(
+                        ExpenseEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            title = map["title"]?.toString() ?: "",
+                            category = map["category"]?.toString() ?: "General",
+                            amount = map["amount"]?.toString()?.toDoubleOrNull() ?: 0.0,
+                            date = map["date"]?.toString() ?: "",
+                            notes = map["notes"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "attendance" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.attendanceDao().markAttendance(
+                        AttendanceEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            studentId = map["studentId"]?.toString()?.toLongOrNull() ?: 0L,
+                            studentName = map["studentName"]?.toString() ?: "",
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            staffId = map["staffId"]?.toString()?.toLongOrNull() ?: 0L,
+                            userType = map["userType"]?.toString() ?: "STUDENT",
+                            date = map["date"]?.toString() ?: "",
+                            status = map["status"]?.toString() ?: "PRESENT"
+                        )
+                    )
+                }
+            }
+
+            "exams" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.examDao().insertExam(
+                        ExamEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            title = map["title"]?.toString() ?: "",
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            subject = map["subject"]?.toString() ?: "",
+                            examDate = map["examDate"]?.toString() ?: "",
+                            maxMarks = map["maxMarks"]?.toString()?.toDoubleOrNull() ?: 100.0
+                        )
+                    )
+                }
+            }
+
+            "homework" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.homeworkDao().insertHomework(
+                        HomeworkEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            subject = map["subject"]?.toString() ?: "",
+                            title = map["title"]?.toString() ?: "",
+                            description = map["description"]?.toString() ?: "",
+                            assignedDate = map["assignedDate"]?.toString() ?: "",
+                            dueDate = map["dueDate"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "classwork" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.classworkDao().insertClasswork(
+                        ClassworkEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            subject = map["subject"]?.toString() ?: "",
+                            topicTitle = map["topicTitle"]?.toString() ?: "",
+                            summary = map["summary"]?.toString() ?: "",
+                            date = map["date"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "enquiries" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.enquiryDao().insertEnquiry(
+                        EnquiryEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            studentName = map["studentName"]?.toString() ?: "",
+                            parentName = map["parentName"]?.toString() ?: "",
+                            phone = map["phone"]?.toString() ?: "",
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            date = map["date"]?.toString() ?: "",
+                            status = map["status"]?.toString() ?: "NEW",
+                            notes = map["notes"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "staff_logs" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.staffLogDao().insertStaffLog(
+                        StaffLogEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            staffId = map["staffId"]?.toString()?.toLongOrNull() ?: 0L,
+                            staffName = map["staffName"]?.toString() ?: "",
+                            date = map["date"]?.toString() ?: "",
+                            checkIn = map["checkIn"]?.toString() ?: "",
+                            checkOut = map["checkOut"]?.toString() ?: "",
+                            activityNote = map["activityNote"]?.toString() ?: "",
+                            status = map["status"]?.toString() ?: "ON_TIME"
+                        )
+                    )
+                }
+            }
+
+            "announcements" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.announcementDao().insertAnnouncement(
+                        AnnouncementEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            title = map["title"]?.toString() ?: "",
+                            message = map["message"]?.toString() ?: "",
+                            targetAudience = map["targetAudience"]?.toString() ?: "ALL",
+                            priority = map["priority"]?.toString() ?: "NORMAL",
+                            date = map["date"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "leave_requests" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.leaveDao().insertLeave(
+                        LeaveRequestEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            applicantName = map["applicantName"]?.toString() ?: "",
+                            applicantType = map["applicantType"]?.toString() ?: "STUDENT",
+                            startDate = map["startDate"]?.toString() ?: "",
+                            endDate = map["endDate"]?.toString() ?: "",
+                            reason = map["reason"]?.toString() ?: "",
+                            status = map["status"]?.toString() ?: "PENDING"
+                        )
+                    )
+                }
+            }
+
+            "timetables" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.timetableDao().insertTimetable(
+                        TimetableEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            dayOfWeek = map["dayOfWeek"]?.toString() ?: "Monday",
+                            periodNo = map["periodNo"]?.toString()?.toIntOrNull() ?: 1,
+                            timeSlot = map["timeSlot"]?.toString() ?: "",
+                            subject = map["subject"]?.toString() ?: "",
+                            teacherName = map["teacherName"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "online_classes" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.onlineClassDao().insertOnlineClass(
+                        OnlineClassEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            subject = map["subject"]?.toString() ?: "",
+                            title = map["title"]?.toString() ?: "",
+                            meetingUrl = map["meetingUrl"]?.toString() ?: "",
+                            classDate = map["classDate"]?.toString() ?: "",
+                            classTime = map["classTime"]?.toString() ?: ""
+                        )
+                    )
+                }
+            }
+
+            "question_bank" -> {
+                for (child in children) {
+                    val map = child.value as? Map<*, *> ?: continue
+                    val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
+                    if (id <= 0L) continue
+                    database.questionBankDao().insertQuestion(
+                        QuestionBankEntity(
+                            id = id,
+                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            gradeClass = map["gradeClass"]?.toString() ?: "",
+                            subject = map["subject"]?.toString() ?: "",
+                            chapterTopic = map["chapterTopic"]?.toString() ?: "",
+                            questionText = map["questionText"]?.toString() ?: "",
+                            answerKey = map["answerKey"]?.toString() ?: "",
+                            questionType = map["questionType"]?.toString() ?: "SHORT"
+                        )
+                    )
+                }
+            }
         }
     }
 
-    /**
-     * Keep local Room data synchronized with Firebase changes.
-     */
     fun startSync(schoolCode: String) {
         if (schoolCode.isBlank()) return
         if (syncJobs[schoolCode]?.isActive == true) return
 
         syncJobs[schoolCode] = scope.launch {
             val schoolRef = rtdb.reference("schools").child(schoolCode)
+            val collections = listOf(
+                "batches", "students", "staff", "fees", "fee_records", "expenses", "attendance",
+                "exams", "homework", "classwork", "enquiries", "staff_logs",
+                "announcements", "leave_requests", "timetables", "online_classes", "question_bank")
 
-            for (collection in listOf("batches", "students", "staff", "fees", "exams", "homework", "classwork", "enquiries", "staff_logs", "announcements", "leave_requests", "timetables", "online_classes", "question_bank")) {
+            for (collection in collections) {
                 launch {
                     try {
                         schoolRef.child(collection).valueEvents.collect { snapshot ->
@@ -719,5 +845,4 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
         }
     }
-
 }

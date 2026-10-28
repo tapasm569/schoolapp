@@ -111,16 +111,14 @@ fun TeacherSalaryScreen(
                                 scope.launch {
                                     val payoutAmount = staff.salary
                                     if (payoutAmount > 0.0) {
-                                        database.expenseDao().insertExpense(
-                                            ExpenseEntity(
+                                        run { val _ent = ExpenseEntity(
                                                 schoolCode = schoolCode,
                                                 title = "Salary Payout: ${staff.name}",
                                                 category = "Salary",
                                                 amount = payoutAmount,
                                                 date = sysToday.formatted,
                                                 notes = "Monthly salary for $currentMonthKey"
-                                            )
-                                        )
+                                            ); val _id = database.expenseDao().insertExpense(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushExpense(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     }
                                 }
                             },

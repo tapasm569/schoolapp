@@ -430,8 +430,7 @@ fun StaffPortalScreen(
                         onClick = {
                             if (leaveReason.isNotBlank()) {
                                 scope.launch {
-                                    database.leaveDao().insertLeave(
-                                        LeaveRequestEntity(
+                                    run { val _ent = LeaveRequestEntity(
                                             schoolCode = schoolCode,
                                             applicantName = teacherName,
                                             applicantType = "STAFF",
@@ -439,8 +438,7 @@ fun StaffPortalScreen(
                                             endDate = leaveEndDate,
                                             reason = leaveReason.trim(),
                                             status = "PENDING"
-                                        )
-                                    )
+                                        ); val _id = database.leaveDao().insertLeave(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushLeaveRequest(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     leaveReason = ""
                                     leaveSuccessMsg = "✓ Leave request submitted for Admin verification!"
                                 }

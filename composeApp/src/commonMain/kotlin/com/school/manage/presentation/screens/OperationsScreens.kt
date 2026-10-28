@@ -148,7 +148,7 @@ fun EnquiryScreen(
                                         Button(
                                             onClick = {
                                                 scope.launch {
-                                                    database.enquiryDao().insertEnquiry(enq.copy(status = "ADMITTED"))
+                                                    run { val _ent = enq.copy(status = "ADMITTED"); val _id = database.enquiryDao().insertEnquiry(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushEnquiry(schoolCode, _final) } catch (_: Exception) {}; _id }
                                                 }
                                             },
                                             colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary),
@@ -159,7 +159,7 @@ fun EnquiryScreen(
                                     }
                                 }
 
-                                TextButton(onClick = { scope.launch { database.enquiryDao().deleteEnquiry(enq) } }) {
+                                TextButton(onClick = { scope.launch { run { val _ent = enq; database.enquiryDao().deleteEnquiry(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "enquiries", _ent.id) } catch (_: Exception) {} } } }) {
                                     Text("Delete", color = colors.error, fontSize = 12.sp)
                                 }
                             }
@@ -194,16 +194,14 @@ fun EnquiryScreen(
                                 onClick = {
                                     if (studentName.isNotBlank() && phone.isNotBlank()) {
                                         scope.launch {
-                                            database.enquiryDao().insertEnquiry(
-                                                EnquiryEntity(
+                                            run { val _ent = EnquiryEntity(
                                                     schoolCode = schoolCode,
                                                     studentName = studentName.trim(),
                                                     parentName = parentName.trim(),
                                                     phone = phone.trim(),
                                                     gradeClass = gradeClass.trim(),
                                                     notes = notes.trim()
-                                                )
-                                            )
+                                                ); val _id = database.enquiryDao().insertEnquiry(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushEnquiry(schoolCode, _final) } catch (_: Exception) {}; _id }
                                             studentName = ""
                                             parentName = ""
                                             phone = ""
@@ -294,7 +292,7 @@ fun StaffLogsScreen(
                             Text("Date: " + log.date + " • Activity: " + log.activityNote, fontSize = 12.sp, color = colors.brandPrimary)
                             Spacer(modifier = Modifier.height(6.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                TextButton(onClick = { scope.launch { database.staffLogDao().deleteStaffLog(log) } }) {
+                                TextButton(onClick = { scope.launch { run { val _ent = log; database.staffLogDao().deleteStaffLog(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "staff_logs", _ent.id) } catch (_: Exception) {} } } }) {
                                     Text("Remove", color = colors.error, fontSize = 12.sp)
                                 }
                             }
@@ -346,16 +344,14 @@ fun StaffLogsScreen(
                                 onClick = {
                                     if (selectedStaffName.isNotBlank()) {
                                         scope.launch {
-                                            database.staffLogDao().insertStaffLog(
-                                                StaffLogEntity(
+                                            run { val _ent = StaffLogEntity(
                                                     schoolCode = schoolCode,
                                                     staffId = selectedStaffId,
                                                     staffName = selectedStaffName,
                                                     checkIn = checkIn.trim(),
                                                     checkOut = checkOut.trim(),
                                                     activityNote = note.trim()
-                                                )
-                                            )
+                                                ); val _id = database.staffLogDao().insertStaffLog(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushStaffLog(schoolCode, _final) } catch (_: Exception) {}; _id }
                                             showAddDialog = false
                                         }
                                     }
@@ -467,7 +463,7 @@ fun AnnouncementsScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("📅 " + ann.date, fontSize = 11.sp, color = colors.textSecondary)
-                                TextButton(onClick = { scope.launch { database.announcementDao().deleteAnnouncement(ann) } }) {
+                                TextButton(onClick = { scope.launch { run { val _ent = ann; database.announcementDao().deleteAnnouncement(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "announcements", _ent.id) } catch (_: Exception) {} } } }) {
                                     Text("Delete", color = colors.error, fontSize = 12.sp)
                                 }
                             }
@@ -540,16 +536,14 @@ fun AnnouncementsScreen(
                         onClick = {
                             if (title.isNotBlank() && message.isNotBlank()) {
                                 scope.launch {
-                                    database.announcementDao().insertAnnouncement(
-                                        AnnouncementEntity(
+                                    run { val _ent = AnnouncementEntity(
                                             schoolCode = schoolCode,
                                             title = title.trim(),
                                             message = message.trim(),
                                             targetAudience = targetAudience,
                                             priority = priority,
                                             date = todayStr
-                                        )
-                                    )
+                                        ); val _id = database.announcementDao().insertAnnouncement(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushAnnouncement(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     title = ""
                                     message = ""
                                     targetAudience = "ALL"
