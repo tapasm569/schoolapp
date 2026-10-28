@@ -8,6 +8,7 @@ import dev.gitlive.firebase.database.database
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -17,19 +18,63 @@ class FirestoreSyncService(private val database: AppDatabase) {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val syncJobs = mutableMapOf<String, Job>()
 
-    suspend fun pushAllLocalDataToCloud(schoolCode: String) {
-        restoreAllFromCloud(schoolCode)
+    private suspend fun resolveSchoolCode(code: String): String {
+        if (code.isNotBlank()) return code
+        return try {
+            database.sessionDao().getActiveSession()?.schoolCode ?: ""
+        } catch (_: Exception) {
+            ""
+        }
     }
 
-    suspend fun restoreAllFromCloud(schoolCode: String) {
-        if (schoolCode.isBlank()) return
+    /**
+     * Pushes all local Room records across all 16 tables directly to Firebase RTDB.
+     */
+    suspend fun pushAllLocalDataToCloud(schoolCode: String) {
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank()) return
+
         try {
-            val snapshot = rtdb.reference("schools").child(schoolCode).get()
+            // First restore whatever already exists in cloud
+            restoreAllFromCloud(sCode)
+
+            // Batches & Students & Staff & Fees
+            database.batchDao().getBatchesBySchool(sCode).first().forEach { pushBatch(sCode, it) }
+            database.studentDao().getStudentsBySchool(sCode).first().forEach { pushStudentRecord(sCode, it) }
+            database.staffDao().getStaffBySchool(sCode).first().forEach { pushStaff(sCode, it) }
+            database.feeDao().getFeeRecordsBySchool(sCode).first().forEach { pushFeeRecord(sCode, it) }
+            database.expenseDao().getExpensesBySchool(sCode).first().forEach { pushExpense(sCode, it) }
+            database.attendanceDao().getAttendanceBySchool(sCode).first().forEach { pushAttendance(sCode, it) }
+
+            // 12 Operational Feature Modules
+            database.examDao().getExamsBySchool(sCode).first().forEach { pushExam(sCode, it) }
+            database.homeworkDao().getHomeworkBySchool(sCode).first().forEach { pushHomework(sCode, it) }
+            database.classworkDao().getClassworkBySchool(sCode).first().forEach { pushClasswork(sCode, it) }
+            database.enquiryDao().getEnquiriesBySchool(sCode).first().forEach { pushEnquiry(sCode, it) }
+            database.staffLogDao().getStaffLogsBySchool(sCode).first().forEach { pushStaffLog(sCode, it) }
+            database.announcementDao().getAnnouncementsBySchool(sCode).first().forEach { pushAnnouncement(sCode, it) }
+            database.leaveDao().getLeavesBySchool(sCode).first().forEach { pushLeaveRequest(sCode, it) }
+            database.timetableDao().getTimetableBySchool(sCode).first().forEach { pushTimetable(sCode, it) }
+            database.onlineClassDao().getOnlineClassesBySchool(sCode).first().forEach { pushOnlineClass(sCode, it) }
+            database.questionBankDao().getQuestionsBySchool(sCode).first().forEach { pushQuestion(sCode, it) }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Restores all records from RTDB into local SQLite when logging in or after clearing app data.
+     */
+    suspend fun restoreAllFromCloud(schoolCode: String) {
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank()) return
+        try {
+            val snapshot = rtdb.reference("schools").child(sCode).get()
             if (!snapshot.exists) return
 
             val infoMap = snapshot.child("info").value as? Map<*, *>
             if (infoMap != null) {
-                val sCode = infoMap["schoolCode"]?.toString() ?: schoolCode
+                val sc = infoMap["schoolCode"]?.toString() ?: sCode
                 val sName = infoMap["schoolName"]?.toString() ?: ""
                 val pass = infoMap["password"]?.toString() ?: ""
                 val ph = infoMap["phone"]?.toString() ?: ""
@@ -37,11 +82,11 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 val addr = infoMap["address"]?.toString() ?: ""
                 val p64 = infoMap["photoBase64"]?.toString() ?: ""
 
-                val existing = database.schoolDao().getSchoolByCode(sCode)
+                val existing = database.schoolDao().getSchoolByCode(sc)
                 if (existing == null) {
                     database.schoolDao().registerSchool(
                         SchoolEntity(
-                            schoolCode = sCode,
+                            schoolCode = sc,
                             schoolName = sName,
                             password = pass,
                             phone = ph,
@@ -59,7 +104,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 "announcements", "leave_requests", "timetables", "online_classes", "question_bank"
             )
             for (col in allCollections) {
-                syncCollectionFromSnapshot(schoolCode, col, snapshot.child(col))
+                syncCollectionFromSnapshot(sCode, col, snapshot.child(col))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -67,12 +112,13 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
-        if (schoolCode.isBlank()) return null
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank()) return null
         return try {
-            val snapshot = rtdb.reference("schools").child(schoolCode).child("info").get()
+            val snapshot = rtdb.reference("schools").child(sCode).child("info").get()
             if (!snapshot.exists) return null
             val map = snapshot.value as? Map<*, *> ?: return null
-            val sCode = map["schoolCode"]?.toString() ?: schoolCode
+            val sc = map["schoolCode"]?.toString() ?: sCode
             val sName = map["schoolName"]?.toString() ?: ""
             val pass = map["password"]?.toString() ?: ""
             val ph = map["phone"]?.toString() ?: ""
@@ -81,7 +127,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             val p64 = map["photoBase64"]?.toString() ?: ""
 
             val school = SchoolEntity(
-                schoolCode = sCode,
+                schoolCode = sc,
                 schoolName = sName,
                 password = pass,
                 phone = ph,
@@ -98,11 +144,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun saveSchoolToCloud(school: SchoolEntity) {
-        if (school.schoolCode.isBlank()) return
+        val sCode = resolveSchoolCode(school.schoolCode)
+        if (sCode.isBlank()) return
         try {
-            rtdb.reference("schools").child(school.schoolCode).child("info").setValue(
+            rtdb.reference("schools").child(sCode).child("info").setValue(
                 mapOf(
-                    "schoolCode" to school.schoolCode,
+                    "schoolCode" to sCode,
                     "schoolName" to school.schoolName,
                     "password" to school.password,
                     "phone" to school.phone,
@@ -117,11 +164,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushSchoolProfile(schoolCode: String, schoolName: String, masterSubjects: String) {
-        if (schoolCode.isBlank()) return
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank()) return
         try {
-            rtdb.reference("schools").child(schoolCode).child("profile").updateChildren(
+            rtdb.reference("schools").child(sCode).child("profile").updateChildren(
                 mapOf(
-                    "schoolCode" to schoolCode,
+                    "schoolCode" to sCode,
                     "schoolName" to schoolName,
                     "masterSubjects" to masterSubjects
                 )
@@ -132,18 +180,20 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushActiveSession(schoolCode: String, session: String) {
-        if (schoolCode.isBlank() || session.isBlank()) return
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank() || session.isBlank()) return
         try {
-            rtdb.reference("schools").child(schoolCode).child("profile").child("activeSession").setValue(session)
+            rtdb.reference("schools").child(sCode).child("profile").child("activeSession").setValue(session)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     suspend fun getActiveSession(schoolCode: String): String? {
-        if (schoolCode.isBlank()) return null
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank()) return null
         return try {
-            val snapshot = rtdb.reference("schools").child(schoolCode).child("profile").child("activeSession").get()
+            val snapshot = rtdb.reference("schools").child(sCode).child("profile").child("activeSession").get()
             if (!snapshot.exists) return null
             snapshot.value?.toString()
         } catch (e: Exception) {
@@ -152,10 +202,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushBatch(schoolCode: String, batch: BatchEntity) {
-        val targetSchool = schoolCode.ifBlank { batch.schoolCode }
-        if (targetSchool.isBlank() || batch.id <= 0L || batch.batchName.isBlank()) {
-            throw IllegalArgumentException("Invalid school code or class details")
-        }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { batch.schoolCode })
+        if (targetSchool.isBlank() || batch.id <= 0L || batch.batchName.isBlank()) return
 
         rtdb.reference("schools")
             .child(targetSchool)
@@ -186,9 +234,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushStudentRecord(schoolCode: String, student: StudentEntity) {
-        val targetSchool = schoolCode.ifBlank { student.schoolCode }
-        require(targetSchool.isNotBlank()) { "School code is required" }
-        require(student.id > 0L) { "Student ID must be positive" }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { student.schoolCode })
+        if (targetSchool.isBlank() || student.id <= 0L) return
 
         rtdb.reference("schools")
             .child(targetSchool)
@@ -221,10 +268,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     fun pushStaff(schoolCode: String, staff: StaffEntity) {
-        val targetSchool = schoolCode.ifBlank { staff.schoolCode }
-        if (targetSchool.isBlank()) return
         scope.launch {
             try {
+                val targetSchool = resolveSchoolCode(schoolCode.ifBlank { staff.schoolCode })
+                if (targetSchool.isBlank() || staff.id <= 0L) return@launch
                 rtdb.reference("schools")
                     .child(targetSchool)
                     .child("staff")
@@ -254,9 +301,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushFeeRecord(schoolCode: String, fee: FeeRecordEntity) {
-        val targetSchool = schoolCode.ifBlank { fee.schoolCode }
-        require(targetSchool.isNotBlank()) { "School code is required" }
-        require(fee.id > 0L) { "Fee record ID must be positive" }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { fee.schoolCode })
+        if (targetSchool.isBlank() || fee.id <= 0L) return
 
         val payload = mapOf(
             "id" to fee.id.toString(),
@@ -275,43 +321,41 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun deleteBatchRecord(schoolCode: String, batch: BatchEntity) {
-        val targetSchool = schoolCode.ifBlank { batch.schoolCode }
-        require(targetSchool.isNotBlank()) { "School code is required" }
-        require(batch.id > 0L) { "Class ID must be positive" }
-
-        rtdb.reference("schools").child(targetSchool).child("batches").child(batch.id.toString()).removeValue()
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { batch.schoolCode })
+        if (targetSchool.isNotBlank() && batch.id > 0L) {
+            rtdb.reference("schools").child(targetSchool).child("batches").child(batch.id.toString()).removeValue()
+        }
         database.batchDao().deleteBatch(batch)
     }
 
     suspend fun deleteStudentRecord(schoolCode: String, student: StudentEntity): Boolean {
-        val targetSchool = schoolCode.ifBlank { student.schoolCode }
-        require(targetSchool.isNotBlank()) { "School code is required" }
-        require(student.id > 0L) { "Student ID must be positive" }
-
-        rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { student.schoolCode })
+        if (targetSchool.isNotBlank() && student.id > 0L) {
+            rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
+        }
         database.studentDao().deleteStudent(student)
         return true
     }
 
     suspend fun deleteStaffRecord(schoolCode: String, staff: StaffEntity): Boolean {
-        val targetSchool = schoolCode.ifBlank { staff.schoolCode }
-        require(targetSchool.isNotBlank()) { "School code is required" }
-        require(staff.id > 0L) { "Staff ID must be positive" }
-
-        rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { staff.schoolCode })
+        if (targetSchool.isNotBlank() && staff.id > 0L) {
+            rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
+        }
         database.staffDao().deleteStaff(staff)
         return true
     }
 
     suspend fun deleteModuleRecord(schoolCode: String, collection: String, id: Long) {
-        if (schoolCode.isBlank() || id <= 0L) return
+        val targetSchool = resolveSchoolCode(schoolCode)
+        if (targetSchool.isBlank() || id <= 0L) return
         try {
-            rtdb.reference("schools").child(schoolCode).child(collection).child(id.toString()).removeValue()
+            rtdb.reference("schools").child(targetSchool).child(collection).child(id.toString()).removeValue()
         } catch (_: Exception) {}
     }
 
     suspend fun pushExpense(schoolCode: String, exp: ExpenseEntity) {
-        val targetSchool = schoolCode.ifBlank { exp.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { exp.schoolCode })
         if (targetSchool.isBlank() || exp.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("expenses").child(exp.id.toString()).setValue(
             mapOf(
@@ -323,7 +367,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushAttendance(schoolCode: String, att: AttendanceEntity) {
-        val targetSchool = schoolCode.ifBlank { att.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { att.schoolCode })
         if (targetSchool.isBlank() || att.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("attendance").child(att.id.toString()).setValue(
             mapOf(
@@ -335,9 +379,8 @@ class FirestoreSyncService(private val database: AppDatabase) {
         )
     }
 
-    // --- 12 MODULE PUSH FUNCTIONS ---
     suspend fun pushExam(schoolCode: String, exam: ExamEntity) {
-        val targetSchool = schoolCode.ifBlank { exam.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { exam.schoolCode })
         if (targetSchool.isBlank() || exam.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("exams").child(exam.id.toString()).setValue(
             mapOf(
@@ -349,7 +392,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushHomework(schoolCode: String, hw: HomeworkEntity) {
-        val targetSchool = schoolCode.ifBlank { hw.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { hw.schoolCode })
         if (targetSchool.isBlank() || hw.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("homework").child(hw.id.toString()).setValue(
             mapOf(
@@ -361,7 +404,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushClasswork(schoolCode: String, cw: ClassworkEntity) {
-        val targetSchool = schoolCode.ifBlank { cw.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { cw.schoolCode })
         if (targetSchool.isBlank() || cw.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("classwork").child(cw.id.toString()).setValue(
             mapOf(
@@ -373,7 +416,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushEnquiry(schoolCode: String, enq: EnquiryEntity) {
-        val targetSchool = schoolCode.ifBlank { enq.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { enq.schoolCode })
         if (targetSchool.isBlank() || enq.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("enquiries").child(enq.id.toString()).setValue(
             mapOf(
@@ -385,7 +428,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushStaffLog(schoolCode: String, log: StaffLogEntity) {
-        val targetSchool = schoolCode.ifBlank { log.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { log.schoolCode })
         if (targetSchool.isBlank() || log.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("staff_logs").child(log.id.toString()).setValue(
             mapOf(
@@ -397,7 +440,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushAnnouncement(schoolCode: String, ann: AnnouncementEntity) {
-        val targetSchool = schoolCode.ifBlank { ann.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { ann.schoolCode })
         if (targetSchool.isBlank() || ann.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("announcements").child(ann.id.toString()).setValue(
             mapOf(
@@ -409,7 +452,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushLeaveRequest(schoolCode: String, lr: LeaveRequestEntity) {
-        val targetSchool = schoolCode.ifBlank { lr.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { lr.schoolCode })
         if (targetSchool.isBlank() || lr.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("leave_requests").child(lr.id.toString()).setValue(
             mapOf(
@@ -421,7 +464,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushTimetable(schoolCode: String, tt: TimetableEntity) {
-        val targetSchool = schoolCode.ifBlank { tt.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { tt.schoolCode })
         if (targetSchool.isBlank() || tt.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("timetables").child(tt.id.toString()).setValue(
             mapOf(
@@ -433,19 +476,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     suspend fun pushOnlineClass(schoolCode: String, oc: OnlineClassEntity) {
-        val targetSchool = schoolCode.ifBlank { oc.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { oc.schoolCode })
         if (targetSchool.isBlank() || oc.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("online_classes").child(oc.id.toString()).setValue(
             mapOf(
                 "id" to oc.id.toString(), "schoolCode" to targetSchool, "title" to oc.title,
                 "gradeClass" to oc.gradeClass, "subject" to oc.subject,
                 "meetingUrl" to oc.meetingUrl, "classDate" to oc.classDate, "classTime" to oc.classTime
-   )
+            )
         )
     }
 
     suspend fun pushQuestion(schoolCode: String, qb: QuestionBankEntity) {
-        val targetSchool = schoolCode.ifBlank { qb.schoolCode }
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { qb.schoolCode })
         if (targetSchool.isBlank() || qb.id <= 0L) return
         rtdb.reference("schools").child(targetSchool).child("question_bank").child(qb.id.toString()).setValue(
             mapOf(
@@ -549,7 +592,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
                 }
             }
 
-            "fees", "fee_records" -> {
+"fees", "fee_records" -> {
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
@@ -814,32 +857,35 @@ class FirestoreSyncService(private val database: AppDatabase) {
     }
 
     fun startSync(schoolCode: String) {
-        if (schoolCode.isBlank()) return
-        if (syncJobs[schoolCode]?.isActive == true) return
+        scope.launch {
+            val sCode = resolveSchoolCode(schoolCode)
+            if (sCode.isBlank()) return@launch
+            if (syncJobs[sCode]?.isActive == true) return@launch
 
-        syncJobs[schoolCode] = scope.launch {
-            val schoolRef = rtdb.reference("schools").child(schoolCode)
-            val collections = listOf(
-                "batches", "students", "staff", "fees", "fee_records", "expenses", "attendance",
-                "exams", "homework", "classwork", "enquiries", "staff_logs",
-                "announcements", "leave_requests", "timetables", "online_classes", "question_bank")
+            // Trigger full local push & remote pull as soon as sync initializes
+            pushAllLocalDataToCloud(sCode)
 
-            for (collection in collections) {
-                launch {
-                    try {
-                        schoolRef.child(collection).valueEvents.collect { snapshot ->
-                            try {
-                                syncCollectionFromSnapshot(
-                                    schoolCode,
-                                    collection,
-                                    snapshot
-                                )
-                            } catch (e: Exception) {
-                                e.printStackTrace()
+            syncJobs[sCode] = launch {
+                val schoolRef = rtdb.reference("schools").child(sCode)
+                val collections = listOf(
+                    "batches", "students", "staff", "fees", "fee_records", "expenses", "attendance",
+                    "exams", "homework", "classwork", "enquiries", "staff_logs",
+                    "announcements", "leave_requests", "timetables", "online_classes", "question_bank"
+                )
+
+                for (collection in collections) {
+                    launch {
+                        try {
+                            schoolRef.child(collection).valueEvents.collect { snapshot ->
+                                try {
+                                    syncCollectionFromSnapshot(sCode, collection, snapshot)
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
                         }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
                     }
                 }
             }
