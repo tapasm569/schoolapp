@@ -1,4 +1,12 @@
 package com.school.manage.presentation.screens
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.draw.clip
+import com.school.manage.core.utils.getCurrentEpochMillis
+import com.school.manage.core.utils.decodeBase64ToImageBitmap
+import com.school.manage.core.utils.openPdfAttachment
+import com.school.manage.core.utils.rememberPdfPickerLauncher
+import com.school.manage.core.utils.rememberCameraCaptureLauncher
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
 
 import androidx.compose.foundation.clickable
 import com.school.manage.core.utils.getSystemCurrentDate
@@ -563,6 +571,23 @@ fun QuestionBankScreen(
     var questionText by remember { mutableStateOf("") }
     var answerKey by remember { mutableStateOf("") }
     var qType by remember { mutableStateOf("SHORT") }
+    var attachmentUrl by remember { mutableStateOf("") }
+    var attachmentType by remember { mutableStateOf("NONE") }
+    var attachmentName by remember { mutableStateOf("") }
+    var fullScreenImage by remember { mutableStateOf<String?>(null) }
+
+    val allSchools by database.schoolDao().getAllSchools().collectAsState(initial = emptyList())
+    val currentSchoolName = allSchools.find { it.schoolCode == schoolCode }?.schoolName.orEmpty().ifBlank { "Admin" }
+
+    val photoPickerLauncher = rememberPhotoPickerLauncher { base64 ->
+        attachmentUrl = base64; attachmentType = "IMAGE"; attachmentName = "question_${getCurrentEpochMillis()}.jpg"
+    }
+    val cameraLauncher = rememberCameraCaptureLauncher { base64 ->
+        attachmentUrl = base64; attachmentType = "IMAGE"; attachmentName = "camera_${getCurrentEpochMillis()}.jpg"
+    }
+    val pdfPickerLauncher = rememberPdfPickerLauncher { base64, fName ->
+        attachmentUrl = base64; attachmentType = "PDF"; attachmentName = fName
+    }
 
     val filtered = if (selectedClassFilter == "ALL") questions else questions.filter { it.gradeClass.equals(selectedClassFilter, ignoreCase = true) }
 
@@ -652,6 +677,31 @@ fun QuestionBankScreen(
             item { Spacer(modifier = Modifier.height(20.dp)) }
         }
 
+                if (fullScreenImage != null) {
+            androidx.compose.ui.window.Dialog(onDismissRequest = { fullScreenImage = null }) {
+                Surface(shape = RoundedCornerShape(16.dp), color = Color.Black) {
+                    Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        val bmp = remember(fullScreenImage) { decodeBase64ToImageBitmap(fullScreenImage!!) }
+                        if (bmp != null) {
+                            androidx.compose.foundation.Image(
+                                bitmap = bmp,
+                                contentDescription = "Full Attachment",
+                                modifier = Modifier.fillMaxWidth().weight(1f, fill = false).clip(RoundedCornerShape(8.dp)),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { fullScreenImage = null },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        ) {
+                            Text("Close", color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+
         if (showAddDialog) {
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
@@ -692,6 +742,27 @@ fun QuestionBankScreen(
                                     color = if (qType == tp) colors.brandPrimary else colors.bgCardHover
                                 ) {
                                     Text(tp, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = if (qType == tp) Color.White else colors.textPrimary, modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp))
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("📎 Attach Diagram / Worksheet / PDF (Optional)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Button(onClick = cameraLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📷 Camera", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = photoPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("🖼️ Photo", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = pdfPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📄 PDF", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        if (attachmentType != "NONE" && attachmentUrl.isNotBlank()) {
+                            Surface(color = colors.brandPrimary.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text("✓ " + (if (attachmentType == "PDF") "📄 " else "🖼️ ") + attachmentName.ifBlank { "Attached file" }, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                    Text("✕ Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.clickable { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "" })
                                 }
                             }
                         }

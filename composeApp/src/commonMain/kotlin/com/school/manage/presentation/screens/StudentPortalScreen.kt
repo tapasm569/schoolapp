@@ -1,4 +1,8 @@
 package com.school.manage.presentation.screens
+import androidx.compose.ui.window.Dialog
+import com.school.manage.core.utils.getCurrentEpochMillis
+import com.school.manage.core.utils.rememberPdfPickerLauncher
+import com.school.manage.core.utils.rememberCameraCaptureLauncher
 
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
@@ -105,6 +109,7 @@ val primaryColor = MaterialTheme.colorScheme.primary
 
     // Active bottom-sheet / modal state
     var activeModal by remember { mutableStateOf<String?>(null) }
+    var fullScreenImage by remember { mutableStateOf<String?>(null) }
 
     // Leave form state
     var leaveStartDate by remember { mutableStateOf("05/10/2026") }

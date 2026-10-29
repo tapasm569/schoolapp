@@ -1,4 +1,5 @@
 package com.school.manage.presentation.screens
+import androidx.compose.ui.window.Dialog
 
 import com.school.manage.core.utils.getCurrentEpochMillis
 import androidx.compose.ui.draw.clip
@@ -480,6 +481,8 @@ fun HomeworkScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     val homeworkList by database.homeworkDao().getHomeworkBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allSchools by database.schoolDao().getAllSchools().collectAsState(initial = emptyList())
+    val currentSchoolName = allSchools.find { it.schoolCode == schoolCode }?.schoolName.orEmpty().ifBlank { "Admin" }
     val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
 
     var selectedClassFilter by remember { mutableStateOf("ALL") }
@@ -670,6 +673,48 @@ fun HomeworkScreen(
                                 Text("📅", fontSize = 16.sp)
                             }
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("📎 Attach Material (Optional)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Button(onClick = cameraLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📷 Camera", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = photoPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("🖼️ Photo", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = pdfPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📄 PDF", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        if (attachmentType != "NONE" && attachmentUrl.isNotBlank()) {
+                            Surface(color = colors.brandPrimary.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text("✓ " + (if (attachmentType == "PDF") "📄 " else "🖼️ ") + attachmentName.ifBlank { "Attached file" }, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                    Text("✕ Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.clickable { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "" })
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("📎 Attach Material (Optional)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Button(onClick = cameraLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📷 Camera", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = photoPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("🖼️ Photo", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = pdfPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📄 PDF", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        if (attachmentType != "NONE" && attachmentUrl.isNotBlank()) {
+                            Surface(color = colors.brandPrimary.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text("✓ " + (if (attachmentType == "PDF") "📄 " else "🖼️ ") + attachmentName.ifBlank { "Attached file" }, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                    Text("✕ Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.clickable { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "" })
+                                }
+                            }
+                        }
                     }
                 },confirmButton = {
                     Button(
@@ -688,12 +733,13 @@ fun HomeworkScreen(
                                             attachmentUrl = attachmentUrl,
                                             attachmentType = attachmentType,
                                             attachmentName = attachmentName,
-                                            assignedBy = "Admin",
+                                            assignedBy = "$currentSchoolName (Admin)",
                                             createdAt = getCurrentEpochMillis()
                                         ); val _id = database.homeworkDao().insertHomework(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushHomework(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     title = ""
                                     description = ""
                                     subject = ""
+                                    attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "";
                                     showAddModal = false
                                 }
                             }
@@ -701,9 +747,35 @@ fun HomeworkScreen(
                     ) { Text("Assign") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showAddModal = false }) { Text("Cancel", color = colors.textSecondary) }
+                    TextButton(onClick = { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = ""; showAddModal = false }) { Text("Cancel", color = colors.textSecondary) }
                 }
             )
+        }
+
+        
+        if (fullScreenImage != null) {
+            Dialog(onDismissRequest = { fullScreenImage = null }) {
+                Surface(shape = RoundedCornerShape(16.dp), color = Color.Black) {
+                    Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        val bmp = remember(fullScreenImage) { decodeBase64ToImageBitmap(fullScreenImage!!) }
+                        if (bmp != null) {
+                            androidx.compose.foundation.Image(
+                                bitmap = bmp,
+                                contentDescription = "Full Attachment",
+                                modifier = Modifier.fillMaxWidth().weight(1f, fill = false).clip(RoundedCornerShape(8.dp)),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { fullScreenImage = null },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        ) {
+                            Text("Close", color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
         }
 
         if (showDatePicker) {
@@ -723,6 +795,8 @@ fun ClassworkScreen(
     val colors = LocalSchoolColors.current
     val scope = rememberCoroutineScope()
     val classworkList by database.classworkDao().getClassworkBySchool(schoolCode).collectAsState(initial = emptyList())
+    val allSchools by database.schoolDao().getAllSchools().collectAsState(initial = emptyList())
+    val currentSchoolName = allSchools.find { it.schoolCode == schoolCode }?.schoolName.orEmpty().ifBlank { "Admin" }
     val batches by database.batchDao().getBatchesBySchool(schoolCode).collectAsState(initial = emptyList())
 
     var selectedClassFilter by remember { mutableStateOf("ALL") }
@@ -903,12 +977,13 @@ fun ClassworkScreen(
                                             attachmentUrl = attachmentUrl,
                                             attachmentType = attachmentType,
                                             attachmentName = attachmentName,
-                                            assignedBy = "Admin",
+                                            assignedBy = "$currentSchoolName (Admin)",
                                             createdAt = getCurrentEpochMillis()
                                         ); val _id = database.classworkDao().insertClasswork(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushClasswork(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     topicTitle = ""
                                     summary = ""
                                     subject = ""
+                                    attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "";
                                     showAddModal = false
                                 }
                             }
@@ -916,9 +991,35 @@ fun ClassworkScreen(
                     ) { Text("Save Log") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showAddModal = false }) { Text("Cancel", color = colors.textSecondary) }
+                    TextButton(onClick = { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = ""; showAddModal = false }) { Text("Cancel", color = colors.textSecondary) }
                 }
             )
+        }
+
+        
+        if (fullScreenImage != null) {
+            Dialog(onDismissRequest = { fullScreenImage = null }) {
+                Surface(shape = RoundedCornerShape(16.dp), color = Color.Black) {
+                    Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        val bmp = remember(fullScreenImage) { decodeBase64ToImageBitmap(fullScreenImage!!) }
+                        if (bmp != null) {
+                            androidx.compose.foundation.Image(
+                                bitmap = bmp,
+                                contentDescription = "Full Attachment",
+                                modifier = Modifier.fillMaxWidth().weight(1f, fill = false).clip(RoundedCornerShape(8.dp)),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Fit
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { fullScreenImage = null },
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.White)
+                        ) {
+                            Text("Close", color = Color.Black, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
         }
 
         if (showDatePicker) {
