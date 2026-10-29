@@ -27,18 +27,13 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Pushes all local Room records across all 16 tables directly to Firebase RTDB.
-     */
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
         val sCode = resolveSchoolCode(schoolCode)
         if (sCode.isBlank()) return
 
         try {
-            // First restore whatever already exists in cloud
             restoreAllFromCloud(sCode)
 
-            // Batches & Students & Staff & Fees
             database.batchDao().getBatchesBySchool(sCode).first().forEach { pushBatch(sCode, it) }
             database.studentDao().getStudentsBySchool(sCode).first().forEach { pushStudentRecord(sCode, it) }
             database.staffDao().getStaffBySchool(sCode).first().forEach { pushStaff(sCode, it) }
@@ -46,7 +41,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
             database.expenseDao().getExpensesBySchool(sCode).first().forEach { pushExpense(sCode, it) }
             database.attendanceDao().getAttendanceBySchool(sCode).first().forEach { pushAttendance(sCode, it) }
 
-            // 12 Operational Feature Modules
             database.examDao().getExamsBySchool(sCode).first().forEach { pushExam(sCode, it) }
             database.homeworkDao().getHomeworkBySchool(sCode).first().forEach { pushHomework(sCode, it) }
             database.classworkDao().getClassworkBySchool(sCode).first().forEach { pushClasswork(sCode, it) }
@@ -62,9 +56,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
-    /**
-     * Restores all records from RTDB into local SQLite when logging in or after clearing app data.
-     */
     suspend fun restoreAllFromCloud(schoolCode: String) {
         val sCode = resolveSchoolCode(schoolCode)
         if (sCode.isBlank()) return
@@ -110,6 +101,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             e.printStackTrace()
         }
     }
+
 
     suspend fun restoreSchoolFromCloud(schoolCode: String): SchoolEntity? {
         val sCode = resolveSchoolCode(schoolCode)
@@ -199,6 +191,46 @@ class FirestoreSyncService(private val database: AppDatabase) {
         } catch (e: Exception) {
             null
         }
+    }
+
+    suspend fun deleteBatchRecord(schoolCode: String, batch: BatchEntity) {
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { batch.schoolCode })
+        if (targetSchool.isNotBlank() && batch.id > 0L) {
+            try {
+                rtdb.reference("schools").child(targetSchool).child("batches").child(batch.id.toString()).removeValue()
+            } catch (_: Exception) {}
+        }
+        database.batchDao().deleteBatch(batch)
+    }
+
+    suspend fun deleteStudentRecord(schoolCode: String, student: StudentEntity): Boolean {
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { student.schoolCode })
+        if (targetSchool.isNotBlank() && student.id > 0L) {
+            try {
+                rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
+            } catch (_: Exception) {}
+        }
+        database.studentDao().deleteStudent(student)
+        return true
+    }
+
+    suspend fun deleteStaffRecord(schoolCode: String, staff: StaffEntity): Boolean {
+        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { staff.schoolCode })
+        if (targetSchool.isNotBlank() && staff.id > 0L) {
+            try {
+                rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
+            } catch (_: Exception) {}
+        }
+        database.staffDao().deleteStaff(staff)
+        return true
+    }
+
+    suspend fun deleteModuleRecord(schoolCode: String, collection: String, id: Long) {
+        val targetSchool = resolveSchoolCode(schoolCode)
+        if (targetSchool.isBlank() || id <= 0L) return
+        try {
+            rtdb.reference("schools").child(targetSchool).child(collection).child(id.toString()).removeValue()
+        } catch (_: Exception) {}
     }
 
     suspend fun pushBatch(schoolCode: String, batch: BatchEntity) {
@@ -318,40 +350,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
         )
         rtdb.reference("schools").child(targetSchool).child("fees").child(fee.id.toString()).setValue(payload)
         rtdb.reference("schools").child(targetSchool).child("fee_records").child(fee.id.toString()).setValue(payload)
-    }
-
-    suspend fun deleteBatchRecord(schoolCode: String, batch: BatchEntity) {
-        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { batch.schoolCode })
-        if (targetSchool.isNotBlank() && batch.id > 0L) {
-            rtdb.reference("schools").child(targetSchool).child("batches").child(batch.id.toString()).removeValue()
-        }
-        database.batchDao().deleteBatch(batch)
-    }
-
-    suspend fun deleteStudentRecord(schoolCode: String, student: StudentEntity): Boolean {
-        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { student.schoolCode })
-        if (targetSchool.isNotBlank() && student.id > 0L) {
-            rtdb.reference("schools").child(targetSchool).child("students").child(student.id.toString()).removeValue()
-        }
-        database.studentDao().deleteStudent(student)
-        return true
-    }
-
-    suspend fun deleteStaffRecord(schoolCode: String, staff: StaffEntity): Boolean {
-        val targetSchool = resolveSchoolCode(schoolCode.ifBlank { staff.schoolCode })
-        if (targetSchool.isNotBlank() && staff.id > 0L) {
-            rtdb.reference("schools").child(targetSchool).child("staff").child(staff.id.toString()).removeValue()
-        }
-        database.staffDao().deleteStaff(staff)
-        return true
-    }
-
-    suspend fun deleteModuleRecord(schoolCode: String, collection: String, id: Long) {
-        val targetSchool = resolveSchoolCode(schoolCode)
-        if (targetSchool.isBlank() || id <= 0L) return
-        try {
-            rtdb.reference("schools").child(targetSchool).child(collection).child(id.toString()).removeValue()
-        } catch (_: Exception) {}
     }
 
     suspend fun pushExpense(schoolCode: String, exp: ExpenseEntity) {
@@ -504,18 +502,17 @@ class FirestoreSyncService(private val database: AppDatabase) {
         collection: String,
         snapshot: DataSnapshot
     ) {
-        if (!snapshot.exists) return
-
-        val children = snapshot.children.toList()
-        if (children.isEmpty()) return
+        val children = if (snapshot.exists) snapshot.children.toList() else emptyList()
 
         when (collection) {
             "batches" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     val name = map["batchName"]?.toString() ?: ""
                     if (id <= 0L || name.isBlank()) continue
+                    cloudIds.add(id)
 
                     database.batchDao().insertBatch(
                         BatchEntity(
@@ -530,13 +527,22 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                // Prune local batches that were removed from Firebase
+                val localBatches = database.batchDao().getBatchesBySchool(schoolCode).first()
+                for (b in localBatches) {
+                    if (b.id > 0L && b.id !in cloudIds) {
+                        database.batchDao().deleteBatch(b)
+                    }
+                }
             }
 
             "students" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
 
                     database.studentDao().insertStudent(
                         StudentEntity(
@@ -563,13 +569,22 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                // Prune local students that were removed from Firebase
+                val localStudents = database.studentDao().getStudentsBySchool(schoolCode).first()
+                for (s in localStudents) {
+                    if (s.id > 0L && s.id !in cloudIds) {
+                        database.studentDao().deleteStudent(s)
+                    }
+                }
             }
 
             "staff" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
 
                     database.staffDao().insertStaff(
                         StaffEntity(
@@ -590,9 +605,16 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                // Prune local staff that were removed from Firebase
+                val localStaff = database.staffDao().getStaffBySchool(schoolCode).first()
+                for (st in localStaff) {
+                    if (st.id > 0L && st.id !in cloudIds) {
+                        database.staffDao().deleteStaff(st)
+                    }
+                }
             }
 
-"fees", "fee_records" -> {
+            "fees", "fee_records" -> {
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
@@ -616,10 +638,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
 
             "expenses" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.expenseDao().insertExpense(
                         ExpenseEntity(
                             id = id,
@@ -631,6 +655,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             notes = map["notes"]?.toString() ?: ""
                         )
                     )
+                }
+                val localList = database.expenseDao().getExpensesBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.expenseDao().deleteExpense(item)
                 }
             }
 
@@ -656,10 +684,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
 
             "exams" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.examDao().insertExam(
                         ExamEntity(
                             id = id,
@@ -672,13 +702,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.examDao().getExamsBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.examDao().deleteExam(item)
+                }
             }
 
             "homework" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.homeworkDao().insertHomework(
                         HomeworkEntity(
                             id = id,
@@ -692,13 +728,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.homeworkDao().getHomeworkBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.homeworkDao().deleteHomework(item)
+                }
             }
 
             "classwork" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.classworkDao().insertClasswork(
                         ClassworkEntity(
                             id = id,
@@ -711,13 +753,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.classworkDao().getClassworkBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.classworkDao().deleteClasswork(item)
+                }
             }
 
             "enquiries" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.enquiryDao().insertEnquiry(
                         EnquiryEntity(
                             id = id,
@@ -732,13 +780,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.enquiryDao().getEnquiriesBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.enquiryDao().deleteEnquiry(item)
+                }
             }
 
             "staff_logs" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.staffLogDao().insertStaffLog(
                         StaffLogEntity(
                             id = id,
@@ -753,13 +807,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.staffLogDao().getStaffLogsBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.staffLogDao().deleteStaffLog(item)
+                }
             }
 
             "announcements" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.announcementDao().insertAnnouncement(
                         AnnouncementEntity(
                             id = id,
@@ -772,13 +832,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.announcementDao().getAnnouncementsBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.announcementDao().deleteAnnouncement(item)
+                }
             }
 
             "leave_requests" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.leaveDao().insertLeave(
                         LeaveRequestEntity(
                             id = id,
@@ -792,17 +858,23 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.leaveDao().getLeavesBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.leaveDao().deleteLeave(item)
+                }
             }
 
             "timetables" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.timetableDao().insertTimetable(
                         TimetableEntity(
                             id = id,
-                            schoolCode = map["schoolCode"]?.toString() ?: schoolCode,
+                            schoolCode = schoolCode,
                             gradeClass = map["gradeClass"]?.toString() ?: "",
                             dayOfWeek = map["dayOfWeek"]?.toString() ?: "Monday",
                             periodNo = map["periodNo"]?.toString()?.toIntOrNull() ?: 1,
@@ -812,13 +884,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.timetableDao().getTimetableBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.timetableDao().deleteTimetable(item)
+                }
             }
 
             "online_classes" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.onlineClassDao().insertOnlineClass(
                         OnlineClassEntity(
                             id = id,
@@ -832,13 +910,19 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.onlineClassDao().getOnlineClassesBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.onlineClassDao().deleteOnlineClass(item)
+                }
             }
 
             "question_bank" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
                     database.questionBankDao().insertQuestion(
                         QuestionBankEntity(
                             id = id,
@@ -852,6 +936,10 @@ class FirestoreSyncService(private val database: AppDatabase) {
                         )
                     )
                 }
+                val localList = database.questionBankDao().getQuestionsBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) database.questionBankDao().deleteQuestion(item)
+                }
             }
         }
     }
@@ -862,7 +950,6 @@ class FirestoreSyncService(private val database: AppDatabase) {
             if (sCode.isBlank()) return@launch
             if (syncJobs[sCode]?.isActive == true) return@launch
 
-            // Trigger full local push & remote pull as soon as sync initializes
             pushAllLocalDataToCloud(sCode)
 
             syncJobs[sCode] = launch {
