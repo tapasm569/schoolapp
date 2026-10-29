@@ -1,5 +1,8 @@
 package com.school.manage.presentation.screens
 
+import androidx.compose.foundation.clickable
+import com.school.manage.core.utils.getSystemCurrentDate
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -398,7 +401,9 @@ fun OnlineClassesScreen(
     var gradeClass by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }
     var meetingUrl by remember { mutableStateOf("") }
-    var classDate by remember { mutableStateOf("03/10/2026") }
+    val currentSysDate = remember { getSystemCurrentDate().formatted }
+    var classDate by remember { mutableStateOf(currentSysDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
     var classTime by remember { mutableStateOf("10:00 AM") }
 
     Scaffold(
@@ -487,7 +492,21 @@ fun OnlineClassesScreen(
                         CustomRoundedInput(value = gradeClass, onValueChange = { gradeClass = it }, placeholder = "Target Class (e.g. Class 2)")
                         CustomRoundedInput(value = subject, onValueChange = { subject = it }, placeholder = "Subject")
                         CustomRoundedInput(value = meetingUrl, onValueChange = { meetingUrl = it }, placeholder = "Meeting Link (Google Meet / Zoom)")
-                        CustomRoundedInput(value = classDate, onValueChange = { classDate = it }, placeholder = "Date (DD/MM/YYYY)")
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, colors.borderCard),
+                            color = colors.bgCard,
+                            modifier = Modifier.fillMaxWidth().clickable { showDatePicker = true }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("📅 Class Date: $classDate", fontSize = 13.sp, color = colors.textPrimary)
+                                Text("Change ▾", fontSize = 12.sp, color = colors.brandPrimary, fontWeight = FontWeight.Bold)
+                            }
+                        }
                         CustomRoundedInput(value = classTime, onValueChange = { classTime = it }, placeholder = "Time (e.g. 10:00 AM)")
                     }
                 },

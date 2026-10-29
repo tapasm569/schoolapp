@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.school.manage.core.utils.getSystemCurrentDate
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
 import com.school.manage.presentation.theme.LocalSchoolColors
@@ -44,7 +45,8 @@ fun ExamsScreen(
     var selectedClass by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }
     var maxMarks by remember { mutableStateOf("100") }
-    var examDate by remember { mutableStateOf("03/10/2026") }
+    val currentSysDate = remember { getSystemCurrentDate().formatted }
+    var examDate by remember { mutableStateOf(currentSysDate) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showClassDropdown by remember { mutableStateOf(false) }
 
@@ -479,7 +481,8 @@ fun HomeworkScreen(
     var description by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("") }
-    var dueDate by remember { mutableStateOf("04/10/2026") }
+    val currentSysDate = remember { getSystemCurrentDate().formatted }
+    var dueDate by remember { mutableStateOf(currentSysDate) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showClassMenu by remember { mutableStateOf(false) }
 
@@ -632,7 +635,7 @@ fun HomeworkScreen(
                                             subject = subject.trim(),
                                             title = title.trim(),
                                             description = description.trim(),
-                                            assignedDate = "03/10/2026",
+                                            assignedDate = currentSysDate,
                                             dueDate = dueDate
                                         ); val _id = database.homeworkDao().insertHomework(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushHomework(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     title = ""
@@ -676,7 +679,8 @@ fun ClassworkScreen(
     var summary by remember { mutableStateOf("") }
     var subject by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("") }
-    var logDate by remember { mutableStateOf("03/10/2026") }
+    val currentSysDate = remember { getSystemCurrentDate().formatted }
+    var logDate by remember { mutableStateOf(currentSysDate) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showClassMenu by remember { mutableStateOf(false) }
 
