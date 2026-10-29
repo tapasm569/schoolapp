@@ -1779,7 +1779,7 @@ AddNewOptionItem(
         if (showBulkStudentImportDialog) {
             var isImportingBulk by remember { mutableStateOf(false) }
             var settlePastMonths by remember { mutableStateOf(true) }
-            val sampleCsvTemplate = "Roll No,Student Name,Class,Section,Father Name,Mother Name,Phone,Monthly Fee,Pending Due,Gender,Admission Date,DOB,Caste,Address\n1,Rahul Das,Class 5,A,Ramesh Das,Sita Das,9876543210,500,0,Male,10/01/2024,15/05/2015,General,Ranirhat\n2,Priya Roy,Class 6,A,Subir Roy,Mina Roy,9123456789,600,1200,Female,15/01/2025,20/08/2014,OBC,Mekhliganj"
+            val sampleCsvTemplate = "Roll No,Student Name,Class,Father Name,Mother Name,Phone,Pending Due,Gender,Admission Date,DOB,Caste,Address\n1,Rahul Das,Class 5,Ramesh Das,Sita Das,9876543210,0,Male,10/01/2024,15/05/2015,General,Ranirhat\n2,Priya Roy,Class 6,Subir Roy,Mina Roy,9123456789,1200,Female,15/01/2025,20/08/2014,OBC,Mekhliganj"
 
             AlertDialog(
                 onDismissRequest = { if (!isImportingBulk) showBulkStudentImportDialog = false },
@@ -1809,7 +1809,7 @@ AddNewOptionItem(
                             Column(modifier = Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                                 Text("Supported Excel Columns:", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = colors.brandPrimary)
                                 Text(
-                                    text = "Roll No | Student Name | Class | Section | Father Name | Mother Name | Phone | Monthly Fee | Pending Due | Gender | Admission Date | DOB | Caste | Address",
+                                    text = "Roll No | Student Name | Class | Father Name | Mother Name | Phone | Pending Due | Gender | Admission Date | DOB | Caste | Address",
                                     fontSize = 11.sp,
                                     color = colors.textPrimary
                                 )
@@ -1838,7 +1838,7 @@ AddNewOptionItem(
                                 onClick = {
                                     clipboardManager.setText(AnnotatedString(sampleCsvTemplate))
                                     bulkStudentExcelInput = sampleCsvTemplate
-                                    bulkImportStatusMessage = "✓ 14-Column Excel Template loaded & copied!"
+                                    bulkImportStatusMessage = "✓ 12-Column Excel Template loaded & copied!"
                                 },
                                 shape = RoundedCornerShape(10.dp)
                             ) {
@@ -1879,7 +1879,7 @@ AddNewOptionItem(
                             value = bulkStudentExcelInput,
                             onValueChange = { bulkStudentExcelInput = it },
                             label = { Text("Excel CSV Content (or Paste directly from Excel)", fontSize = 11.sp) },
-                            placeholder = { Text("Roll No,Student Name,Class,Section,Father Name...", fontSize = 11.sp) },
+                            placeholder = { Text("Roll No,Student Name,Class,Father Name...", fontSize = 11.sp) },
                             modifier = Modifier.fillMaxWidth().height(140.dp),
                             shape = RoundedCornerShape(10.dp)
                         )
