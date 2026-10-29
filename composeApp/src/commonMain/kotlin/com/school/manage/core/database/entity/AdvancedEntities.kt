@@ -48,5 +48,10 @@ data class QuestionBankEntity(
     val chapterTopic: String = "",
     val questionText: String = "",
     val answerKey: String = "",
-    val questionType: String = "SHORT"
+    val questionType: String = "SHORT",
+    val attachmentUrl: String = "",
+    val attachmentType: String = "NONE",
+    val attachmentName: String = "",
+    val assignedBy: String = "",
+    val createdAt: Long = 0L
 )

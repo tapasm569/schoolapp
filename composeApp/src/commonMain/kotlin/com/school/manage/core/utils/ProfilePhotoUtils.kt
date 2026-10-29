@@ -30,6 +30,15 @@ expect fun rememberPhotoPickerLauncher(onPhotoSelected: (String) -> Unit): () ->
 @Composable
 expect fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit): () -> Unit
 
+
+@Composable
+expect fun rememberCameraCaptureLauncher(onPhotoCaptured: (String) -> Unit): () -> Unit
+
+@Composable
+expect fun rememberPdfPickerLauncher(onPdfSelected: (base64: String, fileName: String) -> Unit): () -> Unit
+
+expect fun openPdfAttachment(base64Pdf: String, fileName: String)
+
 expect fun decodeBase64ToImageBitmap(base64Str: String): ImageBitmap?
 
 @Composable

@@ -24,6 +24,7 @@ import com.school.manage.presentation.navigation.AppNavHost
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        try { val f = Class.forName("com.school.manage.core.utils.ProfilePhotoUtils_androidKt").getDeclaredField("appContextRef"); f.isAccessible = true; f.set(null, applicationContext) } catch (_: Exception) {}
 
         try {
             FirebaseApp.initializeApp(this)
@@ -64,7 +65,7 @@ class MainActivity : ComponentActivity() {
             AppDatabase::class.java,
             "school_management.db"
         )
-            .build()
+            .fallbackToDestructiveMigration().build()
 
         setContent {
             AppNavHost(database = database)

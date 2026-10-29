@@ -1,5 +1,10 @@
 package com.school.manage.core.utils
 
+import android.content.Intent
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
+
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -98,3 +103,107 @@ actual fun rememberCsvFilePickerLauncher(onFileContentLoaded: (String) -> Unit):
 }
 
 
+
+
+private var tempCameraUri: Uri? = null
+
+@Composable
+actual fun rememberCameraCaptureLauncher(onPhotoCaptured: (String) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val currentOnPhotoCaptured = rememberUpdatedState(onPhotoCaptured)
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        if (success && tempCameraUri != null) {
+            try {
+                val inputStream = context.contentResolver.openInputStream(tempCameraUri!!)
+                val original = BitmapFactory.decodeStream(inputStream)
+                inputStream?.close()
+                if (original != null) {
+                    val maxDimension = 1080
+                    val ratio = min(1f, maxDimension.toFloat() / maxOf(original.width, original.height))
+                    val newW = (original.width * ratio).toInt()
+                    val newH = (original.height * ratio).toInt()
+                    val scaled = Bitmap.createScaledBitmap(original, newW, newH, true)
+
+                    val output = ByteArrayOutputStream()
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 70, output)
+                    val encoded = Base64.encodeToString(output.toByteArray(), Base64.NO_WRAP)
+                    currentOnPhotoCaptured.value(encoded)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    return {
+        try {
+            val cacheFile = File(context.cacheDir, "camera_attachment_${System.currentTimeMillis()}.jpg")
+            val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", cacheFile)
+            tempCameraUri = uri
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
+
+@Composable
+actual fun rememberPdfPickerLauncher(onPdfSelected: (base64: String, fileName: String) -> Unit): () -> Unit {
+    val context = LocalContext.current
+    val currentCallback = rememberUpdatedState(onPdfSelected)
+
+    val pdfLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            try {
+                var fileName = "attachment.pdf"
+                context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1 && cursor.moveToFirst()) {
+                        fileName = cursor.getString(nameIndex) ?: "attachment.pdf"
+                    }
+                }
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val bytes = inputStream?.readBytes()
+                inputStream?.close()
+                if (bytes != null && bytes.isNotEmpty()) {
+                    val encoded = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                    currentCallback.value(encoded, fileName)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    return { pdfLauncher.launch("application/pdf") }
+}
+
+private var appContextRef: android.content.Context? = null
+
+actual fun openPdfAttachment(base64Pdf: String, fileName: String) {
+    val context = appContextRef ?: return
+    try {
+        val clean = base64Pdf.substringAfter(",")
+        val bytes = Base64.decode(clean, Base64.DEFAULT)
+        val safeName = if (fileName.endsWith(".pdf", ignoreCase = true)) fileName else "$fileName.pdf"
+        val tempFile = File(context.cacheDir, safeName)
+        FileOutputStream(tempFile).use { it.write(bytes) }
+
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", tempFile)
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(Intent.createChooser(intent, "Open PDF with...").apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        })
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}

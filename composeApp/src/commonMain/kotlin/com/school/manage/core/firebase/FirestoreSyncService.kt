@@ -1,5 +1,7 @@
 package com.school.manage.core.firebase
 
+import com.school.manage.core.utils.getCurrentEpochMillis
+
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
 import dev.gitlive.firebase.Firebase
@@ -27,12 +29,54 @@ class FirestoreSyncService(private val database: AppDatabase) {
         }
     }
 
+    
+    suspend fun pruneExpiredAssignments(schoolCode: String) {
+        val sCode = resolveSchoolCode(schoolCode)
+        if (sCode.isBlank()) return
+        val cutoff = getCurrentEpochMillis() - (48L * 60 * 60 * 1000)
+
+        try {
+            // 1. Prune expired Homework
+            val hwList = database.homeworkDao().getHomeworkBySchool(sCode).first()
+            for (hw in hwList) {
+                val created = if (hw.createdAt > 0L) hw.createdAt else hw.id
+                if (created > 0L && created < cutoff) {
+                    database.homeworkDao().deleteHomework(hw)
+                    deleteModuleRecord(sCode, "homework", hw.id)
+                }
+            }
+
+            // 2. Prune expired Classwork
+            val cwList = database.classworkDao().getClassworkBySchool(sCode).first()
+            for (cw in cwList) {
+                val created = if (cw.createdAt > 0L) cw.createdAt else cw.id
+                if (created > 0L && created < cutoff) {
+                    database.classworkDao().deleteClasswork(cw)
+                    deleteModuleRecord(sCode, "classwork", cw.id)
+                }
+            }
+
+            // 3. Prune expired Question Bank
+            val qbList = database.questionBankDao().getQuestionsBySchool(sCode).first()
+            for (qb in qbList) {
+                val created = if (qb.createdAt > 0L) qb.createdAt else qb.id
+                if (created > 0L && created < cutoff) {
+                    database.questionBankDao().deleteQuestion(qb)
+                    deleteModuleRecord(sCode, "question_bank", qb.id)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     suspend fun pushAllLocalDataToCloud(schoolCode: String) {
         val sCode = resolveSchoolCode(schoolCode)
         if (sCode.isBlank()) return
 
         try {
             restoreAllFromCloud(sCode)
+            pruneExpiredAssignments(sCode)
 
             database.batchDao().getBatchesBySchool(sCode).first().forEach { pushBatch(sCode, it) }
             database.studentDao().getStudentsBySchool(sCode).first().forEach { pushStudentRecord(sCode, it) }
@@ -396,7 +440,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             mapOf(
                 "id" to hw.id.toString(), "schoolCode" to targetSchool, "title" to hw.title,
                 "description" to hw.description, "gradeClass" to hw.gradeClass,
-                "subject" to hw.subject, "assignedDate" to hw.assignedDate, "dueDate" to hw.dueDate
+                "subject" to hw.subject, "assignedDate" to hw.assignedDate, "dueDate" to hw.dueDate, "attachmentUrl" to hw.attachmentUrl, "attachmentType" to hw.attachmentType, "attachmentName" to hw.attachmentName, "assignedBy" to hw.assignedBy, "createdAt" to hw.createdAt.toString()
             )
         )
     }
@@ -408,7 +452,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             mapOf(
                 "id" to cw.id.toString(), "schoolCode" to targetSchool, "topicTitle" to cw.topicTitle,
                 "summary" to cw.summary, "gradeClass" to cw.gradeClass,
-                "subject" to cw.subject, "date" to cw.date
+                "subject" to cw.subject, "date" to cw.date, "attachmentUrl" to cw.attachmentUrl, "attachmentType" to cw.attachmentType, "attachmentName" to cw.attachmentName, "assignedBy" to cw.assignedBy, "createdAt" to cw.createdAt.toString()
             )
         )
     }
@@ -492,7 +536,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             mapOf(
                 "id" to qb.id.toString(), "schoolCode" to targetSchool, "gradeClass" to qb.gradeClass,
                 "subject" to qb.subject, "chapterTopic" to qb.chapterTopic,
-                "questionText" to qb.questionText, "answerKey" to qb.answerKey, "questionType" to qb.questionType
+                "questionText" to qb.questionText, "answerKey" to qb.answerKey, "questionType" to qb.questionType, "attachmentUrl" to qb.attachmentUrl, "attachmentType" to qb.attachmentType, "attachmentName" to qb.attachmentName, "assignedBy" to qb.assignedBy, "createdAt" to qb.createdAt.toString()
             )
         )
     }
@@ -724,7 +768,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             title = map["title"]?.toString() ?: "",
                             description = map["description"]?.toString() ?: "",
                             assignedDate = map["assignedDate"]?.toString() ?: "",
-                            dueDate = map["dueDate"]?.toString() ?: ""
+                            dueDate = map["dueDate"]?.toString() ?: "",
+                            attachmentUrl = map["attachmentUrl"]?.toString() ?: "",
+                            attachmentType = map["attachmentType"]?.toString() ?: "NONE",
+                            attachmentName = map["attachmentName"]?.toString() ?: "",
+                            assignedBy = map["assignedBy"]?.toString() ?: "",
+                            createdAt = map["createdAt"]?.toString()?.toLongOrNull() ?: id
                         )
                     )
                 }
@@ -749,7 +798,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             subject = map["subject"]?.toString() ?: "",
                             topicTitle = map["topicTitle"]?.toString() ?: "",
                             summary = map["summary"]?.toString() ?: "",
-                            date = map["date"]?.toString() ?: ""
+                            date = map["date"]?.toString() ?: "",
+                            attachmentUrl = map["attachmentUrl"]?.toString() ?: "",
+                            attachmentType = map["attachmentType"]?.toString() ?: "NONE",
+                            attachmentName = map["attachmentName"]?.toString() ?: "",
+                            assignedBy = map["assignedBy"]?.toString() ?: "",
+                            createdAt = map["createdAt"]?.toString()?.toLongOrNull() ?: id
                         )
                     )
                 }
@@ -932,7 +986,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             chapterTopic = map["chapterTopic"]?.toString() ?: "",
                             questionText = map["questionText"]?.toString() ?: "",
                             answerKey = map["answerKey"]?.toString() ?: "",
-                            questionType = map["questionType"]?.toString() ?: "SHORT"
+                            questionType = map["questionType"]?.toString() ?: "SHORT",
+                            attachmentUrl = map["attachmentUrl"]?.toString() ?: "",
+                            attachmentType = map["attachmentType"]?.toString() ?: "NONE",
+                            attachmentName = map["attachmentName"]?.toString() ?: "",
+                            assignedBy = map["assignedBy"]?.toString() ?: "",
+                            createdAt = map["createdAt"]?.toString()?.toLongOrNull() ?: id
                         )
                     )
                 }

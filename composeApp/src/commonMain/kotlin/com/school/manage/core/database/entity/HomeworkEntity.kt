@@ -11,6 +11,11 @@ data class HomeworkEntity(
     val subject: String = "",
     val title: String = "",
     val description: String = "",
-    val assignedDate: String = "03/10/2026",
-    val dueDate: String = "04/10/2026"
+    val assignedDate: String = "",
+    val dueDate: String = "",
+    val attachmentUrl: String = "",
+    val attachmentType: String = "NONE",
+    val attachmentName: String = "",
+    val assignedBy: String = "",
+    val createdAt: Long = 0L
 )

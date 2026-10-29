@@ -8,3 +8,5 @@ data class CurrentDateData(
 )
 
 expect fun getSystemCurrentDate(): CurrentDateData
+
+expect fun getCurrentEpochMillis(): Long

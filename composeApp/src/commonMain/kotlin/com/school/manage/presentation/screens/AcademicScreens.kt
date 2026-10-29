@@ -1,4 +1,7 @@
 package com.school.manage.presentation.screens
+
+import com.school.manage.core.utils.getCurrentEpochMillis
+import androidx.compose.ui.draw.clip
 import com.school.manage.core.firebase.FirestoreSyncService
 
 import androidx.compose.foundation.BorderStroke
@@ -19,6 +22,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.school.manage.core.utils.getSystemCurrentDate
+import com.school.manage.core.utils.rememberPhotoPickerLauncher
+import com.school.manage.core.utils.rememberCameraCaptureLauncher
+import com.school.manage.core.utils.rememberPdfPickerLauncher
+import com.school.manage.core.utils.openPdfAttachment
+import com.school.manage.core.utils.decodeBase64ToImageBitmap
 import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
 import com.school.manage.presentation.theme.LocalSchoolColors
@@ -483,6 +491,20 @@ fun HomeworkScreen(
     var selectedClass by remember { mutableStateOf("") }
     val currentSysDate = remember { getSystemCurrentDate().formatted }
     var dueDate by remember { mutableStateOf(currentSysDate) }
+    var attachmentUrl by remember { mutableStateOf("") }
+    var attachmentType by remember { mutableStateOf("NONE") }
+    var attachmentName by remember { mutableStateOf("") }
+
+    val photoPickerLauncher = rememberPhotoPickerLauncher { base64 ->
+        attachmentUrl = base64; attachmentType = "IMAGE"; attachmentName = "photo_${getSystemCurrentDate().formatted.replace('/', '_')}.jpg"
+    }
+    val cameraLauncher = rememberCameraCaptureLauncher { base64 ->
+        attachmentUrl = base64; attachmentType = "IMAGE"; attachmentName = "camera_${getSystemCurrentDate().formatted.replace('/', '_')}.jpg"
+    }
+    val pdfPickerLauncher = rememberPdfPickerLauncher { base64, fName ->
+        attachmentUrl = base64; attachmentType = "PDF"; attachmentName = fName
+    }
+    var fullScreenImage by remember { mutableStateOf<String?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showClassMenu by remember { mutableStateOf(false) }
 
@@ -570,6 +592,32 @@ fun HomeworkScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("Due Date: " + hw.dueDate, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
+                            if (hw.assignedBy.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = colors.brandPrimary)
+                            }
+                            if (hw.attachmentType == "IMAGE" && hw.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                val img = remember(hw.attachmentUrl) { decodeBase64ToImageBitmap(hw.attachmentUrl) }
+                                if (img != null) {
+                                    androidx.compose.foundation.Image(
+                                        bitmap = img,
+                                        contentDescription = "Attachment",
+                                        modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(8.dp)).clickable { fullScreenImage = hw.attachmentUrl },
+                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                    )
+                                }
+                            } else if (hw.attachmentType == "PDF" && hw.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { openPdfAttachment(hw.attachmentUrl, hw.attachmentName.ifBlank { "homework.pdf" }) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary.copy(alpha = 0.15f), contentColor = colors.brandPrimary),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.height(34.dp)
+                                ) {
+                                    Text("📄 View / Open PDF: " + hw.attachmentName, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
                                 TextButton(onClick = { scope.launch { run { val _ent = hw; database.homeworkDao().deleteHomework(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "homework", _ent.id) } catch (_: Exception) {} } } }) {
                                     Text("Delete", color = colors.error, fontSize = 12.sp)
                                 }
@@ -636,7 +684,12 @@ fun HomeworkScreen(
                                             title = title.trim(),
                                             description = description.trim(),
                                             assignedDate = currentSysDate,
-                                            dueDate = dueDate
+                                            dueDate = dueDate,
+                                            attachmentUrl = attachmentUrl,
+                                            attachmentType = attachmentType,
+                                            attachmentName = attachmentName,
+                                            assignedBy = "Admin",
+                                            createdAt = getCurrentEpochMillis()
                                         ); val _id = database.homeworkDao().insertHomework(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushHomework(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     title = ""
                                     description = ""
@@ -681,6 +734,20 @@ fun ClassworkScreen(
     var selectedClass by remember { mutableStateOf("") }
     val currentSysDate = remember { getSystemCurrentDate().formatted }
     var logDate by remember { mutableStateOf(currentSysDate) }
+    var attachmentUrl by remember { mutableStateOf("") }
+    var attachmentType by remember { mutableStateOf("NONE") }
+    var attachmentName by remember { mutableStateOf("") }
+
+    val photoPickerLauncher = rememberPhotoPickerLauncher { base64 ->
+        attachmentUrl = base64; attachmentType = "IMAGE"; attachmentName = "classwork_${getSystemCurrentDate().formatted.replace('/', '_')}.jpg"
+    }
+    val cameraLauncher = rememberCameraCaptureLauncher { base64 ->
+        attachmentUrl = base64; attachmentType = "IMAGE"; attachmentName = "camera_${getSystemCurrentDate().formatted.replace('/', '_')}.jpg"
+    }
+    val pdfPickerLauncher = rememberPdfPickerLauncher { base64, fName ->
+        attachmentUrl = base64; attachmentType = "PDF"; attachmentName = fName
+    }
+    var fullScreenImage by remember { mutableStateOf<String?>(null) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showClassMenu by remember { mutableStateOf(false) }
 
@@ -832,7 +899,12 @@ fun ClassworkScreen(
                                             subject = subject.trim(),
                                             topicTitle = topicTitle.trim(),
                                             summary = summary.trim(),
-                                            date = logDate
+                                            date = logDate,
+                                            attachmentUrl = attachmentUrl,
+                                            attachmentType = attachmentType,
+                                            attachmentName = attachmentName,
+                                            assignedBy = "Admin",
+                                            createdAt = getCurrentEpochMillis()
                                         ); val _id = database.classworkDao().insertClasswork(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushClasswork(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     topicTitle = ""
                                     summary = ""

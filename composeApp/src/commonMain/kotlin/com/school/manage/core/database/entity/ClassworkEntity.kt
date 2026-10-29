@@ -11,5 +11,10 @@ data class ClassworkEntity(
     val subject: String = "",
     val topicTitle: String = "",
     val summary: String = "",
-    val date: String = "03/10/2026"
+    val date: String = "",
+    val attachmentUrl: String = "",
+    val attachmentType: String = "NONE",
+    val attachmentName: String = "",
+    val assignedBy: String = "",
+    val createdAt: Long = 0L
 )

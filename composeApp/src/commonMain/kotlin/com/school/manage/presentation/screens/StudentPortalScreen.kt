@@ -32,6 +32,8 @@ import com.school.manage.core.database.entity.LeaveRequestEntity
 import com.school.manage.core.database.entity.SchoolEntity
 import com.school.manage.core.database.entity.StudentEntity
 import com.school.manage.core.utils.ProfileAvatar
+import com.school.manage.core.utils.openPdfAttachment
+import com.school.manage.core.utils.decodeBase64ToImageBitmap
 import com.school.manage.core.utils.rememberPhotoPickerLauncher
 import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
