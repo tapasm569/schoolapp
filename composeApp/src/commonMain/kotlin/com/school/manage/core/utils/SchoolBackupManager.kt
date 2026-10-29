@@ -375,8 +375,9 @@ class SchoolBackupManager(private val database: AppDatabase) {
             }
 
             val dataRows = if (hasHeader) lines.drop(1) else lines
-            val existingBatches = database.batchDao().getBatchesBySchool(schoolCode).first()
-                .map { it.batchName.lowercase() }.toMutableSet()
+            val initialBatchesList = database.batchDao().getBatchesBySchool(schoolCode).first()
+            val batchMap = initialBatchesList.associateBy { it.batchName.trim().lowercase() }.toMutableMap()
+            val existingBatches = batchMap.keys.toMutableSet()
             val existingStudents = database.studentDao().getStudentsBySchool(schoolCode).first().toMutableList()
 
             val classMaxRollMap = mutableMapOf<String, Int>()
@@ -422,15 +423,19 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
 
                 if (classKey !in existingBatches) {
-                    database.batchDao().insertBatch(
-                        BatchEntity(
-                            schoolCode = schoolCode,
-                            batchName = gradeClass,
-                            defaultMonthlyTuition = monthlyFee
-                        )
+                    val newBatchObj = BatchEntity(
+                        schoolCode = schoolCode,
+                        batchName = gradeClass,
+                        defaultMonthlyTuition = monthlyFee
                     )
+                    val insertedBatchId = database.batchDao().insertBatch(newBatchObj)
+                    val savedBatch = newBatchObj.copy(id = if (insertedBatchId > 0L) insertedBatchId else 0L)
+                    batchMap[classKey] = savedBatch
                     existingBatches.add(classKey)
                     newClassesCount++
+                    try {
+                        com.school.manage.core.firebase.FirestoreSyncService(database).pushBatch(schoolCode, savedBatch)
+                    } catch (_: Exception) {}
                 }
 
                 val duplicate = existingStudents.find {
@@ -453,19 +458,26 @@ class SchoolBackupManager(private val database: AppDatabase) {
                     }
                 }
 
+                val classDefaultFee = batchMap[classKey]?.defaultMonthlyTuition ?: 0.0
+                val effectiveMonthlyFee = when {
+                    monthlyFee > 0.0 -> monthlyFee
+                    duplicate != null && duplicate.monthlyFee > 0.0 -> duplicate.monthlyFee
+                    else -> classDefaultFee
+                }
+
                 val studentToSave = StudentEntity(
                     id = duplicate?.id ?: 0L,
                     schoolCode = schoolCode,
                     rollNo = finalRoll,
                     name = studentName,
                     gradeClass = gradeClass,
-                    section = section.ifEmpty { duplicate?.section.orEmpty() },
+                    section = section.ifEmpty { duplicate?.section.orEmpty().ifEmpty { "A" } },
                     guardianName = father.ifEmpty { duplicate?.guardianName.orEmpty() },
                     fatherName = father.ifEmpty { duplicate?.fatherName.orEmpty() },
                     motherName = mother.ifEmpty { duplicate?.motherName.orEmpty() },
                     phone = phone.ifEmpty { duplicate?.phone.orEmpty() },
                     whatsapp = whatsapp.ifEmpty { duplicate?.whatsapp.orEmpty() },
-                    monthlyFee = if (monthlyFee > 0.0) monthlyFee else (duplicate?.monthlyFee ?: 0.0),
+                    monthlyFee = effectiveMonthlyFee,
                     admissionFee = pendingDue,
                     admissionDate = admDate,
                     dob = dob.ifEmpty { duplicate?.dob.orEmpty() },
@@ -478,25 +490,34 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val savedId = database.studentDao().insertStudent(studentToSave)
                 val effectiveStudentId = if (duplicate != null && duplicate.id != 0L) duplicate.id else savedId
 
-                if (settlePastMonthsAutomatically && monthlyFee > 0.0 && duplicate == null) {
+                val finalStudentToPush = studentToSave.copy(id = effectiveStudentId)
+                try {
+                    com.school.manage.core.firebase.FirestoreSyncService(database).pushStudentRecord(schoolCode, finalStudentToPush)
+                } catch (_: Exception) {}
+
+                if (settlePastMonthsAutomatically && effectiveMonthlyFee > 0.0 && duplicate == null) {
                     val admParts = admDate.split("/", "-", ".")
                     val admMonth = admParts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: currentMonthIndex
                     val admYear = admParts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: currentYear
                     val pastMonthsCount = maxOf(0, (currentYear - admYear) * 12 + (currentMonthIndex - admMonth))
 
                     if (pastMonthsCount > 0) {
-                        val pastPaidAmount = pastMonthsCount * monthlyFee
-                        database.feeDao().insertFeeRecord(
-                            FeeRecordEntity(
-                                schoolCode = schoolCode,
-                                studentId = effectiveStudentId,
-                                studentName = studentName,
-                                amountPaid = pastPaidAmount,
-                                paymentDate = currentDatestr,
-                                paymentMode = "Historical Import",
-                                remarks = "Auto-settled $pastMonthsCount past months on Excel import"
-                            )
+                        val pastPaidAmount = pastMonthsCount * effectiveMonthlyFee
+                        val feeRecord = FeeRecordEntity(
+                            schoolCode = schoolCode,
+                            studentId = effectiveStudentId,
+                            studentName = studentName,
+                            gradeClass = gradeClass,
+                            amountPaid = pastPaidAmount,
+                            paymentDate = currentDatestr,
+                            paymentMode = "Historical Import",
+                            remarks = "Auto-settled $pastMonthsCount past months on Excel import"
                         )
+                        val insertedFeeId = database.feeDao().insertFeeRecord(feeRecord)
+                        val finalFeeToPush = feeRecord.copy(id = if (insertedFeeId > 0L) insertedFeeId else 0L)
+                        try {
+                            com.school.manage.core.firebase.FirestoreSyncService(database).pushFeeRecord(schoolCode, finalFeeToPush)
+                        } catch (_: Exception) {}
                     }
                 }
 
