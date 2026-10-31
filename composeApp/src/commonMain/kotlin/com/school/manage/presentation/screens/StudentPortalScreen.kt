@@ -582,6 +582,36 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                                             Spacer(modifier = Modifier.height(6.dp))
                                             Text(cw.summary, fontSize = 13.sp, color = Color(0xFF334155))
                                         }
+                                        if (cw.assignedBy.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text("👤 Assigned by: " + cw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = primaryColor)
+                                        }
+                                        if (cw.attachmentType == "IMAGE" && cw.attachmentUrl.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            val img = remember(cw.attachmentUrl) { decodeBase64ToImageBitmap(cw.attachmentUrl) }
+                                            if (img != null) {
+                                                androidx.compose.foundation.Image(
+                                                    bitmap = img,
+                                                    contentDescription = "Classwork Attachment",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(160.dp)
+                                                        .clip(RoundedCornerShape(10.dp))
+                                                        .clickable { fullScreenImage = cw.attachmentUrl },
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                                )
+                                            }
+                                        } else if (cw.attachmentType == "PDF" && cw.attachmentUrl.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Button(
+                                                onClick = { openPdfAttachment(cw.attachmentUrl, cw.attachmentName.ifBlank { "classwork.pdf" }) },
+                                                colors = ButtonDefaults.buttonColors(containerColor = primaryColor.copy(alpha = 0.12f), contentColor = primaryColor),
+                                                shape = RoundedCornerShape(8.dp),
+                                                modifier = Modifier.fillMaxWidth().height(36.dp)
+                                            ) {
+                                                Text("📄 View / Open PDF: " + cw.attachmentName.ifBlank { "document.pdf" }, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -628,6 +658,36 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                                         if (hw.description.isNotBlank()) {
                                             Spacer(modifier = Modifier.height(6.dp))
                                             Text(hw.description, fontSize = 13.sp, color = Color(0xFF334155))
+                                        }
+                                        if (hw.assignedBy.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = primaryColor)
+                                        }
+                                        if (hw.attachmentType == "IMAGE" && hw.attachmentUrl.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            val img = remember(hw.attachmentUrl) { decodeBase64ToImageBitmap(hw.attachmentUrl) }
+                                            if (img != null) {
+                                                androidx.compose.foundation.Image(
+                                                    bitmap = img,
+                                                    contentDescription = "Homework Attachment",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(160.dp)
+                                                        .clip(RoundedCornerShape(10.dp))
+                                                        .clickable { fullScreenImage = hw.attachmentUrl },
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                                )
+                                            }
+                                        } else if (hw.attachmentType == "PDF" && hw.attachmentUrl.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Button(
+                                                onClick = { openPdfAttachment(hw.attachmentUrl, hw.attachmentName.ifBlank { "homework.pdf" }) },
+                                                colors = ButtonDefaults.buttonColors(containerColor = primaryColor.copy(alpha = 0.12f), contentColor = primaryColor),
+                                                shape = RoundedCornerShape(8.dp),
+                                                modifier = Modifier.fillMaxWidth().height(36.dp)
+                                            ) {
+                                                Text("📄 View / Open PDF: " + hw.attachmentName.ifBlank { "document.pdf" }, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                            }
                                         }
                                     }
                                 }
