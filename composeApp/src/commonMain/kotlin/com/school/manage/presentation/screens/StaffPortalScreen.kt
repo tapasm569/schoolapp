@@ -1,4 +1,10 @@
 package com.school.manage.presentation.screens
+import androidx.compose.ui.window.Dialog
+import com.school.manage.core.utils.getCurrentEpochMillis
+import com.school.manage.core.utils.decodeBase64ToImageBitmap
+import com.school.manage.core.utils.openPdfAttachment
+import com.school.manage.core.utils.rememberPdfPickerLauncher
+import com.school.manage.core.utils.rememberCameraCaptureLauncher
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background

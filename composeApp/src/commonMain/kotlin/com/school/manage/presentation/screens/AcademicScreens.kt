@@ -595,6 +595,34 @@ fun HomeworkScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                 Text("Due Date: " + hw.dueDate, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
+
+                            if (hw.assignedBy.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                            }
+                            if (hw.attachmentType == "IMAGE" && hw.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                val img = remember(hw.attachmentUrl) { decodeBase64ToImageBitmap(hw.attachmentUrl) }
+                                if (img != null) {
+                                    androidx.compose.foundation.Image(
+                                        bitmap = img,
+                                        contentDescription = "Homework Attachment",
+                                        modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(12.dp)).clickable { fullScreenImage = hw.attachmentUrl },
+                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                    )
+                                }
+                            } else if (hw.attachmentType == "PDF" && hw.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { openPdfAttachment(hw.attachmentUrl, hw.attachmentName.ifBlank { "homework.pdf" }) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary.copy(alpha = 0.12f), contentColor = colors.brandPrimary),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.height(36.dp)
+                                ) {
+                                    Text("📄 View / Open PDF: " + hw.attachmentName.ifBlank { "document.pdf" }, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
                             if (hw.assignedBy.isNotBlank()) {
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = colors.brandPrimary)
