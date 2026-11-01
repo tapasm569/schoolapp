@@ -921,7 +921,7 @@ var newAdminPassword by remember { mutableStateOf("") }
                         FeatureIconItem("Leave\nManagement", "➖", Color(0xFFF0FDF4), onClick = { onNavigate("leave_management") })
                         FeatureIconItem("Timetable", "📅", Color(0xFFECFDF5), onClick = { onNavigate("timetable") })
                         FeatureIconItem("Online\nClasses", "📖", Color(0xFFF0FDF4), onClick = { onNavigate("online_classes") })
-                        FeatureIconItem("Question\nBank", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("question_bank") })
+                        FeatureIconItem("Study\nMaterial", "📑", Color(0xFFFEF3C7), onClick = { onNavigate("question_bank") })
                     }
                 }
             }

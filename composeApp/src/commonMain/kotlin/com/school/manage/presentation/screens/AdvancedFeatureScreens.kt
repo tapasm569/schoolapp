@@ -597,7 +597,7 @@ fun QuestionBankScreen(
         containerColor = colors.bgApp,
         topBar = {
             TopAppBar(
-                title = { Text("Question Bank (" + questions.size + ")", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
+                title = { Text("Study Material (" + questions.size + ")", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Text("←", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary) }
                 },
@@ -622,7 +622,7 @@ fun QuestionBankScreen(
             if (filtered.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
-                        Text("No questions saved yet. Tap + to add practice questions.", color = colors.textSecondary)
+                        Text("No study materials saved yet. Tap + to publish notes & materials.", color = colors.textSecondary)
                     }
                 }
             } else {
@@ -738,7 +738,7 @@ fun QuestionBankScreen(
             AlertDialog(
                 onDismissRequest = { showAddDialog = false },
                 containerColor = colors.bgCard,
-                title = { Text("Add Question / Study Note", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
+                title = { Text("Publish Study Material", fontWeight = FontWeight.Bold, color = colors.textPrimary) },
                 text = {
                     Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Box {
@@ -764,8 +764,8 @@ fun QuestionBankScreen(
                             onSubjectSelected = { subject = it }
                         )
                         CustomRoundedInput(value = chapter, onValueChange = { chapter = it }, placeholder = "Chapter / Topic")
-                        CustomRoundedInput(value = questionText, onValueChange = { questionText = it }, placeholder = "Question Text")
-                        CustomRoundedInput(value = answerKey, onValueChange = { answerKey = it }, placeholder = "Answer Key / Explanation")
+                        CustomRoundedInput(value = questionText, onValueChange = { questionText = it }, placeholder = "Material Title / Chapter Topic (e.g. Chapter 4 Notes)")
+                        CustomRoundedInput(value = answerKey, onValueChange = { answerKey = it }, placeholder = "Study Notes / Summary / Content details")
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             listOf("SHORT", "MCQ", "ESSAY").forEach { tp ->
                                 Surface(
@@ -813,10 +813,18 @@ fun QuestionBankScreen(
                                             chapterTopic = chapter.trim(),
                                             questionText = questionText.trim(),
                                             answerKey = answerKey.trim(),
-                                            questionType = qType
+                                            questionType = "NOTES",
+                                            attachmentUrl = attachmentUrl,
+                                            attachmentType = attachmentType,
+                                            attachmentName = attachmentName,
+                                            assignedBy = "$currentSchoolName (Admin)",
+                                            createdAt = getCurrentEpochMillis()
                                         ); val _id = database.questionBankDao().insertQuestion(_ent); val _final = if (_id > 0L) _ent.copy(id = _id) else _ent; try { com.school.manage.core.firebase.FirestoreSyncService(database).pushQuestion(schoolCode, _final) } catch (_: Exception) {}; _id }
                                     questionText = ""
                                     answerKey = ""
+                                    chapter = ""
+                                    subject = ""
+                                    attachmentUrl = ""; attachmentType = "NONE"; attachmentName = ""
                                     showAddDialog = false
                                 }
                             }

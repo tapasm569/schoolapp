@@ -768,8 +768,19 @@
     <div class="bg-white rounded-3xl p-6 max-w-xl w-full card-shadow max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-slate-900">⏱️ Scheduled Examinations</h3><button onclick="closeModal('examsModal')" class="text-slate-400 font-bold text-lg">✕</button></div>
       <form id="addExamForm" class="space-y-3 bg-slate-50 p-4 rounded-2xl mb-4">
-        <div class="grid grid-cols-2 gap-3"><input type="text" id="examTitle" required placeholder="Exam Title" class="w-full px-3 py-2 rounded-xl border text-sm"><input type="text" id="examClass" list="classOptionsList" required placeholder="Class" class="w-full px-3 py-2 rounded-xl border text-sm"></div>
-        <div class="grid grid-cols-3 gap-3"><input type="text" id="examSubject" required placeholder="Subject" class="w-full px-3 py-2 rounded-xl border text-sm"><input type="number" id="examMaxMarks" required placeholder="Max Marks" class="w-full px-3 py-2 rounded-xl border text-sm"><input type="date" id="examDate" required class="w-full px-3 py-2 rounded-xl border text-sm"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <input type="text" id="examTitle" required placeholder="Exam Title" class="w-full px-3 py-2 rounded-xl border text-sm">
+          <select id="examClass" required onchange="updateModuleSubjects('exam')" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-semibold">
+            <option value="">-- Select Class --</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <select id="examSubject" required onchange="handleSubjectChange('exam')" class="w-full px-3 py-2 rounded-xl border text-sm bg-white font-semibold">
+            <option value="">-- Choose Class First --</option>
+          </select>
+          <input type="number" id="examMaxMarks" required placeholder="Max Marks" class="w-full px-3 py-2 rounded-xl border text-sm">
+          <input type="date" id="examDate" required class="w-full px-3 py-2 rounded-xl border text-sm">
+        </div>
         <button type="submit" class="w-full py-2 bg-blue-700 text-white font-bold rounded-xl text-xs">+ Save Exam</button>
       </form>
       <div class="space-y-3" id="examsListContainer"></div>
@@ -889,7 +900,15 @@
     <div class="bg-white rounded-3xl p-6 max-w-xl w-full card-shadow max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-extrabold text-slate-900">📑 Question Bank</h3><button onclick="closeModal('questionBankModal')" class="text-slate-400 font-bold text-lg">✕</button></div>
       <form id="addQuestionForm" class="space-y-3 bg-slate-50 p-4 rounded-2xl mb-4">
-        <div class="grid grid-cols-3 gap-2"><input type="text" id="qbClass" list="classOptionsList" required placeholder="Class" class="w-full px-2 py-2 rounded-xl border text-xs"><input type="text" id="qbSubject" required placeholder="Subject" class="w-full px-2 py-2 rounded-xl border text-xs"><input type="text" id="qbTopic" required placeholder="Topic" class="w-full px-2 py-2 rounded-xl border text-xs"></div>
+        <div class="grid grid-cols-3 gap-2">
+          <select id="qbClass" required onchange="updateModuleSubjects('qb')" class="w-full px-2 py-2 rounded-xl border text-xs bg-white font-semibold">
+            <option value="">-- Select Class --</option>
+          </select>
+          <select id="qbSubject" required onchange="handleSubjectChange('qb')" class="w-full px-2 py-2 rounded-xl border text-xs bg-white font-semibold">
+            <option value="">-- Choose Class First --</option>
+          </select>
+          <input type="text" id="qbTopic" required placeholder="Topic" class="w-full px-2 py-2 rounded-xl border text-xs">
+        </div>
         <textarea id="qbQuestion" required placeholder="Question text..." class="w-full px-3 py-2 rounded-xl border text-sm" rows="2"></textarea>
         <textarea id="qbAnswer" required placeholder="Answer explanation..." class="w-full px-3 py-2 rounded-xl border text-sm" rows="2"></textarea>
         <button type="submit" class="w-full py-2 bg-amber-600 text-white font-bold rounded-xl text-xs">+ Save Question</button>

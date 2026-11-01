@@ -323,7 +323,7 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    StudentModernActionTile("Materials", "📑", Color(0xFFE0E7FF), onClick = { activeModal = "QUESTION_BANK" })
+                    StudentModernActionTile("Study Material", "📑", Color(0xFFE0E7FF), onClick = { activeModal = "QUESTION_BANK" })
                     StudentModernActionTile("Live Class", "⏱️", Color(0xFFFFEDD5), onClick = { activeModal = "LIVE" })
                     StudentModernActionTile("Leave", "➖", Color(0xFFFEF9C3), onClick = { activeModal = "LEAVE" })
                 }
@@ -728,14 +728,14 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Question Bank & Notes", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                        Text("Study Material", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
                         Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFEEF2FF)) {
                             Text(studentClass, color = Color(0xFF4F46E5), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
                         }
                     }
 
                     if (studentQuestionBank.isEmpty()) {
-                        Text("No question bank or study materials posted for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
+                        Text("No study materials posted yet for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
                     } else {
                         LazyColumn(modifier = Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(studentQuestionBank) { q ->
@@ -810,7 +810,7 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                                                 shape = RoundedCornerShape(8.dp),
                                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFF6FF), contentColor = Color(0xFF2563EB))
                                             ) {
-                                                Text("📄 View / Open PDF: " + q.attachmentName.ifBlank { "Notes.pdf" }, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                                Text("📄 Download / Open PDF: " + q.attachmentName.ifBlank { "StudyMaterial.pdf" }, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                             }
                                         }
 
