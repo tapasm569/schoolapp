@@ -41,6 +41,8 @@ import com.school.manage.core.utils.decodeBase64ToImageBitmap
 import com.school.manage.core.utils.rememberPhotoPickerLauncher
 import com.school.manage.core.firebase.FirestoreSyncService
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +92,7 @@ val primaryColor = MaterialTheme.colorScheme.primary
     // Dynamic data flows for student's class
     val homeworkList by database.homeworkDao().getHomeworkBySchool(schoolCode).collectAsState(initial = emptyList())
     val classworkList by database.classworkDao().getClassworkBySchool(schoolCode).collectAsState(initial = emptyList())
+    val questionBankList by database.questionBankDao().getQuestionsBySchool(schoolCode).collectAsState(initial = emptyList())
     val examList by database.examDao().getExamsBySchool(schoolCode).collectAsState(initial = emptyList())
     val onlineClasses by database.onlineClassDao().getOnlineClassesBySchool(schoolCode).collectAsState(initial = emptyList())
     val leaves by database.leaveDao().getLeavesBySchool(schoolCode).collectAsState(initial = emptyList())
@@ -103,6 +106,7 @@ val primaryColor = MaterialTheme.colorScheme.primary
     // Filter by student class
     val studentHomework = homeworkList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
     val studentClasswork = classworkList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
+    val studentQuestionBank = questionBankList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) }
     val studentExams = examList.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
     val studentOnlineClasses = onlineClasses.filter { it.gradeClass.equals(studentClass, ignoreCase = true) || it.gradeClass.isBlank() }
     val myLeaves = leaves.filter { it.applicantName.equals(studentName, ignoreCase = true) }
@@ -313,12 +317,13 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                 }
             }
 
-            // Row 2: Live Class & Leave
+            // Row 2: Live Class, Question Bank & Leave
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    StudentModernActionTile("Materials", "📑", Color(0xFFE0E7FF), onClick = { activeModal = "QUESTION_BANK" })
                     StudentModernActionTile("Live Class", "⏱️", Color(0xFFFFEDD5), onClick = { activeModal = "LIVE" })
                     StudentModernActionTile("Leave", "➖", Color(0xFFFEF9C3), onClick = { activeModal = "LEAVE" })
                 }
@@ -694,6 +699,133 @@ StudentModernActionTile("Fees", "💰", Color(0xFFDCFCE7), onClick = { activeMod
                             }
                         }
                     }
+                    Button(
+                        onClick = { activeModal = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
+        }
+
+        // 4b. QUESTION BANK & STUDY MATERIALS MODAL
+        if (activeModal == "QUESTION_BANK") {
+            ModalBottomSheet(
+                onDismissRequest = { activeModal = null },
+                containerColor = Color.White,
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Question Bank & Notes", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color(0xFF1E293B))
+                        Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFEEF2FF)) {
+                            Text(studentClass, color = Color(0xFF4F46E5), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp))
+                        }
+                    }
+
+                    if (studentQuestionBank.isEmpty()) {
+                        Text("No question bank or study materials posted for Class $studentClass.", color = Color.Gray, fontSize = 13.sp)
+                    } else {
+                        LazyColumn(modifier = Modifier.heightIn(max = 420.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            items(studentQuestionBank) { q ->
+                                var showSolution by remember(q.id) { mutableStateOf(false) }
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFFF8FAFC),
+                                    border = BorderStroke(1.dp, Color(0xFFE2E8F0)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(14.dp)) {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFEEF2FF)) {
+                                                Text(q.subject, color = Color(0xFF4F46E5), fontSize = 11.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                            }
+                                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFFEF3C7)) {
+                                                Text(q.questionType, color = Color(0xFFB45309), fontSize = 10.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                            }
+                                        }
+
+                                        if (q.chapterTopic.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Text("Topic: " + q.chapterTopic, fontSize = 12.sp, color = Color(0xFF64748B), fontWeight = FontWeight.Medium)
+                                        }
+
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text("Q: " + q.questionText, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = Color(0xFF1E293B))
+
+                                        if (q.assignedBy.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFEEF2FF)) {
+                                                Text("👤 Assigned by: " + q.assignedBy, color = Color(0xFF4F46E5), fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                            }
+                                        }
+
+                                        if (showSolution && q.answerKey.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Surface(
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = Color(0xFFF0FDF4),
+                                                border = BorderStroke(1.dp, Color(0xFFBBF7D0)),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Column(modifier = Modifier.padding(10.dp)) {
+                                                    Text("Answer / Study Notes:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF166534))
+                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Text(q.answerKey, fontSize = 12.sp, color = Color(0xFF1E293B))
+                                                }
+                                            }
+                                        }
+
+                                        if (q.attachmentType == "IMAGE" && q.attachmentUrl.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            val bmp = remember(q.attachmentUrl) { com.school.manage.core.utils.decodeBase64ToImageBitmap(q.attachmentUrl) }
+                                            if (bmp != null) {
+                                                Image(
+                                                    bitmap = bmp,
+                                                    contentDescription = "Question Image",
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .height(160.dp)
+                                                        .clip(RoundedCornerShape(10.dp))
+                                                        .clickable { fullScreenImage = q.attachmentUrl },
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            }
+                                        } else if (q.attachmentType == "PDF" && q.attachmentUrl.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Button(
+                                                onClick = { openPdfAttachment(q.attachmentUrl, q.attachmentName.ifBlank { "study_notes.pdf" }) },
+                                                modifier = Modifier.fillMaxWidth(),
+                                                shape = RoundedCornerShape(8.dp),
+                                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFF6FF), contentColor = Color(0xFF2563EB))
+                                            ) {
+                                                Text("📄 View / Open PDF: " + q.attachmentName.ifBlank { "Notes.pdf" }, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+
+                                        if (q.answerKey.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(6.dp))
+                                            TextButton(onClick = { showSolution = !showSolution }) {
+                                                Text(if (showSolution) "Hide Answer" else "Show Answer / Solution", color = Color(0xFF4F46E5), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     Button(
                         onClick = { activeModal = null },
                         modifier = Modifier.fillMaxWidth(),

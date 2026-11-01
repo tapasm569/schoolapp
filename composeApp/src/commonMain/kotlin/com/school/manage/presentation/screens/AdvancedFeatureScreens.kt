@@ -33,6 +33,8 @@ import com.school.manage.core.database.AppDatabase
 import com.school.manage.core.database.entity.*
 import com.school.manage.presentation.theme.LocalSchoolColors
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -646,7 +648,7 @@ fun QuestionBankScreen(
                             Spacer(modifier = Modifier.height(6.dp))
                             Text("Q: " + q.questionText, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = colors.textPrimary)
 
-                            if (showAnswer) {
+                            if (showAnswer && q.answerKey.isNotBlank()) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Surface(
                                     shape = RoundedCornerShape(8.dp),
@@ -657,6 +659,36 @@ fun QuestionBankScreen(
                                         Text("Answer / Solution:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.success)
                                         Text(q.answerKey, fontSize = 12.sp, color = colors.textPrimary)
                                     }
+                                }
+                            }
+
+                            if (q.assignedBy.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Surface(shape = RoundedCornerShape(6.dp), color = colors.brandPrimary.copy(alpha = 0.08f)) {
+                                    Text("👤 Assigned by: " + q.assignedBy, color = colors.brandPrimary, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                }
+                            }
+
+                            if (q.attachmentType == "IMAGE" && q.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                val bmp = remember(q.attachmentUrl) { com.school.manage.core.utils.decodeBase64ToImageBitmap(q.attachmentUrl) }
+                                if (bmp != null) {
+                                    Image(
+                                        bitmap = bmp,
+                                        contentDescription = "Question Attachment",
+                                        modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(10.dp)).clickable { fullScreenImage = q.attachmentUrl },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            } else if (q.attachmentType == "PDF" && q.attachmentUrl.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Button(
+                                    onClick = { openPdfAttachment(q.attachmentUrl, q.attachmentName.ifBlank { "study_material.pdf" }) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary.copy(alpha = 0.12f), contentColor = colors.brandPrimary)
+                                ) {
+                                    Text("📄 View / Open PDF: " + q.attachmentName.ifBlank { "Document.pdf" }, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
 
