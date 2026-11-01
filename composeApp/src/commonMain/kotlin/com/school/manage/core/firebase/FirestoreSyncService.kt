@@ -269,6 +269,18 @@ class FirestoreSyncService(private val database: AppDatabase) {
         return true
     }
 
+    
+    suspend fun deleteFeeRecord(schoolCode: String, fee: FeeRecordEntity) {
+        val sCode = resolveSchoolCode(schoolCode.ifBlank { fee.schoolCode })
+        database.feeDao().deleteFeeRecord(fee)
+        if (sCode.isNotBlank() && fee.id > 0L) {
+            try {
+                rtdb.reference("schools").child(sCode).child("fees").child(fee.id.toString()).removeValue()
+                rtdb.reference("schools").child(sCode).child("fee_records").child(fee.id.toString()).removeValue()
+            } catch (_: Exception) {}
+        }
+    }
+
     suspend fun deleteModuleRecord(schoolCode: String, collection: String, id: Long) {
         val targetSchool = resolveSchoolCode(schoolCode)
         if (targetSchool.isBlank() || id <= 0L) return
@@ -659,10 +671,12 @@ class FirestoreSyncService(private val database: AppDatabase) {
             }
 
             "fees", "fee_records" -> {
+                val cloudIds = mutableSetOf<Long>()
                 for (child in children) {
                     val map = child.value as? Map<*, *> ?: continue
                     val id = map["id"]?.toString()?.toLongOrNull() ?: child.key?.toLongOrNull() ?: continue
                     if (id <= 0L) continue
+                    cloudIds.add(id)
 
                     database.feeDao().insertFeeRecord(
                         FeeRecordEntity(
@@ -678,6 +692,18 @@ class FirestoreSyncService(private val database: AppDatabase) {
                             remarks = map["remarks"]?.toString() ?: ""
                         )
                     )
+                }
+                // Prune local Room records that were deleted in Firebase
+                val localList = database.feeDao().getFeeRecordsBySchool(schoolCode).first()
+                for (item in localList) {
+                    if (item.id > 0L && item.id !in cloudIds) {
+                        database.feeDao().deleteFeeRecord(item)
+                        try {
+                            val sCode = resolveSchoolCode(schoolCode)
+                            rtdb.reference("schools").child(sCode).child("fees").child(item.id.toString()).removeValue()
+                            rtdb.reference("schools").child(sCode).child("fee_records").child(item.id.toString()).removeValue()
+                        } catch (_: Exception) {}
+                    }
                 }
             }
 
@@ -1009,7 +1035,7 @@ class FirestoreSyncService(private val database: AppDatabase) {
             if (sCode.isBlank()) return@launch
             if (syncJobs[sCode]?.isActive == true) return@launch
 
-            pushAllLocalDataToCloud(sCode)
+            // pushAllLocalDataToCloud removed to prevent resurrecting deleted cloud records
 
             syncJobs[sCode] = launch {
                 val schoolRef = rtdb.reference("schools").child(sCode)
