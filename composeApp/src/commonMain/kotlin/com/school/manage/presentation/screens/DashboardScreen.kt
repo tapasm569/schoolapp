@@ -1790,7 +1790,7 @@ AddNewOptionItem(
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
                             Text("Import Admitted Students", fontWeight = FontWeight.Bold, fontSize = 17.sp, color = colors.textPrimary)
-                            Text("Bulk upload 3 years school register from Excel (.csv)", fontSize = 11.sp, color = colors.textSecondary)
+                            Text("Upload student register from Excel (.xlsx / .csv)", fontSize = 11.sp, color = colors.textSecondary)
                         }
                     }
                 },
@@ -1862,13 +1862,13 @@ AddNewOptionItem(
                             Spacer(modifier = Modifier.width(6.dp))
                             Column {
                                 Text(
-                                    text = "Auto-settle past months (2023–2026)",
+                                    text = "Start Dues from Admission Month",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = colors.textPrimary
                                 )
                                 Text(
-                                    text = "Prevents old Admission Dates from creating false unpaid dues. Only 'Pending Due' column + current month will be owed.",
+                                    text = "Dues start strictly from admission month. Matches existing school classes only (never creates new classes).",
                                     fontSize = 10.sp,
                                     color = colors.textSecondary
                                 )

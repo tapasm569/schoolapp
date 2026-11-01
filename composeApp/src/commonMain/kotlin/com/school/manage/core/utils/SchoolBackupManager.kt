@@ -376,9 +376,26 @@ class SchoolBackupManager(private val database: AppDatabase) {
 
             val dataRows = if (hasHeader) lines.drop(1) else lines
             val initialBatchesList = database.batchDao().getBatchesBySchool(schoolCode).first()
-            val batchMap = initialBatchesList.associateBy { it.batchName.trim().lowercase() }.toMutableMap()
-            val existingBatches = batchMap.keys.toMutableSet()
+            if (initialBatchesList.isEmpty()) {
+                return@withContext Result.failure(Exception("No classes found in school! Please add classes first before importing students."))
+            }
             val existingStudents = database.studentDao().getStudentsBySchool(schoolCode).first().toMutableList()
+
+            fun findMatchingBatch(inputClass: String): com.school.manage.core.database.entity.BatchEntity? {
+                val trimmed = inputClass.trim()
+                if (trimmed.isEmpty()) return null
+                return initialBatchesList.find { b ->
+                    b.batchName.trim().equals(trimmed, ignoreCase = true)
+                } ?: initialBatchesList.find { b ->
+                    val cleanB = b.batchName.replace(Regex("[^A-Za-z0-9]"), "")
+                    val cleanG = trimmed.replace(Regex("[^A-Za-z0-9]"), "")
+                    cleanB.isNotEmpty() && cleanB.equals(cleanG, ignoreCase = true)
+                } ?: initialBatchesList.find { b ->
+                    val bDigits = b.batchName.filter { it.isDigit() }
+                    val gDigits = trimmed.filter { it.isDigit() }
+                    bDigits.isNotEmpty() && bDigits == gDigits
+                }
+            }
 
             val classMaxRollMap = mutableMapOf<String, Int>()
             existingStudents.forEach { st ->
@@ -404,7 +421,14 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val studentName = cols.getOrNull(idxName)?.trim().orEmpty()
                 if (studentName.isEmpty()) continue
 
-                val gradeClass = cols.getOrNull(idxClass)?.trim().orEmpty().ifEmpty { "General" }
+                val rawClass = cols.getOrNull(idxClass)?.trim().orEmpty()
+                val matchedBatch = findMatchingBatch(rawClass)
+                if (matchedBatch == null) {
+                    // NEVER create any class; skip row if it does not match school classes
+                    newClassesCount++ // reused as skipped counter
+                    continue
+                }
+                val gradeClass = matchedBatch.batchName
                 val classKey = gradeClass.lowercase()
                 val rawRoll = cols.getOrNull(idxRoll)?.trim().orEmpty()
 
@@ -417,26 +441,18 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 val pendingDue = cols.getOrNull(idxPendingDue)?.replace("₹", "")?.replace(",", "")?.trim()?.toDoubleOrNull() ?: 0.0
                 val gender = if (idxGender >= 0) cols.getOrNull(idxGender)?.trim().orEmpty().ifEmpty { "Male" } else "Male"
                 val rawAdmDate = if (idxAdmissionDate >= 0) cols.getOrNull(idxAdmissionDate)?.trim().orEmpty() else ""
-                val admDate: String = if (rawAdmDate.isNotEmpty()) rawAdmDate else currentDatestr
+                val admDate: String = if (rawAdmDate.isNotEmpty()) {
+                    val p = rawAdmDate.split("/", "-", ".")
+                    val d = p.getOrNull(0)?.toIntOrNull()?.let { it.coerceIn(1, 31).toString().padStart(2, '0') } ?: "01"
+                    val m = p.getOrNull(1)?.toIntOrNull()?.let { it.coerceIn(1, 12).toString().padStart(2, '0') } ?: (currentMonthIndex + 1).toString().padStart(2, '0')
+                    // Start due month strictly from admission month in current session (not 2 or 3 years ago)
+                    "$d/$m/$currentYear"
+                } else {
+                    currentDatestr
+                }
                 val dob = if (idxDob >= 0) cols.getOrNull(idxDob)?.trim().orEmpty() else ""
                 val caste = if (idxCaste >= 0) cols.getOrNull(idxCaste)?.trim().orEmpty() else ""
                 val address = if (idxAddress >= 0) cols.getOrNull(idxAddress)?.trim().orEmpty() else ""
-
-                if (classKey !in existingBatches) {
-                    val newBatchObj = BatchEntity(
-                        schoolCode = schoolCode,
-                        batchName = gradeClass,
-                        defaultMonthlyTuition = monthlyFee
-                    )
-                    val insertedBatchId = database.batchDao().insertBatch(newBatchObj)
-                    val savedBatch = newBatchObj.copy(id = if (insertedBatchId > 0L) insertedBatchId else 0L)
-                    batchMap[classKey] = savedBatch
-                    existingBatches.add(classKey)
-                    newClassesCount++
-                    try {
-                        com.school.manage.core.firebase.FirestoreSyncService(database).pushBatch(schoolCode, savedBatch)
-                    } catch (_: Exception) {}
-                }
 
                 val duplicate = existingStudents.find {
                     it.name.equals(studentName, ignoreCase = true) &&
@@ -458,7 +474,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                     }
                 }
 
-                val classDefaultFee = batchMap[classKey]?.defaultMonthlyTuition ?: 0.0
+                val classDefaultFee = matchedBatch.defaultMonthlyTuition
                 val effectiveMonthlyFee = when {
                     monthlyFee > 0.0 -> monthlyFee
                     duplicate != null && duplicate.monthlyFee > 0.0 -> duplicate.monthlyFee
@@ -495,31 +511,7 @@ class SchoolBackupManager(private val database: AppDatabase) {
                     com.school.manage.core.firebase.FirestoreSyncService(database).pushStudentRecord(schoolCode, finalStudentToPush)
                 } catch (_: Exception) {}
 
-                if (settlePastMonthsAutomatically && effectiveMonthlyFee > 0.0 && duplicate == null) {
-                    val admParts = admDate.split("/", "-", ".")
-                    val admMonth = admParts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: currentMonthIndex
-                    val admYear = admParts.getOrNull(2)?.toIntOrNull()?.let { if (it < 100) 2000 + it else it } ?: currentYear
-                    val pastMonthsCount = maxOf(0, (currentYear - admYear) * 12 + (currentMonthIndex - admMonth))
-
-                    if (pastMonthsCount > 0) {
-                        val pastPaidAmount = pastMonthsCount * effectiveMonthlyFee
-                        val feeRecord = FeeRecordEntity(
-                            schoolCode = schoolCode,
-                            studentId = effectiveStudentId,
-                            studentName = studentName,
-                            gradeClass = gradeClass,
-                            amountPaid = pastPaidAmount,
-                            paymentDate = currentDatestr,
-                            paymentMode = "Historical Import",
-                            remarks = "Auto-settled $pastMonthsCount past months on Excel import"
-                        )
-                        val insertedFeeId = database.feeDao().insertFeeRecord(feeRecord)
-                        val finalFeeToPush = feeRecord.copy(id = if (insertedFeeId > 0L) insertedFeeId else 0L)
-                        try {
-                            com.school.manage.core.firebase.FirestoreSyncService(database).pushFeeRecord(schoolCode, finalFeeToPush)
-                        } catch (_: Exception) {}
-                    }
-                }
+// Dues strictly start from admission month; no fake past payment records generated
 
                 if (duplicate != null) {
                     updatedCount++
@@ -532,9 +524,9 @@ class SchoolBackupManager(private val database: AppDatabase) {
                 Result.failure(Exception("No valid student rows found. Please check your Excel columns."))
             } else {
                 val summaryParts = mutableListOf<String>()
-                if (importedCount > 0) summaryParts.add("$importedCount new students added")
-                if (updatedCount > 0) summaryParts.add("$updatedCount existing updated")
-                if (newClassesCount > 0) summaryParts.add("$newClassesCount classes created")
+                if (importedCount > 0) summaryParts.add("$importedCount students imported")
+                if (updatedCount > 0) summaryParts.add("$updatedCount updated")
+                if (newClassesCount > 0) summaryParts.add("$newClassesCount skipped (class not matched)")
                 Result.success("✓ Import Complete: " + summaryParts.joinToString(", ") + "!")
             }
         } catch (e: Exception) {

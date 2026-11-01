@@ -77,7 +77,7 @@ fun StudentDuesScreen(
             val parts = student.admissionDate.split("/")
             val admMonth = parts.getOrNull(1)?.toIntOrNull()?.minus(1) ?: sysDate.monthIndex
             val admYear = parts.getOrNull(2)?.toIntOrNull() ?: sysDate.year
-            val elapsedMonths = maxOf(1, (sysDate.year - admYear) * 12 + (sysDate.monthIndex - admMonth) + 1)
+            val elapsedMonths = if (admYear < sysDate.year) maxOf(1, sysDate.monthIndex + 1) else maxOf(1, sysDate.monthIndex - admMonth + 1)
 
             val batch = batches.find { it.batchName.equals(student.gradeClass, ignoreCase = true) }
             val monthlyRate = if (student.monthlyFee > 0.0) student.monthlyFee else (batch?.defaultMonthlyTuition ?: 0.0)
