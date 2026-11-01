@@ -592,14 +592,16 @@ fun HomeworkScreen(
                             Text("Subject: " + hw.subject, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.brandPrimary)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(hw.description, fontSize = 13.sp, color = colors.textSecondary)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Text("Due Date: " + hw.dueDate, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text("Due Date: " + hw.dueDate, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error)
 
                             if (hw.assignedBy.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Surface(shape = RoundedCornerShape(6.dp), color = colors.brandPrimary.copy(alpha = 0.08f)) {
+                                    Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = colors.brandPrimary, modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp))
+                                }
                             }
+
                             if (hw.attachmentType == "IMAGE" && hw.attachmentUrl.isNotBlank()) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 val img = remember(hw.attachmentUrl) { decodeBase64ToImageBitmap(hw.attachmentUrl) }
@@ -607,7 +609,11 @@ fun HomeworkScreen(
                                     androidx.compose.foundation.Image(
                                         bitmap = img,
                                         contentDescription = "Homework Attachment",
-                                        modifier = Modifier.fillMaxWidth().height(160.dp).clip(RoundedCornerShape(12.dp)).clickable { fullScreenImage = hw.attachmentUrl },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(160.dp)
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .clickable { fullScreenImage = hw.attachmentUrl },
                                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                     )
                                 }
@@ -616,41 +622,17 @@ fun HomeworkScreen(
                                 Button(
                                     onClick = { openPdfAttachment(hw.attachmentUrl, hw.attachmentName.ifBlank { "homework.pdf" }) },
                                     colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary.copy(alpha = 0.12f), contentColor = colors.brandPrimary),
-                                    shape = RoundedCornerShape(10.dp),
-                                    modifier = Modifier.height(36.dp)
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth().height(36.dp)
                                 ) {
-                                    Text("📄 View / Open PDF: " + hw.attachmentName.ifBlank { "document.pdf" }, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Text("📄 View / Open PDF: " + hw.attachmentName.ifBlank { "homework.pdf" }, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
 
-                            if (hw.assignedBy.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text("👤 Assigned by: " + hw.assignedBy, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = colors.brandPrimary)
-                            }
-                            if (hw.attachmentType == "IMAGE" && hw.attachmentUrl.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                val img = remember(hw.attachmentUrl) { decodeBase64ToImageBitmap(hw.attachmentUrl) }
-                                if (img != null) {
-                                    androidx.compose.foundation.Image(
-                                        bitmap = img,
-                                        contentDescription = "Attachment",
-                                        modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(8.dp)).clickable { fullScreenImage = hw.attachmentUrl },
-                                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                                    )
-                                }
-                            } else if (hw.attachmentType == "PDF" && hw.attachmentUrl.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Button(
-                                    onClick = { openPdfAttachment(hw.attachmentUrl, hw.attachmentName.ifBlank { "homework.pdf" }) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary.copy(alpha = 0.15f), contentColor = colors.brandPrimary),
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.height(34.dp)
-                                ) {
-                                    Text("📄 View / Open PDF: " + hw.attachmentName, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                                 TextButton(onClick = { scope.launch { run { val _ent = hw; database.homeworkDao().deleteHomework(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "homework", _ent.id) } catch (_: Exception) {} } } }) {
-                                    Text("Delete", color = colors.error, fontSize = 12.sp)
+                                    Text("Delete", color = colors.error, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -699,27 +681,6 @@ fun HomeworkScreen(
                             Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Due Date: " + dueDate, fontSize = 13.sp, color = colors.textPrimary)
                                 Text("📅", fontSize = 16.sp)
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text("📎 Attach Material (Optional)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Button(onClick = cameraLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
-                                Text("📷 Camera", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Button(onClick = photoPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
-                                Text("🖼️ Photo", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                            Button(onClick = pdfPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
-                                Text("📄 PDF", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                        if (attachmentType != "NONE" && attachmentUrl.isNotBlank()) {
-                            Surface(color = colors.brandPrimary.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
-                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                    Text("✓ " + (if (attachmentType == "PDF") "📄 " else "🖼️ ") + attachmentName.ifBlank { "Attached file" }, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
-                                    Text("✕ Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.clickable { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "" })
-                                }
                             }
                         }
                         Spacer(modifier = Modifier.height(4.dp))
@@ -965,9 +926,9 @@ fun ClassworkScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.height(6.dp))
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                                 TextButton(onClick = { scope.launch { run { val _ent = cw; database.classworkDao().deleteClasswork(_ent); try { com.school.manage.core.firebase.FirestoreSyncService(database).deleteModuleRecord(schoolCode, "classwork", _ent.id) } catch (_: Exception) {} } } }) {
-                                    Text("Remove", color = colors.error, fontSize = 12.sp)
+                                    Text("Delete", color = colors.error, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -1016,6 +977,28 @@ fun ClassworkScreen(
                             Row(modifier = Modifier.padding(14.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text("Lesson Date: " + logDate, fontSize = 13.sp, color = colors.textPrimary)
                                 Text("📅", fontSize = 16.sp)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("📎 Attach Material (Optional)", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = colors.textPrimary)
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Button(onClick = cameraLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📷 Camera", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = photoPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("🖼️ Photo", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                            Button(onClick = pdfPickerLauncher, colors = ButtonDefaults.buttonColors(containerColor = colors.brandPrimary), shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f).height(38.dp), contentPadding = PaddingValues(2.dp)) {
+                                Text("📄 PDF", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                        if (attachmentType != "NONE" && attachmentUrl.isNotBlank()) {
+                            Surface(color = colors.brandPrimary.copy(alpha = 0.12f), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
+                                Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                    Text("✓ " + (if (attachmentType == "PDF") "📄 " else "🖼️ ") + attachmentName.ifBlank { "Attached file" }, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.brandPrimary)
+                                    Text("✕ Remove", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = colors.error, modifier = Modifier.clickable { attachmentUrl = ""; attachmentType = "NONE"; attachmentName = "" })
+                                }
                             }
                         }
                     }
